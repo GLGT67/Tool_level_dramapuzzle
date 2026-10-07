@@ -860,7 +860,11 @@ body.spaceDown .stage { cursor: grab !important; }
   user-select: text;
 }
 .noteObj.triangle .shapeLabel { inset: 32% 18% 10%; }
-.noteObj.arrow { background: transparent; }
+.noteObj.arrow {
+  background: transparent !important;
+  border: 0 !important;
+  overflow: visible !important;
+}
 .noteObj.arrow svg {
   position: absolute;
   inset: 0;
@@ -869,11 +873,37 @@ body.spaceDown .stage { cursor: grab !important; }
   overflow: visible;
   pointer-events: none;
 }
+.noteObj.arrow.sel {
+  outline: 1.5px dashed rgba(59, 130, 246, 0.5) !important;
+  outline-offset: 2px;
+}
+.noteObj.arrow.sel svg line {
+  stroke: #3b82f6 !important;
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8));
+}
+.noteObj.arrow.sel svg marker path {
+  fill: #3b82f6 !important;
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8));
+}
+.noteObj.arrow.multiSel {
+  outline: 1.5px dashed rgba(16, 185, 129, 0.5) !important;
+  outline-offset: 2px;
+}
+.noteObj.arrow.multiSel svg line {
+  stroke: #10b981 !important;
+  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.8));
+}
+.noteObj.arrow.multiSel svg marker path {
+  fill: #10b981 !important;
+  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.8));
+}
 .noteObj.arrow .shapeLabel {
   inset: 22% 12%;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--dock-bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
   border-radius: 5px;
-  padding: 2px;
+  padding: 2px 4px;
 }
 .noteObj.locked .noteResize { display: none !important; }
 
@@ -2405,12 +2435,21 @@ function renderLive(){
     }else if(a.type==="triangle"){
       el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="arrow"){
-      const x1=a.arrowXDir===1?5:95,x2=a.arrowXDir===1?95:5;
-      const y1=a.arrowYDir===1?8:92,y2=a.arrowYDir===1?92:8;
+      const w=Math.max(20, a.w||60), h=Math.max(20, a.h||40);
+      const strokeW=a.strokeWidth||4;
       const markerId="arrow_"+a.id;
-      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none">
-        <defs><marker id="${markerId}" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,4 L0,8 Z" fill="${a.stroke}"></path></marker></defs>
-        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${a.stroke}" stroke-width="${a.strokeWidth}" vector-effect="non-scaling-stroke" marker-end="url(#${markerId})"></line>
+      const markerSize=Math.max(14, strokeW * 2.8);
+      const x1=a.arrowXDir===1?strokeW:w-strokeW;
+      const x2=a.arrowXDir===1?w-strokeW:strokeW;
+      const y1=a.arrowYDir===1?strokeW:h-strokeW;
+      const y2=a.arrowYDir===1?h-strokeW:strokeW;
+      el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none">
+        <defs>
+          <marker id="${markerId}" markerWidth="${markerSize}" markerHeight="${markerSize}" refX="${markerSize*0.75}" refY="${markerSize*0.5}" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M 0 0 L ${markerSize} ${markerSize*0.5} L 0 ${markerSize} L ${markerSize*0.25} ${markerSize*0.5} Z" fill="${a.stroke}"></path>
+          </marker>
+        </defs>
+        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${a.stroke}" stroke-width="${strokeW}" stroke-linecap="round" vector-effect="non-scaling-stroke" marker-end="url(#${markerId})"></line>
       </svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="text"){
       el.innerHTML=`<div class="noteText" style="font-size:${fontPx}px;color:${a.stroke}">${esc(a.text)}</div>${inEdit?'<div class="noteResize"></div>':''}`;
