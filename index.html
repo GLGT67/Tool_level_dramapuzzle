@@ -1002,7 +1002,15 @@ body.spaceDown .stage { cursor: grab !important; }
 }
 
 /* Play Mode Tray & Clues */
-body.play .sceneTools { opacity: .35; pointer-events: none; }
+body.play .sceneTools { display: none !important; }
+body.play .sceneRow { grid-template-columns: 1fr; }
+body.play .editmark, body.play .resize, body.play .noteResize { display: none !important; }
+body.play .noteObj { pointer-events: none; }
+body.play .right, body.play .editOnly { opacity: .35; pointer-events: none; }
+body.play .imgLayer.sel { outline: none !important; }
+body.play .stageWrap { min-height: auto; }
+body.play .stage { width: min(100%, 390px); }
+body.play .editor { width: min(100%, 460px); }
 .tray, .clues, .logic {
   background: var(--card);
   border: 1px solid var(--line);
@@ -1231,12 +1239,75 @@ body.play .trayrow .token { justify-self: center; }
   display: grid;
 }
 
-.graphcard, .changelogShell, .checkShell, .difficultyShell, .endingShell, .logicFlowCard {
+.graphcard, .changelogShell, .checkShell {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 18px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.logicFlowCard {
+  width: min(1480px, 96vw);
+  height: min(860px, 92vh);
+  max-height: 92vh;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.logicFlowBody {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px 24px;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 0;
+}
+
+.difficultyShell {
+  width: min(840px, 96vw);
+  max-height: min(860px, 94vh);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 52px minmax(0, 1fr);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.difficultyBody {
+  overflow-y: auto;
+  padding: 18px 22px 24px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.endingShell {
+  width: min(940px, 96vw);
+  max-height: min(880px, 94vh);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 52px minmax(0, 1fr);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+}
+
+.endingBody {
+  overflow-y: auto;
+  padding: 18px 22px 24px;
+  background: var(--bg);
   color: var(--ink);
 }
 
@@ -1343,7 +1414,7 @@ body.play .trayrow .token { justify-self: center; }
       <span class="brandIcon">🎭</span>
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.34 · STUDIO</button>
+    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.35 · FIGMA SUITE & MODAL FIX</button>
   </div>
 
   <div class="navGroup centerNav">
@@ -1438,6 +1509,9 @@ body.play .trayrow .token { justify-self: center; }
         <button class="toolBtn" data-tool="rect" title="Hình vuông / chữ nhật">□</button>
         <button class="toolBtn" data-tool="circle" title="Hình tròn / ellipse">○</button>
         <button class="toolBtn" data-tool="triangle" title="Tam giác (SVG Precision)">△</button>
+        <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh (Figma Star)">★</button>
+        <button class="toolBtn" data-tool="polygon" title="Lục giác (Figma Hexagon)">⬡</button>
+        <button class="toolBtn" data-tool="line" title="Đoạn thẳng (Figma Line)">―</button>
         <button class="toolBtn" data-tool="arrow" title="Mũi tên">➜</button>
         <button class="toolBtn" data-tool="text" title="Text note">T</button>
       </div>
@@ -1465,7 +1539,7 @@ body.play .trayrow .token { justify-self: center; }
   </div>
 </main>
 
-<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend"><span class="phaseDot dotNow"></span>Làm ngay <span class="phaseDot dotNeed"></span>Khi cần <span class="phaseDot dotLater"></span>Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
+<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend"><span class="phaseDot dotNow"></span>🟢 Làm ngay · <span class="phaseDot dotNeed"></span>🟡 Khi cần · <span class="phaseDot dotLater"></span>🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
 </div>
 </div>
 
@@ -2096,7 +2170,7 @@ let data=normalize((()=>{try{return JSON.parse(localStorage.getItem("dramaEditor
 let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxType="image", activeTool="select";
 let multiSel=new Set();
 let wrapBoundaryEnabled = localStorage.getItem("dramaEditorWrapBoundary") !== "false";
-window.data=data;window.selected=selected;window.multiSel=multiSel;window.refreshImmediate=()=>refreshImmediate();
+window.data=data;window.selected=selected;window.multiSel=multiSel;window.createAnnotation=createAnnotation;window.refreshImmediate=()=>refreshImmediate();
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
 const PLAY_PROGRESS_KEY="dramaEditorPlayProgressV127Lives";
@@ -2266,8 +2340,8 @@ function difficultyResultHtml(d){
 }
 function openDifficultyTest(){
   if(!["EASY","MEDIUM","HARD"].includes(data.level.difficultyTarget)){
-    toast("Chọn Độ khó GD dự định trong LEVEL SETTINGS trước");
-    selected={type:"level",id:"level"};refreshImmediate();return;
+    data.level.difficultyTarget = "MEDIUM";
+    save();
   }
   const ov=$("#difficultyOverlay");
   $("#diffSelf").value=data.level.difficultySelf||"";
@@ -2522,9 +2596,22 @@ function renderLive(){
 
     if(a.type==="rect"||a.type==="circle"){
       el.style.background=a.fill;el.style.borderColor=a.stroke;
+      if(a.type==="rect"&&a.radius){el.style.borderRadius=(a.radius||0)+"px";}
+      if(a.strokeStyle){el.style.borderStyle=a.strokeStyle;}
+      if(a.strokeWidth){el.style.borderWidth=(a.strokeWidth||3)+"px";}
       el.innerHTML=`<div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="triangle"){
-      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
+      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+    }else if(a.type==="star"){
+      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
+      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,2 62,38 100,38 69,60 81,96 50,74 19,96 31,60 0,38 38,38" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+    }else if(a.type==="polygon"){
+      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
+      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+    }else if(a.type==="line"){
+      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
+      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><line x1="0" y1="50" x2="100" y2="50" stroke="${a.stroke}" stroke-width="${a.strokeWidth||4}" ${sDash} stroke-linecap="round" vector-effect="non-scaling-stroke"></line></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="arrow"){
       const w=Math.max(20, a.w||60), h=Math.max(20, a.h||40);
       const strokeW=a.strokeWidth||4;
@@ -3507,7 +3594,7 @@ function annotationIns(b,a){
   if(!a)return;
   const isText=a.type==="text";
   const isArrow=a.type==="arrow";
-  const typeName={rect:"RECTANGLE",circle:"CIRCLE",triangle:"TRIANGLE",arrow:"ARROW",text:"TEXT NOTE"}[a.type]||a.type.toUpperCase();
+  const typeName={rect:"RECTANGLE (FIGMA)",circle:"CIRCLE (FIGMA)",triangle:"TRIANGLE (FIGMA)",star:"STAR 5-POINT (FIGMA)",polygon:"POLYGON 6-SIDE (FIGMA)",line:"LINE VECTOR (FIGMA)",arrow:"ARROW",text:"TEXT NOTE"}[a.type]||a.type.toUpperCase();
 
   b.innerHTML=`<div class="group col">
     <div><b style="font-size:11px">${typeName}</b></div>
@@ -3524,7 +3611,18 @@ function annotationIns(b,a){
     }
 
     ${!isText&&!isArrow?`<label>Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
-    ${!isText?`<label>${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>`:""}
+    ${!isText?`<label>${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>
+    ${!isText&&!isArrow?`
+      <label>Độ dày viền (Stroke Width)<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||3}"></label>
+      <label>Kiểu viền (Stroke Style)
+        <select id="anStrokeStyle">
+          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền (Solid)</option>
+          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt (Dashed)</option>
+          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Chấm bi (Dotted)</option>
+        </select>
+      </label>
+      ${a.type==='rect'?`<label>Bo góc (Corner Radius: <span id="anRadiusVal">${a.radius||0}px</span>)<input id="anRadius" type="range" min="0" max="60" value="${a.radius||0}"></label>`:''}
+    `:''}`:""}
     ${isArrow?`<label>Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>
     <label>Hướng mũi tên</label>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;">
@@ -3617,9 +3715,9 @@ $$(".toolBtn").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 function createAnnotation(type,x,y,w,h,extra={}){
   const a={
     id:uid("AN_"),type,x,y,
-    w:Math.max(type==="text"?120:30,w),h:Math.max(type==="text"?40:30,h),
-    fill:"#f4f1f6",stroke:"#655d69",text:type==="text"?"Note":"",
-    textColor:"#514953",fontSize:28,strokeWidth:4,
+    w:Math.max(type==="text"?120:(type==="line"?60:40),w),h:Math.max(type==="text"?40:(type==="line"?10:40),h),
+    fill:type==="line"?"transparent":"#f4f1f6",stroke:"#655d69",text:type==="text"?"Note":"",
+    textColor:"#514953",fontSize:28,strokeWidth:4,radius:0,strokeStyle:"solid",
     arrowXDir:extra.arrowXDir||1,arrowYDir:extra.arrowYDir||1,
     locked:false,visibleInPlay:(type==="text"?false:true),z:10+sceneLayerItems().length
   };
@@ -3996,7 +4094,7 @@ $("#ctx").onclick=e=>{
 
 
 function startDrawTool(e){
-  const type=activeTool;if(!["rect","circle","triangle","arrow","text"].includes(type))return;
+  const type=activeTool;if(!["rect","circle","triangle","star","polygon","line","arrow","text"].includes(type))return;
   e.preventDefault();e.stopPropagation();
   const st=$("#stage"),start=logical(e),rect=st.getBoundingClientRect();
   if(type==="text"){
@@ -4229,6 +4327,13 @@ function freshPlay(nameMap,namesRandomized=false,nameGeneration=0){
 function startPlay(){
   mode="play";
   playSession++;
+
+  // Reset zoom & pan to ensure stage is 100% visible and centered
+  canvasZoom = 1.0;
+  canvasPan = {x: 0, y: 0};
+  if(typeof applyZoomPan === 'function'){
+    applyZoomPan();
+  }
 
   // If there is an unfinished Play session, simply resume it.
   if(!play){
@@ -5111,11 +5216,11 @@ render();
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
-    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">v1.34 · STUDIO</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">v1.35 · FIGMA SUITE & MODAL FIX</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
     <div class="changelogBody">
       <div class="clTimeline">
         <div class="clItem latest">
-          <div class="clHeader"><b>V1.34 · BORDER WRAP 60% & STUDIO UI OVERHAUL</b><span class="clTag current">MỚI NHẤT</span></div>
+          <div class="clHeader"><b>V1.35 · BORDER WRAP 60% & STUDIO UI OVERHAUL</b><span class="clTag current">MỚI NHẤT</span></div>
           <ul class="clList">
             <li><b>🔄 Cuộn viền Artboard tự động (Wrap 60%):</b> Khi di chuyển ảnh ra ngoài biên sàn diễn quá 60% (cả chiều ngang và chiều dọc), ảnh sẽ tự động chuyển sang phía đối diện của Artboard để không bao giờ bị khuất biến mất. Tích hợp nút bật/tắt trực tiếp trong thanh Inspector.</li>
             <li><b>💎 Đại trùng tu UI/UX chuẩn Studio:</b> Loại bỏ toàn bộ các emoji thừa gây rối mắt trên tiêu đề, danh sách, nhãn input và thanh công cụ; chuẩn hóa hệ thống phase dot chuyên nghiệp; giữ lại nút đổi màu theme gọn gàng.</li>
