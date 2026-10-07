@@ -1,0 +1,15 @@
+# Testing & Verification Artifacts (Strictly Ignored from Git)
+tests_sandbox/
+test_lab/
+tests/
+test_*.py
+inspect_*.py
+debug_*.py
+verify_*.png
+test_*.png
+screenshot_*.png
+debug_*.png
+*.log
+__pycache__/
+.pytest_cache/
+*.tmp

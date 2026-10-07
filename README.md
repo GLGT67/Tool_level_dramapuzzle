@@ -1,4 +1,4 @@
-# SẮP XẾP DRAMA — Live Level Editor V1.32 · Photoshop Suite & Clue Reorder
+# SẮP XẾP DRAMA — Live Level Editor V1.35 · Figma Suite & Playtest Polish
 
 > **Level Editor & Game Design Production Tool** chuyên dụng cho thể loại game giải đố kịch bản logic (Drama / Story Puzzle).
 
@@ -6,27 +6,94 @@
 
 ---
 
-## 🚀 Có gì mới ở Bản V1.32 (Photoshop Suite & Clue Reorder Release)?
+## 🚀 Có gì mới ở Bản V1.35 (Figma Vector Suite & Playtest Polish)?
 
-1. 🎯 **Tâm Xoay & Lật Ở Chính Giữa (Center Transform-Origin):**
-   - Đặt `transform-origin: center center` cho mọi Reference Layer hình ảnh. Khi xoay hoặc lật ngang/dọc (`Flip H / Flip V`), ảnh giữ nguyên vị trí tọa độ chính xác, không bị nhảy lệch sang góc đỉnh.
-   - Bổ sung nút **🎯 Căn giữa Canvas** để tự động căn layer vào đúng tâm $1080 \times 1610$.
-2. 🎨 **Bộ Công Cụ Chỉnh Sửa Ảnh Đậm Chất Photoshop (PTS Filter & Blend Suite):**
-   - **Chế độ hòa trộn (Mix-blend-mode):** Hỗ trợ `Normal`, `Multiply (Nhân tối)`, `Screen (Làm sáng)`, `Overlay (Phủ)`, `Darken`, `Lighten`, `Color Dodge`, `Difference`.
-   - **Thanh trượt hiệu ứng chuyên sâu:**
-     - Độ sáng (Brightness: $50\% - 150\%$)
-     - Độ tương phản (Contrast: $50\% - 150\%$)
-     - Độ bão hòa màu (Saturation: $0\% - 200\%$)
-     - Làm mờ (Blur: $0\text{px} - 15\text{px}$)
-     - Bo góc (Corner Radius: $0\text{px} - 60\text{px}$)
-     - Bóng đổ (Shadow): Không bóng, Bóng đổ mềm, Bóng khối, Neon Glow.
-   - **Bộ lọc nhanh (Quick Presets):** Đen trắng (B&W), Sepia (Cổ điển), Invert (Đảo màu) và nút Reset bộ lọc tức thì.
-3. 🔀 **Đổi Thứ Tự Manh Mối Linh Hoạt (Clue Tree Drag & Drop / Reordering):**
-   - **Kéo thả chuột (Drag & Drop):** Kéo trực tiếp thẻ Manh mối (Clue) thả lên trên hoặc xuống dưới để tự động đổi thứ tự kịch bản.
-   - **Nút điều hướng nhanh:** Hai nút `▲ Lên` và `▼ Xuống` ngay trên từng thẻ clue giúp đảo vị trí anh em nhanh chóng.
-4. 🏹 **Sửa Triệt Để Hiển Thị Mũi Tên (Arrow Vector Polish):**
-   - Loại bỏ bounding box vuông màu xanh khi chọn mũi tên.
-   - Tinh chỉnh vector stroke và đầu mũi tên khí động học với `markerUnits="userSpaceOnUse"`, viền chọn ánh neon sắc nét.
+Phiên bản **V1.35** mang đến bộ công cụ thiết kế hình học vector mở rộng kiểu Figma, chuẩn hóa trải nghiệm kiểm thử gameplay Play Mode, sửa dứt điểm các lỗi giao diện modal và thiết lập quy trình kiểm thử tự động cô lập, bảo toàn mã nguồn Git sạch sẽ 100%.
+
+### 1. 🎨 Bộ Vector Shapes Chuẩn Figma (Full Shape Suite)
+- **Đa dạng hình khối vector SVG:**
+  - ★ **Ngôi sao (Star):** Vẽ hình ngôi sao 5 cánh cân đối, hỗ trợ đổ màu fill, viền stroke và bóng đổ.
+  - ⬡ **Đa giác (Polygon):** Vẽ hình lục giác sắc nét, viền chọn ánh neon mượt mà.
+  - ― **Đường thẳng (Line):** Vẽ đường line chỉ dẫn vector, tùy biến hướng và độ dài.
+  - ▲ **Tam giác (Triangle), ● Hình tròn (Circle), ■ Hình chữ nhật (Rect):** Kế thừa và chuẩn hóa với bộ công cụ Figma.
+- **Tùy chỉnh bo góc chữ nhật (Corner Radius):**
+  - Thanh trượt chỉnh bo góc trực tiếp từ `0px` (vuông vức) đến `60px` (bo tròn mượt mà) ngay trong thanh Inspector.
+- **Tùy biến Stroke nâng cao:**
+  - Tùy chỉnh độ dày nét vẽ (`1px` đến `30px`).
+  - Chọn kiểu nét viền: `Solid` (nét liền), `Dashed` (nét đứt đoạn), `Dotted` (nét chấm bi tròn).
+- **Thao tác nhanh:**
+  - Nút **Nhân bản (Duplicate)** đối tượng tức thì.
+  - Nút **Đổi thứ tự độ sâu (Front / Back)** giúp sắp xếp lớp hiển thị trực quan.
+
+### 2. 🟢 Phục Hồi Chú Thích Độ Ưu Tiên (Phase Priority Dots)
+- Khôi phục bảng chú thích trực quan trong thanh Inspector:
+  - 🟢 **Làm ngay** (High priority / Phase 1)
+  - 🟡 **Khi cần** (Medium priority / Phase 2)
+  - 🔵 **Làm sau** (Optional / Polish)
+- Giữ vững tiêu chuẩn thiết kế phẳng, hiện đại (Studio Aesthetic), loại bỏ hoàn toàn các emoji thừa gây rối mắt trên nhãn và form nhập liệu.
+
+### 3. 🛠️ Khắc Phục Triệt Để 3 Modal Giao Diện
+- **Modal FLOW (Solve Graph):**
+  - Chuyển layout sang CSS Grid (`grid-template-rows: 52px 1fr`, chiều cao `min(860px, 92vh)`).
+  - Vùng nội dung `.logicFlowBody` có thanh cuộn độc lập (`overflow-y: auto`), loại bỏ triệt để tình trạng tràn chữ ra ngoài màn hình.
+- **Modal TEST ĐỘ KHÓ:**
+  - Loại bỏ hoàn toàn hộp thoại `alert(...)` gây chặn luồng trải nghiệm.
+  - Mở trực tiếp giao diện phân tích độ khó: cho phép Game Designer tự đánh giá cảm nhận sau khi chơi và bấm **ĐỐI CHIẾU** với mục tiêu thiết kế ban đầu.
+- **Modal ENDING (Ending Maker):**
+  - Tái cấu trúc theo lưới 2 cột chuyên nghiệp (`grid: 380px 1fr`): cột trái hiển thị preview khung Ending (tỉ lệ 4:3), cột phải chứa form nhập liệu (Brief, AI Prompt, Ending Line, Verdict CTA).
+  - Cả 2 cột cuộn độc lập, vừa vặn trên mọi độ phân giải màn hình.
+
+### 4. 🎮 Tối Ưu Giao Diện Playtest (Play Mode Layout)
+- **Căn giữa sân khấu tự động:** Bổ sung `margin: 0 auto` cho `#stage` trong Play Mode, giữ tỉ lệ $1080 \times 1610$ luôn ở chính giữa màn hình.
+- **Ẩn thanh công cụ vẽ (#sceneTools):** Khi chuyển sang Play Mode, thanh công cụ vẽ tự động ẩn đi, giải phóng 100% tầm nhìn cho người chơi.
+- **Reset Zoom & Pan thông minh:** Mỗi khi vào Play Mode, Canvas tự động đặt về tỉ lệ `1:1` (`canvasZoom = 1.0`) và tọa độ gốc `(0, 0)`.
+- **Khay nhân vật luôn trong tầm mắt:** Điều chỉnh chiều rộng Stage trong Play Mode tối đa `390px`, đảm bảo khay nhân vật (`.trayrow`) hiển thị trọn vẹn ở đáy màn hình mà không cần phải cuộn trang.
+
+### 5. 🔄 Cuộn Viền Artboard Tự Động (Border Auto-Wrap 60%)
+- Khi di chuyển ảnh tham khảo hoặc hình khối ra ngoài biên sàn diễn quá 60% kích thước (cả chiều ngang và dọc), đối tượng sẽ tự động nhảy sang mép đối diện của Artboard.
+- Tích hợp công tắc bật/tắt (Toggle Wrap) trực tiếp trong Inspector.
+
+### 6. 🧪 Quy Chuẩn Kiểm Thử Cô Lập (Clean Git Architecture)
+- Toàn bộ script kiểm thử E2E tự động (`test_*.py`, `inspect_*.py`) và ảnh chụp màn hình kiểm tra (`*.png`) được chuyển vào thư mục riêng `tests_sandbox/`.
+- Cấu hình file `.gitignore` nghiêm ngặt, ngăn chặn 100% file rác và artifacts kiểm thử dính vào Git commits.
+
+---
+
+## 📜 Lịch Sử Phiên Bản Trước
+
+<details>
+<summary><b>V1.34 · Border Wrap 60% & Studio UI Overhaul</b></summary>
+
+- Tích hợp cơ chế cuộn viền Artboard 60%.
+- Đại trùng tu UI/UX chuẩn Studio: loại bỏ emoji thừa trên tiêu đề và input, chuẩn hóa typography và phase dots.
+- Tinh chỉnh kích thước thanh công cụ nổi 46px với nút 36px chống tràn viền.
+</details>
+
+<details>
+<summary><b>V1.33 · Production Suite & Zoom Stability</b></summary>
+
+- Khôi phục menu Production & More trên thanh điều hướng.
+- Sửa triệt để bug zoom bị thu ngược về tỉ lệ 1:1 khi thao tác.
+- Bổ sung phím tắt nhân bản nhanh `Alt + Drag`.
+</details>
+
+<details>
+<summary><b>V1.32 · Photoshop Suite & Clue Reorder</b></summary>
+
+- Tâm xoay và lật ở chính giữa (`transform-origin: center center`) cho mọi Reference Layer.
+- Bộ công cụ chỉnh sửa ảnh Photoshop: Mix-blend-mode (Multiply, Screen, Overlay...), thanh trượt Brightness, Contrast, Saturation, Blur, Corner Radius, Shadow, và Quick Presets.
+- Đổi thứ tự Manh mối linh hoạt qua kéo thả chuột (Drag & Drop) hoặc nút `▲ Lên` / `▼ Xuống`.
+- Tinh chỉnh vector mũi tên với `markerUnits="userSpaceOnUse"`.
+</details>
+
+<details>
+<summary><b>V1.30 · Figma Canvas & SVG Precision</b></summary>
+
+- Chuyển đổi render hình tam giác sang SVG Polygon đa giác thực tế.
+- Bộ công cụ Transform kiểu Figma: Flip H, Flip V, Rotate tự do, Opacity slider.
+- Điều hướng Canvas trực quan: Pan bằng `Spacebar + Kéo chuột`, Zoom từ 50% đến 200%.
+- Thanh Smart Multi-Alignment căn lề nhanh khi chọn nhiều layer.
+</details>
 
 ---
 
@@ -60,7 +127,7 @@ graph LR
 - **Số Mạng:** Mặc định 2 mạng (❤️❤️) cho mỗi lượt chơi.
 
 ### Bước 2: Dựng bối cảnh & Nhân vật
-- **Reference Layers:** Dán ảnh nền hoặc phác thảo bố cục sân khấu. Kéo thả căn vị trí, chỉnh kích thước, xoay, lật và độ sâu z-index.
+- **Reference Layers & Shapes:** Dán ảnh nền hoặc vẽ hình khối vector phác thảo bố cục sân khấu (Sao, Đa giác, Chữ nhật, Tròn, Tam giác, Đường line, Mũi tên). Kéo thả căn vị trí, chỉnh kích thước, bo góc, xoay, lật và độ sâu z-index.
 - **Characters:** Thêm nhân vật Nam (`+M`) hoặc Nữ (`+F`):
   - Gán mã định danh: `M01`, `F01`, `M02`...
   - Thiết lập diện mạo (Appearance tag) và trạng thái ban đầu (Initial emotion, gaze target, hướng lật mặt).
@@ -70,6 +137,7 @@ graph LR
 - **Root Clue:** Manh mối mở đầu hiển thị sẵn cho người chơi.
 - **Child Clues:** Manh mối mở khóa tiếp theo khi người chơi đặt đúng nhân vật hoặc kích hoạt drama.
 - **Drama Reveal:** Manh mối then chốt lật mở toàn bộ sự thật của màn chơi.
+- **Reorder:** Kéo thả đổi vị trí clue trực tiếp trong cây phân cấp.
 
 ### Bước 4: Thiết lập Phản ứng Nhân vật (`Reaction Events`)
 - Xác định điều kiện kích hoạt: khi đặt nhân vật vào vị trí, hoặc khi 2 nhân vật đứng cạnh nhau.
@@ -109,14 +177,16 @@ graph LR
 | **Pan Canvas** | `Spacebar + Kéo chuột` hoặc `Chuột giữa` | Di chuyển góc nhìn Canvas tự do như Figma / Photoshop |
 | **Zoom Canvas** | `Dock Zoom: − / +` hoặc `1:1` | Phóng to / Thu nhỏ Canvas linh hoạt ($50\% - 200\%$) |
 | **Dán ảnh** | `Ctrl + V` / `Cmd + V` | Dán ảnh trực tiếp từ clipboard vào Stage canvas |
-| **Giữ tỉ lệ ảnh** | `Shift + Kéo chấm xanh` | Thay đổi kích thước layer không bị méo hình |
+| **Giữ tỉ lệ ảnh/shape** | `Shift + Kéo điểm neo` | Thay đổi kích thước layer không bị méo hình |
 | **Chọn nhiều đối tượng** | `Kéo chuột trái vùng trống` | Quét vùng chọn (Marquee selection) nhiều layer/token |
 | **Căn lề đa đối tượng** | `Smart Align Toolbar` (bên Inspector) | Căn Trái, Giữa X, Phải, Trên, Giữa Y, Dưới tức thì |
 | **Lật ảnh / Nhân vật** | Nút `Flip H` / `Flip V` | Lật đối xứng theo trục ngang hoặc trục dọc |
 | **Xoay layer** | Slider `Rotate` / Nút `+90°` | Xoay hình $0^\circ - 360^\circ$ |
+| **Nhân bản đối tượng** | Nút `Duplicate` hoặc `Alt + Kéo` | Nhân bản layer/hình khối nhanh |
+| **Độ sâu lớp vẽ** | Nút `Front` / `Back` | Đưa layer lên trên cùng hoặc xuống dưới cùng |
 | **Xóa đối tượng** | `Delete` / `Backspace` | Xóa layer, ghi chú hoặc token đang chọn |
 | **Hoàn tác** | `Ctrl + Z` / `Cmd + Z` | Undo thao tác vừa thực hiện |
-| **Menu thao tác** | `Chuột phải vào đối tượng` | Duplicate, Đổi thứ tự layer (Front/Back), Lock/Unlock |
+| **Menu thao tác** | `Chuột phải vào đối tượng` | Duplicate, Đổi thứ tự layer, Lock/Unlock |
 
 ---
 
@@ -126,5 +196,8 @@ graph LR
 - **Ending Image Aspect Ratio:** $4:3$ (tỉ lệ ảnh ngang).
 - **Runtime Environment:** 100% Client-side HTML5/CSS3/Vanilla JS (Không yêu cầu Server backend).
 - **Lưu trữ dữ liệu:** Lưu/Mở file `.json` trực tiếp từ thiết bị người dùng.
+- **Thư mục kiểm thử:** `tests_sandbox/` (tách biệt hoàn toàn qua `.gitignore`).
+
+---
 
 <!-- Maintained by GLGT67 -->
