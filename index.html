@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
 <title>SẮP XẾP DRAMA — Live Level Editor V1.29 · Clean Flow</title>
 <style>
 /* ==========================================================================
@@ -874,36 +875,40 @@ body.spaceDown .stage { cursor: grab !important; }
   pointer-events: none;
 }
 .noteObj.arrow.sel {
-  outline: 1.5px dashed rgba(59, 130, 246, 0.5) !important;
-  outline-offset: 2px;
+  outline: 1.5px dashed rgba(59, 130, 246, 0.6) !important;
+  outline-offset: 3px;
 }
-.noteObj.arrow.sel svg line {
-  stroke: #3b82f6 !important;
-  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8));
-}
-.noteObj.arrow.sel svg marker path {
-  fill: #3b82f6 !important;
-  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8));
+.noteObj.arrow.sel svg {
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.75));
 }
 .noteObj.arrow.multiSel {
-  outline: 1.5px dashed rgba(16, 185, 129, 0.5) !important;
-  outline-offset: 2px;
+  outline: 1.5px dashed rgba(16, 185, 129, 0.6) !important;
+  outline-offset: 3px;
 }
-.noteObj.arrow.multiSel svg line {
-  stroke: #10b981 !important;
-  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.8));
-}
-.noteObj.arrow.multiSel svg marker path {
-  fill: #10b981 !important;
-  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.8));
+.noteObj.arrow.multiSel svg {
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.75));
 }
 .noteObj.arrow .shapeLabel {
-  inset: 22% 12%;
+  position: absolute;
+  inset: auto !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  max-width: 220px;
   background: var(--dock-bg);
   color: var(--ink);
   border: 1px solid var(--line);
-  border-radius: 5px;
-  padding: 2px 4px;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: auto;
+  z-index: 5;
+}
+.noteObj.arrow .shapeLabel:empty {
+  display: none !important;
 }
 .noteObj.locked .noteResize { display: none !important; }
 
@@ -2059,8 +2064,9 @@ function normalize(d){
     a.fontSize=Number(a.fontSize)||28;
     a.textColor=a.textColor||"#514953";
     a.strokeWidth=Math.max(1,Number(a.strokeWidth)||4);
-    a.arrowXDir=a.arrowXDir===-1?-1:1;
-    a.arrowYDir=a.arrowYDir===-1?-1:1;
+    a.arrowXDir=[-1,0,1].includes(Number(a.arrowXDir))?Number(a.arrowXDir):1;
+    a.arrowYDir=[-1,0,1].includes(Number(a.arrowYDir))?Number(a.arrowYDir):1;
+    if(a.arrowXDir===0&&a.arrowYDir===0)a.arrowXDir=1;
     a.locked=!!a.locked;
     a.visibleInPlay=("visibleInPlay" in a)?!!a.visibleInPlay:(a.type==="text"?false:true);
     a.z=Number(a.z)||20+idx;
@@ -2508,20 +2514,41 @@ function renderLive(){
     }else if(a.type==="arrow"){
       const w=Math.max(20, a.w||60), h=Math.max(20, a.h||40);
       const strokeW=a.strokeWidth||4;
-      const markerId="arrow_"+a.id;
-      const markerSize=Math.max(14, strokeW * 2.8);
-      const x1=a.arrowXDir===1?strokeW:w-strokeW;
-      const x2=a.arrowXDir===1?w-strokeW:strokeW;
-      const y1=a.arrowYDir===1?strokeW:h-strokeW;
-      const y2=a.arrowYDir===1?h-strokeW:strokeW;
-      el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none">
-        <defs>
-          <marker id="${markerId}" markerWidth="${markerSize}" markerHeight="${markerSize}" refX="${markerSize*0.75}" refY="${markerSize*0.5}" orient="auto" markerUnits="userSpaceOnUse">
-            <path d="M 0 0 L ${markerSize} ${markerSize*0.5} L 0 ${markerSize} L ${markerSize*0.25} ${markerSize*0.5} Z" fill="${a.stroke}"></path>
-          </marker>
-        </defs>
-        <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${a.stroke}" stroke-width="${strokeW}" stroke-linecap="round" vector-effect="non-scaling-stroke" marker-end="url(#${markerId})"></line>
-      </svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+      const pad=Math.max(8, strokeW * 1.5);
+      let x1, x2, y1, y2;
+      if(a.arrowXDir===0){
+        x1 = w / 2; x2 = w / 2;
+      } else if(a.arrowXDir===1){
+        x1 = pad; x2 = w - pad;
+      } else {
+        x1 = w - pad; x2 = pad;
+      }
+      if(a.arrowYDir===0){
+        y1 = h / 2; y2 = h / 2;
+      } else if(a.arrowYDir===1){
+        y1 = pad; y2 = h - pad;
+      } else {
+        y1 = h - pad; y2 = pad;
+      }
+      const dx = x2 - x1, dy = y2 - y1;
+      const len = Math.hypot(dx, dy) || 1;
+      const angle = Math.atan2(dy, dx);
+      const headLen = Math.min(len * 0.45, Math.max(16, strokeW * 3.6));
+      const halfWidth = headLen * 0.45;
+      const cosA = Math.cos(angle), sinA = Math.sin(angle);
+      const tipX = x2, tipY = y2;
+      const leftX = x2 - headLen * cosA + halfWidth * sinA;
+      const leftY = y2 - headLen * sinA - halfWidth * cosA;
+      const rightX = x2 - headLen * cosA - halfWidth * sinA;
+      const rightY = y2 - headLen * sinA + halfWidth * cosA;
+      const baseX = x2 - headLen * 0.65 * cosA;
+      const baseY = y2 - headLen * 0.65 * sinA;
+      const polyPts = `${tipX.toFixed(1)},${tipY.toFixed(1)} ${leftX.toFixed(1)},${leftY.toFixed(1)} ${baseX.toFixed(1)},${baseY.toFixed(1)} ${rightX.toFixed(1)},${rightY.toFixed(1)}`;
+      const strokeColor = selectedNow ? (multiSel.size > 1 ? "#10b981" : "#3b82f6") : (a.stroke || "#655d69");
+      el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none">
+        <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${baseX.toFixed(1)}" y2="${baseY.toFixed(1)}" stroke="${strokeColor}" stroke-width="${strokeW}" stroke-linecap="round"></line>
+        <polygon points="${polyPts}" fill="${strokeColor}"></polygon>
+      </svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor};${!a.text?'display:none;':''}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="text"){
       el.innerHTML=`<div class="noteText" style="font-size:${fontPx}px;color:${a.stroke}">${esc(a.text)}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }
@@ -3372,7 +3399,19 @@ function annotationIns(b,a){
 
     ${!isText&&!isArrow?`<label>🟡 Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
     ${!isText?`<label>🟡 ${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>`:""}
-    ${isArrow?`<label>🟡 Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>`:""}
+    ${isArrow?`<label>🟡 Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>
+    <label>🟡 Hướng mũi tên</label>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;">
+      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===0?'active':''}" id="dirR" type="button" title="Sang phải">➡ Phải</button>
+      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===0?'active':''}" id="dirL" type="button" title="Sang trái">⬅ Trái</button>
+      <button class="btn ${a.arrowXDir===0&&a.arrowYDir===1?'active':''}" id="dirD" type="button" title="Xuống dưới">⬇ Xuống</button>
+      <button class="btn ${a.arrowXDir===0&&a.arrowYDir===-1?'active':''}" id="dirU" type="button" title="Lên trên">⬆ Lên</button>
+      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===1?'active':''}" id="dirDR" type="button" title="Chéo xuống-phải">↘ X.Phải</button>
+      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===1?'active':''}" id="dirDL" type="button" title="Chéo xuống-trái">↙ X.Trái</button>
+      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===-1?'active':''}" id="dirUR" type="button" title="Chéo lên-phải">↗ L.Phải</button>
+      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===-1?'active':''}" id="dirUL" type="button" title="Chéo lên-trái">↖ L.Trái</button>
+    </div>
+    <button class="btn" id="anFlipArrow" type="button" style="margin-bottom:8px">⇄ Đảo ngược hướng (180°)</button>`:""}
 
     <div class="row"><label>🟡 X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
     <div class="row"><label>🟡 W<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 H<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
@@ -3397,7 +3436,12 @@ function annotationIns(b,a){
   $("#anText").oninput=e=>{
     a.text=e.target.value;save();
     const n=document.querySelector(`[data-annotation-id="${a.id}"] ${isText?".noteText":".shapeLabel"}`);
-    if(n)n.textContent=a.text;
+    if(n){
+      n.textContent=a.text;
+      if(isArrow){
+        n.style.display=a.text?"block":"none";
+      }
+    }
   };
   $("#anFont").oninput=e=>{a.fontSize=Math.max(8,+e.target.value||28);save();refreshImmediate()};
   $("#anTextColor").oninput=e=>{
@@ -3407,6 +3451,18 @@ function annotationIns(b,a){
   if($("#anFill"))$("#anFill").oninput=e=>{a.fill=e.target.value;save();refreshImmediate()};
   if($("#anStroke"))$("#anStroke").oninput=e=>{a.stroke=e.target.value;save();refreshImmediate()};
   if($("#anStrokeWidth"))$("#anStrokeWidth").oninput=e=>{a.strokeWidth=Math.max(1,+e.target.value||4);save();refreshImmediate()};
+  if(isArrow){
+    const setDir=(xd,yd)=>{a.arrowXDir=xd;a.arrowYDir=yd;save();refreshImmediate();renderInspector()};
+    if($("#dirR"))$("#dirR").onclick=()=>setDir(1,0);
+    if($("#dirL"))$("#dirL").onclick=()=>setDir(-1,0);
+    if($("#dirD"))$("#dirD").onclick=()=>setDir(0,1);
+    if($("#dirU"))$("#dirU").onclick=()=>setDir(0,-1);
+    if($("#dirDR"))$("#dirDR").onclick=()=>setDir(1,1);
+    if($("#dirDL"))$("#dirDL").onclick=()=>setDir(-1,1);
+    if($("#dirUR"))$("#dirUR").onclick=()=>setDir(1,-1);
+    if($("#dirUL"))$("#dirUL").onclick=()=>setDir(-1,-1);
+    if($("#anFlipArrow"))$("#anFlipArrow").onclick=()=>setDir(a.arrowXDir===-1?1:(a.arrowXDir===1?-1:0), a.arrowYDir===-1?1:(a.arrowYDir===1?-1:0));
+  }
 
   const geom=()=>{
     a.x=+$("#anX").value;a.y=+$("#anY").value;
@@ -3824,8 +3880,23 @@ function startDrawTool(e){
   };
   const up=()=>{
     window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);ghost.remove();
-    const x=Math.min(start.x,last.x),y=Math.min(start.y,last.y),w=Math.max(60,Math.abs(last.x-start.x)),h=Math.max(type==="arrow"?30:60,Math.abs(last.y-start.y));
-    const extra=type==="arrow"?{arrowXDir:last.x>=start.x?1:-1,arrowYDir:last.y>=start.y?1:-1}:{};
+    const dx=last.x-start.x, dy=last.y-start.y;
+    const absX=Math.abs(dx), absY=Math.abs(dy);
+    const x=Math.min(start.x,last.x), y=Math.min(start.y,last.y);
+    const w=Math.max(type==="arrow"?(absX<20?40:60):60, absX);
+    const h=Math.max(type==="arrow"?(absY<20?40:30):60, absY);
+    let extra={};
+    if(type==="arrow"){
+      let xdir=1, ydir=1;
+      if(absY<20 && absX>=25){
+        xdir=dx>=0?1:-1; ydir=0;
+      }else if(absX<20 && absY>=25){
+        xdir=0; ydir=dy>=0?1:-1;
+      }else{
+        xdir=dx>=0?1:-1; ydir=dy>=0?1:-1;
+      }
+      extra={arrowXDir:xdir, arrowYDir:ydir};
+    }
     createAnnotation(type,x,y,w,h,extra);
   };
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
@@ -4594,7 +4665,19 @@ async function exportScenePng(){
       if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
       else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
       else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.lineTo(o.x,o.y+o.h);ctx.closePath();ctx.fillStyle=o.fill;ctx.fill();if(o.stroke){ctx.strokeStyle=o.stroke;ctx.lineWidth=o.strokeWidth||3;ctx.lineJoin="round";ctx.stroke();}ctx.stroke()}
-      else if(o.type==="arrow"){const x1=o.x+(o.arrowXDir===1?0:o.w),x2=o.x+(o.arrowXDir===1?o.w:0),y1=o.y+(o.arrowYDir===1?0:o.h),y2=o.y+(o.arrowYDir===1?o.h:0);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill()}
+      else if(o.type==="arrow"){
+        const pad=8;
+        const x1=o.arrowXDir===0?o.x+o.w/2:(o.arrowXDir===1?o.x+pad:o.x+o.w-pad);
+        const x2=o.arrowXDir===0?o.x+o.w/2:(o.arrowXDir===1?o.x+o.w-pad:o.x+pad);
+        const y1=o.arrowYDir===0?o.y+o.h/2:(o.arrowYDir===1?o.y+pad:o.y+o.h-pad);
+        const y2=o.arrowYDir===0?o.y+o.h/2:(o.arrowYDir===1?o.y+o.h-pad:o.y+pad);
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+        const a=Math.atan2(y2-y1,x2-x1);
+        ctx.beginPath();ctx.moveTo(x2,y2);
+        ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));
+        ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));
+        ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill();
+      }
       if(o.text){ctx.fillStyle=o.textColor||"#514953";ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15)}
       ctx.restore();
     }
