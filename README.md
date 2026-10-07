@@ -1,4 +1,4 @@
-# SẮP XẾP DRAMA — Live Level Editor V1.31 · Studio UI & Dark Mode
+# SẮP XẾP DRAMA — Live Level Editor V1.32 · Photoshop Suite & Clue Reorder
 
 > **Level Editor & Game Design Production Tool** chuyên dụng cho thể loại game giải đố kịch bản logic (Drama / Story Puzzle).
 
@@ -6,20 +6,27 @@
 
 ---
 
-## 🚀 Có gì mới ở Bản V1.31 (Studio UI & Dark Mode Release)?
+## 🚀 Có gì mới ở Bản V1.32 (Photoshop Suite & Clue Reorder Release)?
 
-1. 🌓 **Chế Độ Giao Diện Tối / Sáng (Dark Mode & Light Mode):**
-   - **Obsidian Dark Mode:** Giao diện tối chuyên nghiệp phong cách Figma/Blender/Linear, giảm mỏi mắt khi làm việc ban đêm, bảng điều khiển có độ tương phản chuẩn WCAG AA.
-   - **Clean Studio Light Mode:** Giao diện sáng tinh tế, nhẹ nhàng cho môi trường nhiều ánh sáng.
-   - **Theme Switcher:** Nút chuyển đổi tức thì `🌙 / ☀️` trên Header kèm tính năng ghi nhớ tự động qua `localStorage`.
-2. 📐 **Tái Cấu Trúc Toàn Diện Thanh Điều Hướng (Zero-Overflow Header):**
-   - Triệt tiêu hoàn toàn lỗi vỡ dòng/tràn giao diện che khuất sân khấu khi vào chế độ `PLAY`.
-   - Phân cụm công cụ trực quan: Brand & Version, Segmented Mode Switcher (`[ EDIT | PLAY ]`), Play Controls Group tự động ẩn/hiện, Audit Tools (`FLOW`, `ĐỘ KHÓ`, `CHECK`), File & Production Tools.
-   - Đảm bảo thanh Header luôn nằm gọn trong 1 hàng (non-wrapping) và co giãn linh hoạt theo độ phân giải màn hình.
-3. ⚡ **Tối Ưu Hóa Trải Nghiệm Phím Tắt & Modal:**
-   - Phím `Esc` để đóng tức thì tất cả cửa sổ Modal (Changelog, Solve Graph, Linter, Test độ khó).
-   - Nhấp chuột ra vùng mờ (Backdrop click) để đóng popup tiện lợi.
-   - Stage Canvas bao bọc bởi lưới tọa độ Blueprint hiện đại và khung viền Smartphone Bezel sang trọng.
+1. 🎯 **Tâm Xoay & Lật Ở Chính Giữa (Center Transform-Origin):**
+   - Đặt `transform-origin: center center` cho mọi Reference Layer hình ảnh. Khi xoay hoặc lật ngang/dọc (`Flip H / Flip V`), ảnh giữ nguyên vị trí tọa độ chính xác, không bị nhảy lệch sang góc đỉnh.
+   - Bổ sung nút **🎯 Căn giữa Canvas** để tự động căn layer vào đúng tâm $1080 \times 1610$.
+2. 🎨 **Bộ Công Cụ Chỉnh Sửa Ảnh Đậm Chất Photoshop (PTS Filter & Blend Suite):**
+   - **Chế độ hòa trộn (Mix-blend-mode):** Hỗ trợ `Normal`, `Multiply (Nhân tối)`, `Screen (Làm sáng)`, `Overlay (Phủ)`, `Darken`, `Lighten`, `Color Dodge`, `Difference`.
+   - **Thanh trượt hiệu ứng chuyên sâu:**
+     - Độ sáng (Brightness: $50\% - 150\%$)
+     - Độ tương phản (Contrast: $50\% - 150\%$)
+     - Độ bão hòa màu (Saturation: $0\% - 200\%$)
+     - Làm mờ (Blur: $0\text{px} - 15\text{px}$)
+     - Bo góc (Corner Radius: $0\text{px} - 60\text{px}$)
+     - Bóng đổ (Shadow): Không bóng, Bóng đổ mềm, Bóng khối, Neon Glow.
+   - **Bộ lọc nhanh (Quick Presets):** Đen trắng (B&W), Sepia (Cổ điển), Invert (Đảo màu) và nút Reset bộ lọc tức thì.
+3. 🔀 **Đổi Thứ Tự Manh Mối Linh Hoạt (Clue Tree Drag & Drop / Reordering):**
+   - **Kéo thả chuột (Drag & Drop):** Kéo trực tiếp thẻ Manh mối (Clue) thả lên trên hoặc xuống dưới để tự động đổi thứ tự kịch bản.
+   - **Nút điều hướng nhanh:** Hai nút `▲ Lên` và `▼ Xuống` ngay trên từng thẻ clue giúp đảo vị trí anh em nhanh chóng.
+4. 🏹 **Sửa Triệt Để Hiển Thị Mũi Tên (Arrow Vector Polish):**
+   - Loại bỏ bounding box vuông màu xanh khi chọn mũi tên.
+   - Tinh chỉnh vector stroke và đầu mũi tên khí động học với `markerUnits="userSpaceOnUse"`, viền chọn ánh neon sắc nét.
 
 ---
 

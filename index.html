@@ -605,7 +605,7 @@ body.spaceDown .stage { cursor: grab !important; }
 }
 .imgLayer {
   position: absolute;
-  transform-origin: top left;
+  transform-origin: center center;
   touch-action: none;
   display: block;
   visibility: visible;
@@ -935,6 +935,48 @@ body.spaceDown .stage { cursor: grab !important; }
 }
 .alignBtn:hover {
   background: var(--btn-hover);
+  border-color: var(--line-focus);
+}
+
+
+/* Clue Reorder & Drag Drop */
+.clueCardDraggable {
+  cursor: grab;
+  transition: all .15s ease;
+  user-select: none;
+}
+.clueCardDraggable:active { cursor: grabbing; }
+.clueCardDraggable.dragging { opacity: 0.4; }
+.clueCardDraggable.dragOverTop {
+  border-top: 2px solid var(--primary) !important;
+  box-shadow: 0 -2px 6px var(--primary-glow);
+}
+.clueCardDraggable.dragOverBottom {
+  border-bottom: 2px solid var(--primary) !important;
+  box-shadow: 0 2px 6px var(--primary-glow);
+}
+.clueActions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.clueMoveBtn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  font-size: 9px;
+  cursor: pointer;
+  transition: .12s;
+}
+.clueMoveBtn:hover {
+  background: var(--btn-hover);
+  color: var(--ink);
   border-color: var(--line-focus);
 }
 
@@ -1280,7 +1322,7 @@ body.play .trayrow .token { justify-self: center; }
       <span class="brandIcon">🎭</span>
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.30 · STUDIO</button>
+    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.32 · STUDIO</button>
   </div>
 
   <div class="navGroup centerNav">
@@ -2348,6 +2390,7 @@ function renderLists(){
 
   const roots=data.clues.filter(c=>!c.parent);
   $("#clueList").innerHTML=roots.map(c=>clueList(c)).join("");
+  initClueReorderListeners();
 
   const rx=[];
   sortedCharacters().forEach(c=>(c.reactionEvents||[]).forEach((ev,i)=>rx.push({char:c,event:ev,index:i})));
@@ -2371,10 +2414,20 @@ function clueList(c){
   const kids=data.clues.filter(x=>x.parent===c.id);
   const state=c.parent?c.preOpen:"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
-  return `<div><div class="card ${selected.type==="clue"&&selected.id===c.id?"sel":""}" data-s="clue:${c.id}">
-    <b>${c.id}</b> <span class="pill ${state.toLowerCase()}">${label}</span>
-    <div class="meta">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</div></div>
-    ${kids.length?`<div style="margin-left:13px">${kids.map(clueList).join("")}</div>`:""}</div>`;
+  return `<div class="clueWrap" data-clue-wrap="${c.id}">
+    <div class="card clueCardDraggable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" draggable="true" data-s="clue:${c.id}" data-clue-id="${c.id}">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <b>${c.id}</b>
+        <div class="clueActions">
+          <button class="clueMoveBtn" data-move-up="${c.id}" type="button" title="Di chuyển lên trên">▲</button>
+          <button class="clueMoveBtn" data-move-down="${c.id}" type="button" title="Di chuyển xuống dưới">▼</button>
+          <span class="pill ${state.toLowerCase()}">${label}</span>
+        </div>
+      </div>
+      <div class="meta">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</div>
+    </div>
+    ${kids.length?`<div style="margin-left:13px">${kids.map(clueList).join("")}</div>`:""}
+  </div>`;
 }
 
 function createImageLayer(i){
@@ -2383,7 +2436,25 @@ function createImageLayer(i){
   el.className="imgLayer "+(mode==="edit"&&selected.type==="image"&&selected.id===i.id?"sel ":"")+(multiSel.has(key)?"multiSel":"");
   el.dataset.imgId=i.id;
   const flipX=i.flipH?-1:1, flipY=i.flipV?-1:1, rot=i.rotation||0, op=(i.opacity!==undefined?i.opacity:100)/100;
-el.style.cssText=`left:${i.x/1080*100}%;top:${i.y/1610*100}%;width:${i.w/1080*100}%;height:${i.h/1610*100}%;z-index:${i.z};transform:scale(${flipX},${flipY}) rotate(${rot}deg);opacity:${op};`;
+  
+  // Photoshop CSS Filters
+  const filters = [];
+  if(i.brightness !== undefined && i.brightness !== 100) filters.push(`brightness(${i.brightness}%)`);
+  if(i.contrast !== undefined && i.contrast !== 100) filters.push(`contrast(${i.contrast}%)`);
+  if(i.saturate !== undefined && i.saturate !== 100) filters.push(`saturate(${i.saturate}%)`);
+  if(i.blur) filters.push(`blur(${i.blur}px)`);
+  if(i.grayscale) filters.push(`grayscale(${i.grayscale}%)`);
+  if(i.sepia) filters.push(`sepia(${i.sepia}%)`);
+  if(i.invert) filters.push(`invert(${i.invert}%)`);
+  const filterStr = filters.length ? filters.join(' ') : 'none';
+  const blendStr = i.blendMode || 'normal';
+  const radiusPx = (i.radius || 0) + 'px';
+  let shadowStr = 'none';
+  if(i.shadow === 'soft') shadowStr = '0 10px 25px rgba(0,0,0,0.4)';
+  else if(i.shadow === 'hard') shadowStr = '6px 6px 0px rgba(0,0,0,0.6)';
+  else if(i.shadow === 'glow') shadowStr = '0 0 15px rgba(59,130,246,0.7)';
+
+  el.style.cssText=`left:${i.x/1080*100}%;top:${i.y/1610*100}%;width:${i.w/1080*100}%;height:${i.h/1610*100}%;z-index:${i.z};transform:scale(${flipX},${flipY}) rotate(${rot}deg);opacity:${op};filter:${filterStr};mix-blend-mode:${blendStr};border-radius:${radiusPx};box-shadow:${shadowStr};overflow:hidden;`;
   el.innerHTML=`<img src="${i.src}"><div class="resize"></div>`;
   if(mode==="edit"){
     el.onpointerdown=e=>moveImg(e,i,el);
@@ -2570,7 +2641,101 @@ function playClue(c,d){
   const reveal=data.level.revealParentClueId===c.id?playDramaReveal(d+1):"";
   return own+children+reveal;
 }
+
+// ==========================================
+// Clue Tree Drag & Drop and Reordering
+// ==========================================
+function moveClueOrder(id, dir){
+  const c = data.clues.find(x => x.id === id);
+  if(!c) return;
+  const siblings = data.clues.filter(x => x.parent === c.parent);
+  const idx = siblings.indexOf(c);
+  if(idx === -1) return;
+  const targetIdx = dir === "up" ? idx - 1 : idx + 1;
+  if(targetIdx < 0 || targetIdx >= siblings.length) return;
+  
+  const targetClue = siblings[targetIdx];
+  const realIdxA = data.clues.indexOf(c);
+  const realIdxB = data.clues.indexOf(targetClue);
+  if(realIdxA !== -1 && realIdxB !== -1){
+    data.clues[realIdxA] = targetClue;
+    data.clues[realIdxB] = c;
+    save();
+    refreshImmediate();
+    toast(`Đã chuyển manh mối ${c.id} ${dir === "up" ? "lên trên" : "xuống dưới"}`);
+  }
+}
+
+function reorderClueDrag(srcId, tgtId, position){
+  if(srcId === tgtId) return;
+  const src = data.clues.find(x => x.id === srcId);
+  const tgt = data.clues.find(x => x.id === tgtId);
+  if(!src || !tgt) return;
+  
+  const oldIdx = data.clues.indexOf(src);
+  if(oldIdx === -1) return;
+  data.clues.splice(oldIdx, 1);
+  
+  let targetIdx = data.clues.indexOf(tgt);
+  if(position === "after") targetIdx++;
+  data.clues.splice(targetIdx, 0, src);
+  
+  // Adopt target's parent level
+  src.parent = tgt.parent;
+  
+  save();
+  refreshImmediate();
+  toast(`Đã đổi vị trí manh mối: ${src.id} -> ${tgt.id}`);
+}
+
+function initClueReorderListeners(){
+  $$('[data-move-up]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      moveClueOrder(btn.dataset.moveUp, "up");
+    };
+  });
+  $$('[data-move-down]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      moveClueOrder(btn.dataset.moveDown, "down");
+    };
+  });
+  $$('.clueCardDraggable').forEach(card => {
+    card.ondragstart = (e) => {
+      e.dataTransfer.setData("text/plain", card.dataset.clueId);
+      card.classList.add("dragging");
+    };
+    card.ondragend = () => {
+      card.classList.remove("dragging");
+      $$('.clueCardDraggable').forEach(c => c.classList.remove("dragOverTop", "dragOverBottom"));
+    };
+    card.ondragover = (e) => {
+      e.preventDefault();
+      const rect = card.getBoundingClientRect();
+      const isTop = e.clientY < rect.top + rect.height / 2;
+      card.classList.toggle("dragOverTop", isTop);
+      card.classList.toggle("dragOverBottom", !isTop);
+    };
+    card.ondragleave = () => {
+      card.classList.remove("dragOverTop", "dragOverBottom");
+    };
+    card.ondrop = (e) => {
+      e.preventDefault();
+      const srcId = e.dataTransfer.getData("text/plain");
+      const tgtId = card.dataset.clueId;
+      const rect = card.getBoundingClientRect();
+      const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
+      card.classList.remove("dragOverTop", "dragOverBottom");
+      if(srcId && tgtId && srcId !== tgtId){
+        reorderClueDrag(srcId, tgtId, position);
+      }
+    };
+  });
+}
+
 function renderClues(){
+  initClueReorderListeners();
   const roots=data.clues.filter(c=>!c.parent);
   const rootReveal=!data.level.revealParentClueId?playDramaReveal(0):"";
   $("#liveClues").innerHTML=mode==="edit"?roots.map(c=>editClue(c,0)).join(""):roots.map(c=>playClue(c,0)).join("")+rootReveal;
@@ -3066,21 +3231,75 @@ function imageIns(b,i){
     <div class="row"><label>🟡 X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
     <div class="row"><label>🟡 W<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 H<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
     
-    <div class="head" style="margin-top:6px"><b>🎨 FIGMA TRANSFORM</b></div>
+    <div class="head" style="margin-top:6px"><b>🎨 FIGMA & PHOTOSHOP TOOLS</b></div>
     <div class="row">
-      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật ngang">⇄ Flip H</button>
-      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật dọc">⇅ Flip V</button>
+      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật đối xứng ngang (tâm ở giữa)">⇄ Flip H</button>
+      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật đối xứng dọc (tâm ở giữa)">⇅ Flip V</button>
       <button class="btn" id="rotResetImg" type="button" title="Góc 0°">0°</button>
+      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình Canvas">🎯 Căn giữa</button>
     </div>
     <div class="row" style="margin-top:4px">
       <label style="flex:1">Xoay (°)<input id="irot" type="number" min="0" max="360" value="${i.rotation||0}"></label>
       <button class="btn" id="rot90Img" type="button" style="margin-top:18px">+90°</button>
     </div>
+    
     <label style="margin-top:4px">Độ mờ Opacity: <b id="iopText">${i.opacity!==undefined?i.opacity:100}%</b>
       <input id="iop" type="range" min="10" max="100" value="${i.opacity!==undefined?i.opacity:100}">
     </label>
 
-    <label class="row" style="margin-top:6px"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Lock</label>
+    <div class="head" style="margin-top:6px"><b>🖼️ HIỆU ỨNG & BỘ LỌC (PTS FILTERS)</b></div>
+    <div class="row">
+      <label style="flex:1">Hòa trộn (Blend)
+        <select id="iblend">
+          <option value="normal" ${(!i.blendMode||i.blendMode==='normal')?'selected':''}>Normal</option>
+          <option value="multiply" ${i.blendMode==='multiply'?'selected':''}>Multiply (Nhân tối)</option>
+          <option value="screen" ${i.blendMode==='screen'?'selected':''}>Screen (Làm sáng)</option>
+          <option value="overlay" ${i.blendMode==='overlay'?'selected':''}>Overlay (Phủ)</option>
+          <option value="darken" ${i.blendMode==='darken'?'selected':''}>Darken</option>
+          <option value="lighten" ${i.blendMode==='lighten'?'selected':''}>Lighten</option>
+          <option value="color-dodge" ${i.blendMode==='color-dodge'?'selected':''}>Color Dodge</option>
+          <option value="difference" ${i.blendMode==='difference'?'selected':''}>Difference (Đảo tương phản)</option>
+        </select>
+      </label>
+      <label style="flex:1">Bóng đổ (Shadow)
+        <select id="ishadow">
+          <option value="none" ${(!i.shadow||i.shadow==='none')?'selected':''}>Không bóng</option>
+          <option value="soft" ${i.shadow==='soft'?'selected':''}>Bóng đổ mềm</option>
+          <option value="hard" ${i.shadow==='hard'?'selected':''}>Bóng khối sắc</option>
+          <option value="glow" ${i.shadow==='glow'?'selected':''}>Neon Glow</option>
+        </select>
+      </label>
+    </div>
+
+    <label style="margin-top:4px">Bo góc Radius: <b id="iradText">${i.radius||0}px</b>
+      <input id="irad" type="range" min="0" max="60" value="${i.radius||0}">
+    </label>
+
+    <label style="margin-top:4px">Độ sáng (Brightness): <b id="ibrightText">${i.brightness!==undefined?i.brightness:100}%</b>
+      <input id="ibright" type="range" min="50" max="150" value="${i.brightness!==undefined?i.brightness:100}">
+    </label>
+
+    <label style="margin-top:4px">Tương phản (Contrast): <b id="icontrastText">${i.contrast!==undefined?i.contrast:100}%</b>
+      <input id="icontrast" type="range" min="50" max="150" value="${i.contrast!==undefined?i.contrast:100}">
+    </label>
+
+    <label style="margin-top:4px">Bão hòa màu (Saturation): <b id="isatText">${i.saturate!==undefined?i.saturate:100}%</b>
+      <input id="isat" type="range" min="0" max="200" value="${i.saturate!==undefined?i.saturate:100}">
+    </label>
+
+    <label style="margin-top:4px">Làm mờ (Blur): <b id="iblurText">${i.blur||0}px</b>
+      <input id="iblur" type="range" min="0" max="15" value="${i.blur||0}">
+    </label>
+
+    <div class="row" style="margin-top:6px">
+      <button class="btn smBtn ${i.grayscale===100?'on':''}" id="filterBwBtn" type="button">Đen trắng</button>
+      <button class="btn smBtn ${i.sepia===100?'on':''}" id="filterSepiaBtn" type="button">Sepia</button>
+      <button class="btn smBtn ${i.invert===100?'on':''}" id="filterInvertBtn" type="button">Invert</button>
+      <button class="btn smBtn danger" id="resetFiltersBtn" type="button">Reset</button>
+    </div>
+
+    <div class="head" style="margin-top:8px"><b>Thao tác lớp</b></div>
+    <label class="row"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Lock</label>
     <div class="row"><button class="btn" id="dupImg" type="button">Duplicate</button><button class="btn" id="imgFront" type="button">Front</button><button class="btn" id="imgBack" type="button">Back</button></div>
     <div class="row"><button class="btn" id="imgForward" type="button">Forward</button><button class="btn" id="imgBackward" type="button">Backward</button></div>
     <div class="small">Ảnh và shape/text dùng chung thứ tự layer.</div>
@@ -3088,14 +3307,42 @@ function imageIns(b,i){
   const up=()=>{
     i.name=$("#in").value;i.x=+$("#ix").value;i.y=+$("#iy").value;i.w=Math.max(20,+$("#iw").value);i.h=Math.max(20,+$("#ih").value);i.locked=$("#il").checked;
     i.rotation=+($("#irot")?$("#irot").value:0);i.opacity=+($("#iop")?$("#iop").value:100);
+    i.blendMode=$("#iblend")?$("#iblend").value:'normal';
+    i.shadow=$("#ishadow")?$("#ishadow").value:'none';
+    i.radius=+($("#irad")?$("#irad").value:0);
+    i.brightness=+($("#ibright")?$("#ibright").value:100);
+    i.contrast=+($("#icontrast")?$("#icontrast").value:100);
+    i.saturate=+($("#isat")?$("#isat").value:100);
+    i.blur=+($("#iblur")?$("#iblur").value:0);
     save();refreshImmediate();
   };
-  ["in","ix","iy","iw","ih","il","irot"].forEach(id=>{const el=$("#"+id);if(el)el.onchange=up});
+  ["in","ix","iy","iw","ih","il","irot","iblend","ishadow"].forEach(id=>{const el=$("#"+id);if(el)el.onchange=up});
   if($("#iop"))$("#iop").oninput=e=>{i.opacity=+e.target.value;$("#iopText").textContent=e.target.value+"%";save();refreshImmediate()};
+  if($("#irad"))$("#irad").oninput=e=>{i.radius=+e.target.value;$("#iradText").textContent=e.target.value+"px";save();refreshImmediate()};
+  if($("#ibright"))$("#ibright").oninput=e=>{i.brightness=+e.target.value;$("#ibrightText").textContent=e.target.value+"%";save();refreshImmediate()};
+  if($("#icontrast"))$("#icontrast").oninput=e=>{i.contrast=+e.target.value;$("#icontrastText").textContent=e.target.value+"%";save();refreshImmediate()};
+  if($("#isat"))$("#isat").oninput=e=>{i.saturate=+e.target.value;$("#isatText").textContent=e.target.value+"%";save();refreshImmediate()};
+  if($("#iblur"))$("#iblur").oninput=e=>{i.blur=+e.target.value;$("#iblurText").textContent=e.target.value+"px";save();refreshImmediate()};
+
+  if($("#centerCanvasImg"))$("#centerCanvasImg").onclick=()=>{
+    i.x=Math.round((1080 - i.w) / 2);
+    i.y=Math.round((1610 - i.h) / 2);
+    save();refreshImmediate();renderInspector();toast("Đã căn giữa Canvas 1080x1610");
+  };
   if($("#flipHImg"))$("#flipHImg").onclick=()=>{i.flipH=!i.flipH;save();refreshImmediate();renderInspector()};
   if($("#flipVImg"))$("#flipVImg").onclick=()=>{i.flipV=!i.flipV;save();refreshImmediate();renderInspector()};
   if($("#rot90Img"))$("#rot90Img").onclick=()=>{i.rotation=((i.rotation||0)+90)%360;save();refreshImmediate();renderInspector()};
   if($("#rotResetImg"))$("#rotResetImg").onclick=()=>{i.rotation=0;save();refreshImmediate();renderInspector()};
+  
+  if($("#filterBwBtn"))$("#filterBwBtn").onclick=()=>{i.grayscale=i.grayscale===100?0:100;save();refreshImmediate();renderInspector()};
+  if($("#filterSepiaBtn"))$("#filterSepiaBtn").onclick=()=>{i.sepia=i.sepia===100?0:100;save();refreshImmediate();renderInspector()};
+  if($("#filterInvertBtn"))$("#filterInvertBtn").onclick=()=>{i.invert=i.invert===100?0:100;save();refreshImmediate();renderInspector()};
+  if($("#resetFiltersBtn"))$("#resetFiltersBtn").onclick=()=>{
+    i.brightness=100;i.contrast=100;i.saturate=100;i.blur=0;i.grayscale=0;i.sepia=0;i.invert=0;
+    i.blendMode='normal';i.shadow='none';i.radius=0;
+    save();refreshImmediate();renderInspector();toast("Đã reset bộ lọc ảnh");
+  };
+
   $("#dupImg").onclick=()=>duplicateImage(i);
   $("#imgFront").onclick=()=>{moveSceneLayer("image",i,"front");save();refreshImmediate()};
   $("#imgBack").onclick=()=>{moveSceneLayer("image",i,"back");save();refreshImmediate()};
