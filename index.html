@@ -146,11 +146,8 @@ button { cursor: pointer; }
   border-bottom: 1px solid var(--line);
   z-index: 100;
   white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
+  overflow: visible !important;
 }
-.top::-webkit-scrollbar { display: none; }
 
 .navGroup {
   display: flex;
@@ -311,14 +308,14 @@ button { cursor: pointer; }
 .topMenuPanel {
   position: absolute;
   right: 0;
-  top: 38px;
-  z-index: 1000;
+  top: 48px;
+  z-index: 10000;
   min-width: 215px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 6px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.4);
   display: grid;
   gap: 4px;
 }
@@ -1327,7 +1324,7 @@ body.play .trayrow .token { justify-self: center; }
       <span class="brandIcon">🎭</span>
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.32 · STUDIO</button>
+    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.33 · STUDIO</button>
   </div>
 
   <div class="navGroup centerNav">
@@ -1346,24 +1343,24 @@ body.play .trayrow .token { justify-self: center; }
 
     <div class="btnGroup">
       <button class="btn smBtn" id="logicFlowBtn" title="Kiểm tra sơ đồ suy luận logic (Solve Graph)">FLOW</button>
-      <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">ĐỘ KHÓ</button>
+      <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">TEST ĐỘ KHÓ</button>
       <button class="btn smBtn" id="checkLevelBtn" title="Linter kiểm tra lỗi logic & asset">CHECK</button>
     </div>
   </div>
 
   <div class="navGroup rightNav">
     <div class="btnGroup">
-      <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU</button>
-      <label class="btn smBtn" title="Mở Level từ file JSON">MỞ<input id="importFile" type="file" accept=".json" style="display:none"></label>
+      <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU PROJECT</button>
+      <label class="btn smBtn" title="Mở Level từ file JSON">MỞ PROJECT<input id="importFile" type="file" accept=".json" style="display:none"></label>
     </div>
 
     <details class="topMenu" id="productionMenu">
       <summary class="btn smBtn">PRODUCTION ▾</summary>
       <div class="topMenuPanel">
-        <button class="btn" id="endingBtn">🏆 Ending Maker</button>
-        <button class="btn" id="scenePngBtn">🖼️ Export Scene PNG</button>
-        <button class="btn" id="assetRequestBtn">📊 Asset Request XLSX</button>
-        <button class="btn" id="exportBtn">💻 Export Dev JSON</button>
+        <button class="btn" id="endingBtn">ENDING</button>
+        <button class="btn" id="scenePngBtn">Scene PNG</button>
+        <button class="btn" id="assetRequestBtn">Asset Request XLSX</button>
+        <button class="btn" id="exportBtn">Dev JSON</button>
       </div>
     </details>
 
@@ -1380,9 +1377,9 @@ body.play .trayrow .token { justify-self: center; }
     </button>
 
     <details class="topMenu" id="moreMenu">
-      <summary class="btn iconBtn smBtn">⋯</summary>
+      <summary class="btn iconBtn smBtn" title="Tùy chọn khác">⋯</summary>
       <div class="topMenuPanel">
-        <button class="btn danger" id="resetBtn">🗑️ Reset trắng</button>
+        <button class="btn danger" id="resetBtn">Reset trắng</button>
       </div>
     </details>
   </div>
@@ -2079,6 +2076,7 @@ function normalize(d){
 let data=normalize((()=>{try{return JSON.parse(localStorage.getItem("dramaEditorV1_1"))}catch(e){return null}})()||blank());
 let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxType="image", activeTool="select";
 let multiSel=new Set();
+window.data=data;window.selected=selected;window.multiSel=multiSel;window.refreshImmediate=()=>refreshImmediate();
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
 const PLAY_PROGRESS_KEY="dramaEditorPlayProgressV127Lives";
@@ -2368,12 +2366,8 @@ function refreshImmediate(){
     renderLive();
     renderLists();
     renderLogic();
-    const st=$("#stage");
-    if(st){
-      st.style.transform="translateZ(0)";
-      void st.offsetHeight;
-      st.style.transform="";
-      void document.body.offsetHeight;
+    if(typeof applyZoomPan === 'function'){
+      applyZoomPan();
     }
   };
 
@@ -2850,6 +2844,48 @@ function dragEditTray(e,c,t){
   };
   mv(e);window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }
+let activeFollowImageId = null;
+function startImageFollowMouse(img){
+  if(!img || img.locked) return;
+  activeFollowImageId = img.id;
+  toast("🖱️ Di chuột trên canvas để di chuyển ảnh — Click chuột để đặt ảnh (Esc để hủy)");
+  const onMove = ev => {
+    if(activeFollowImageId !== img.id) return;
+    const p = logical(ev);
+    img.x = Math.round(p.x - img.w / 2);
+    img.y = Math.round(p.y - img.h / 2);
+    const layer = document.querySelector(`.imgLayer[data-img-id="${img.id}"]`);
+    if(layer){
+      layer.style.left = (img.x / 1080 * 100) + "%";
+      layer.style.top = (img.y / 1610 * 100) + "%";
+    }
+    const ix = $("#ix"), iy = $("#iy");
+    if(ix) ix.value = img.x;
+    if(iy) iy.value = img.y;
+  };
+  const onClick = ev => {
+    ev.stopPropagation();
+    activeFollowImageId = null;
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("click", onClick, true);
+    save(); refreshImmediate();
+    toast("Đã đặt ảnh vào vị trí mới");
+  };
+  const onKey = ev => {
+    if(ev.key === "Escape"){
+      activeFollowImageId = null;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("click", onClick, true);
+      window.removeEventListener("keydown", onKey);
+      refreshImmediate();
+      toast("Đã hủy di chuyển theo chuột");
+    }
+  };
+  window.addEventListener("pointermove", onMove);
+  setTimeout(() => window.addEventListener("click", onClick, true), 50);
+  window.addEventListener("keydown", onKey);
+}
+
 function moveImg(e,i,el){
   if(i.locked||e.target.classList.contains("resize"))return;
   const key="image:"+i.id;
@@ -2858,6 +2894,21 @@ function moveImg(e,i,el){
     if(multiSel.has(key))multiSel.delete(key);else multiSel.add(key);
     selected={type:"image",id:i.id};refreshImmediate();return;
   }
+
+  // Alt + Drag: Duplicate image and drag the clone to new position!
+  if(e.altKey){
+    e.preventDefault();e.stopPropagation();
+    const clone = {...deep(i), id: uid("IMG_"), name: (i.name||"Reference")+" copy", z: 10 + sceneLayerItems().length};
+    data.images.push(clone);
+    normalizeSceneZData();
+    multiSel.clear(); multiSel.add("image:" + clone.id);
+    selected = {type: "image", id: clone.id};
+    refreshImmediate();
+    i = clone;
+    el = document.querySelector(`.imgLayer[data-img-id="${clone.id}"]`) || el;
+    toast("Đã nhân bản ảnh bằng Alt + Kéo chuột");
+  }
+
   if(!multiSel.has(key)){multiSel.clear();multiSel.add(key)}
   selected={type:"image",id:i.id};
   if(multiSel.size>1)return moveSelectionGroup(e,key);
@@ -3265,6 +3316,9 @@ function imageIns(b,i){
       <button class="btn" id="rotResetImg" type="button" title="Góc 0°">0°</button>
       <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình Canvas">🎯 Căn giữa</button>
     </div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn" id="followMouseImgBtn" type="button" style="width:100%" title="Di chuyển ảnh theo vị trí chuột trong thời gian thực (nhấn chuột để đặt)">🖱️ Di chuyển theo chuột (Follow Mouse)</button>
+    </div>
     <div class="row" style="margin-top:4px">
       <label style="flex:1">Xoay (°)<input id="irot" type="number" min="0" max="360" value="${i.rotation||0}"></label>
       <button class="btn" id="rot90Img" type="button" style="margin-top:18px">+90°</button>
@@ -3360,6 +3414,7 @@ function imageIns(b,i){
   if($("#flipVImg"))$("#flipVImg").onclick=()=>{i.flipV=!i.flipV;save();refreshImmediate();renderInspector()};
   if($("#rot90Img"))$("#rot90Img").onclick=()=>{i.rotation=((i.rotation||0)+90)%360;save();refreshImmediate();renderInspector()};
   if($("#rotResetImg"))$("#rotResetImg").onclick=()=>{i.rotation=0;save();refreshImmediate();renderInspector()};
+  if($("#followMouseImgBtn"))$("#followMouseImgBtn").onclick=()=>startImageFollowMouse(i);
   
   if($("#filterBwBtn"))$("#filterBwBtn").onclick=()=>{i.grayscale=i.grayscale===100?0:100;save();refreshImmediate();renderInspector()};
   if($("#filterSepiaBtn"))$("#filterSepiaBtn").onclick=()=>{i.sepia=i.sepia===100?0:100;save();refreshImmediate();renderInspector()};
@@ -3668,8 +3723,13 @@ function addImage(f){
     obj.aspectRatio=nw/nh;
     obj.w=Math.max(60,nw*sc);
     obj.h=Math.max(60,nh*sc);
-    obj.x=(1080-obj.w)/2;
-    obj.y=(1610-obj.h)/2;
+    if(lastMouseStagePos){
+      obj.x = Math.max(0, Math.min(1080 - obj.w, Math.round(lastMouseStagePos.x - obj.w / 2)));
+      obj.y = Math.max(0, Math.min(1610 - obj.h, Math.round(lastMouseStagePos.y - obj.h / 2)));
+    } else {
+      obj.x = (1080 - obj.w) / 2;
+      obj.y = (1610 - obj.h) / 2;
+    }
 
     const layer = document.querySelector(`.imgLayer[data-img-id="${obj.id}"]`);
     if(layer){
@@ -4806,16 +4866,19 @@ let panStart = {x: 0, y: 0};
 function applyZoomPan(){
   const st=$("#stage");
   if(!st) return;
+  st.style.transformOrigin = "center center";
   st.style.transform = `scale(${canvasZoom}) translate(${canvasPan.x}px, ${canvasPan.y}px)`;
   const zl=$("#zoomValue");
   if(zl) zl.textContent = Math.round(canvasZoom * 100) + "%";
 }
 
+let lastMouseStagePos = null;
+
 function initZoomAndPan(){
   const zin=$("#zoomInBtn"), zout=$("#zoomOutBtn"), zreset=$("#zoomResetBtn");
   if(zin) zin.onclick = () => { canvasZoom = Math.min(2.5, +(canvasZoom + 0.15).toFixed(2)); applyZoomPan(); };
-  if(zout) zout.onclick = () => { canvasZoom = Math.max(0.4, +(canvasZoom - 0.15).toFixed(2)); applyZoomPan(); };
-  if(zreset) zreset.onclick = () => { canvasZoom = 1.0; canvasPan = {x: 0, y: 0}; applyZoomPan(); };
+  if(zout) zout.onclick = () => { canvasZoom = Math.max(0.3, +(canvasZoom - 0.15).toFixed(2)); applyZoomPan(); };
+  if(zreset) zreset.onclick = () => { canvasZoom = 1.0; canvasPan = {x: 0, y: 0}; applyZoomPan(); toast("Zoom: 100% (1:1)"); };
   
   window.addEventListener("keydown", e => {
     if(e.code === "Space" && !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)){
@@ -4835,6 +4898,21 @@ function initZoomAndPan(){
   
   const sw=$("#stageWrap") || $("#stage");
   if(sw){
+    // Ctrl + Wheel / Wheel zoom
+    sw.addEventListener("wheel", e => {
+      if(e.ctrlKey || e.metaKey || isSpaceDown){
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.08 : -0.08;
+        canvasZoom = Math.min(2.5, Math.max(0.3, +(canvasZoom + delta).toFixed(2)));
+        applyZoomPan();
+      }
+    }, { passive: false });
+
+    // Track mouse position over stage for cursor paste / placement
+    sw.addEventListener("pointermove", e => {
+      lastMouseStagePos = logical(e);
+    });
+
     sw.addEventListener("pointerdown", e => {
       if(isSpaceDown || e.button === 1){
         isPanning = true;
@@ -4857,6 +4935,13 @@ function initZoomAndPan(){
       }
     });
   }
+
+  // Close top menus on outside click
+  document.addEventListener("click", e => {
+    if(!e.target.closest(".topMenu")){
+      document.querySelectorAll(".topMenu[open]").forEach(m => m.removeAttribute("open"));
+    }
+  });
 }
 
 // Changelog Modal
@@ -4955,11 +5040,20 @@ render();
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
-    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">V1.30 · FIGMA STUDIO</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">V1.33 · STUDIO</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
     <div class="changelogBody">
       <div class="clTimeline">
         <div class="clItem latest">
-          <div class="clHeader"><b>V1.30 · FIGMA CANVAS & SVG PRECISION</b><span class="clTag current">MỚI NHẤT</span></div>
+          <div class="clHeader"><b>V1.33 · PRODUCTION SUITE & ZOOM STABILITY</b><span class="clTag current">MỚI NHẤT</span></div>
+          <ul class="clList">
+            <li><b>⚡ Khôi phục toàn diện Menu Production & More:</b> Phục hồi hoàn toàn thanh dropdown Production (ENDING, Scene PNG, Asset Request XLSX, Dev JSON), nút More (Reset trắng), và các nút Lưu/Mở Project với hiển thị unclipped, kính mờ cao cấp.</li>
+            <li><b>🔍 Sửa lỗi Canvas Zoom Snap:</b> Loại bỏ triệt để lỗi zoom bị nhảy giật thu ngược về 1:1 khi click chuột lên sân khấu sau khi zoom ra/vào. Canvas giữ nguyên tỷ lệ scale và vị trí pan chính xác 100%.</li>
+            <li><b>🖱️ Di chuyển ảnh theo chuột (Follow Mouse Mode):</b> Hỗ trợ chế độ nhấp để gắn ảnh theo con trỏ chuột trong thời gian thực, click để đặt vào vị trí mong muốn hoặc bấm phím Esc để hủy.</li>
+            <li><b>✨ Nhân bản nhanh bằng Alt + Drag:</b> Giữ phím Alt và kéo ảnh sang vị trí bất kỳ sẽ tự động nhân bản thành hình mới (tạo bản sao trực tiếp theo hướng di chuột).</li>
+          </ul>
+        </div>
+        <div class="clItem">
+          <div class="clHeader"><b>V1.30 · FIGMA CANVAS & SVG PRECISION</b><span class="clTag">STABLE</span></div>
           <ul class="clList">
             <li><b>📐 Khắc phục lỗi Tam giác (SVG Vector):</b> Chuyển đổi toàn bộ render hình tam giác sang SVG Polygon đa giác thực tế, loại bỏ triệt để lỗi viền hộp chữ nhật/vuông khi chọn, hỗ trợ viền stroke và đổ màu chuẩn xác.</li>
             <li><b>🎨 Bộ công cụ Transform kiểu Figma:</b> Bổ sung Flip Ngang (⇄) & Flip Dọc (⇅), xoay tự do (Rotate 0°–360° / ±90°), và thanh trượt độ mờ đục (Opacity 10%–100%) cho cả ảnh tham khảo và nhân vật.</li>
