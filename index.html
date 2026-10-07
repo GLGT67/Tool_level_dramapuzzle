@@ -481,7 +481,7 @@ textarea {
 
 .sceneRow {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 46px minmax(0, 1fr);
   gap: 8px;
   align-items: start;
 }
@@ -491,25 +491,32 @@ textarea {
   gap: 4px;
   position: sticky;
   top: 8px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   background: var(--dock-bg);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 5px;
+  border-radius: 10px;
+  padding: 4px;
+  box-sizing: border-box;
+  width: 46px;
+  align-items: center;
   box-shadow: var(--shadow-sm);
+  z-index: 50;
 }
 .toolBtn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   border: 1px solid var(--line);
   background: var(--card);
   color: var(--ink);
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   display: grid;
   place-items: center;
   padding: 0;
+  box-sizing: border-box;
+  flex-shrink: 0;
   transition: all .12s ease;
 }
 .toolBtn:hover { background: var(--btn-hover); }
@@ -519,7 +526,19 @@ textarea {
   border-color: var(--primary);
   box-shadow: 0 2px 6px var(--primary-glow);
 }
-.toolSep { height: 1px; background: var(--line); margin: 2px 3px; }
+.toolSep { width: 24px; height: 1px; background: var(--line); margin: 2px auto; }
+
+.phaseDot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin: 0 3px 0 6px;
+  vertical-align: 1px;
+}
+.phaseDot.dotNow { background: var(--green); }
+.phaseDot.dotNeed { background: var(--amber); }
+.phaseDot.dotLater { background: var(--purple); }
 
 /* Canvas Stage Frame & Zoom/Pan */
 .stageWrap {
@@ -1324,7 +1343,7 @@ body.play .trayrow .token { justify-self: center; }
       <span class="brandIcon">🎭</span>
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.33 · STUDIO</button>
+    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.34 · STUDIO</button>
   </div>
 
   <div class="navGroup centerNav">
@@ -1391,7 +1410,7 @@ body.play .trayrow .token { justify-self: center; }
     <h3>Level</h3>
     <div class="card sel" id="levelCard"><b>LEVEL SETTINGS</b><div class="meta">ID · Độ khó dự định · Hook · 2 mạng cố định · Reveal</div></div>
 
-    <div class="head"><b>🟡 Reference Layers</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
+    <div class="head"><b>Reference Layers</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
     <div class="small">Paste Ctrl/Cmd+V. Kéo ảnh để di chuyển, kéo chấm xanh để resize. <b>Giữ Shift khi resize để giữ đúng tỷ lệ ảnh.</b> Chuột phải: Duplicate / đổi layer / lock / xóa.</div>
     <div class="small" style="margin-top:5px"><b>Chọn cụm:</b> kéo chuột trái trên vùng trống → kéo một object đã chọn để di chuyển cả cụm. <b>Backspace/Delete</b> để xóa. <b>Ctrl/Cmd+Z</b> để Undo.</div>
     <div id="imgList"></div>
@@ -1399,7 +1418,7 @@ body.play .trayrow .token { justify-self: center; }
     <div class="head"><b>Characters</b><div class="row"><button class="btn" id="addM">+ M</button><button class="btn" id="addF">+ F</button></div></div>
     <div id="charList"></div>
 
-    <div class="head"><b>Clue Tree</b><button class="btn" id="addClue">🟢 + Root</button></div>
+    <div class="head"><b>Clue Tree</b><button class="btn" id="addClue">+ Root</button></div>
     <div id="clueList"></div>
 
     <div class="head"><b>Reaction Events</b></div>
@@ -1409,7 +1428,7 @@ body.play .trayrow .token { justify-self: center; }
 
 <main class="center">
   <div class="editor">
-    <div class="leveltop"><div><div class="small">LEVEL SANDBOX</div><b id="liveName">LEVEL</b></div><div class="moves"><small>MẠNG</small><b id="liveMoves">❤️❤️</b></div></div>
+    <div class="leveltop"><div><div class="small">LEVEL SANDBOX</div><b id="liveName">LEVEL</b></div><div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div></div>
     <div class="hook"><div id="liveHook" class="dramaHookText"></div></div>
 
     <div class="sceneRow">
@@ -1446,7 +1465,7 @@ body.play .trayrow .token { justify-self: center; }
   </div>
 </main>
 
-<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
+<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend"><span class="phaseDot dotNow"></span>Làm ngay <span class="phaseDot dotNeed"></span>Khi cần <span class="phaseDot dotLater"></span>Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
 </div>
 </div>
 
@@ -2076,6 +2095,7 @@ function normalize(d){
 let data=normalize((()=>{try{return JSON.parse(localStorage.getItem("dramaEditorV1_1"))}catch(e){return null}})()||blank());
 let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxType="image", activeTool="select";
 let multiSel=new Set();
+let wrapBoundaryEnabled = localStorage.getItem("dramaEditorWrapBoundary") !== "false";
 window.data=data;window.selected=selected;window.multiSel=multiSel;window.refreshImmediate=()=>refreshImmediate();
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
@@ -2913,9 +2933,51 @@ function moveImg(e,i,el){
   selected={type:"image",id:i.id};
   if(multiSel.size>1)return moveSelectionGroup(e,key);
   e.preventDefault();e.stopPropagation();
-  const p=logical(e),sx=i.x,sy=i.y;
-  const mv=ev=>{const q=logical(ev);i.x=sx+q.x-p.x;i.y=sy+q.y-p.y;el.style.left=i.x/1080*100+"%";el.style.top=i.y/1610*100+"%"};
-  const up=()=>{window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);save();refreshImmediate()};
+  let p=logical(e),sx=i.x,sy=i.y;
+  const mv=ev=>{
+    const q=logical(ev);
+    let curX=sx+q.x-p.x;
+    let curY=sy+q.y-p.y;
+    
+    // Auto-Wrap Boundary (60% Hidden Threshold)
+    if(wrapBoundaryEnabled){
+      // Ngang: nếu khuất 60% sang trái (curX <= -0.6 * i.w) -> chuyển sang mép phải
+      if(curX <= -0.6 * i.w){
+        curX = 1080 - i.w;
+        sx = curX; p.x = q.x;
+      } else if(curX >= 1080 - 0.4 * i.w){
+        // Nếu khuất 60% sang phải (curX >= 1080 - 0.4 * i.w) -> chuyển sang mép trái
+        curX = 0;
+        sx = curX; p.x = q.x;
+      }
+      
+      // Dọc: nếu khuất 60% lên trên (curY <= -0.6 * i.h) -> chuyển sang mép dưới
+      if(curY <= -0.6 * i.h){
+        curY = 1610 - i.h;
+        sy = curY; p.y = q.y;
+      } else if(curY >= 1610 - 0.4 * i.h){
+        // Nếu khuất 60% xuống dưới (curY >= 1610 - 0.4 * i.h) -> chuyển sang mép trên
+        curY = 0;
+        sy = curY; p.y = q.y;
+      }
+    }
+    
+    i.x=curX; i.y=curY;
+    el.style.left=(i.x/1080*100)+"%";
+    el.style.top=(i.y/1610*100)+"%";
+  };
+  const up=()=>{
+    window.removeEventListener("pointermove",mv);
+    window.removeEventListener("pointerup",up);
+    if(wrapBoundaryEnabled){
+      if(i.x <= -0.6 * i.w) i.x = 1080 - i.w;
+      else if(i.x >= 1080 - 0.4 * i.w) i.x = 0;
+      if(i.y <= -0.6 * i.h) i.y = 1610 - i.h;
+      else if(i.y >= 1610 - 0.4 * i.h) i.y = 0;
+    }
+    save();
+    refreshImmediate();
+  };
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }
 function resizeImg(e,i,el){
@@ -2963,7 +3025,7 @@ function levelIns(b){
   b.innerHTML=`<div class="group col">
     <div class="row">
       <label style="flex:1">Level ID<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
-      <label style="flex:1">🟢 Độ khó GD dự định
+      <label style="flex:1">Độ khó GD dự định
         <select id="ldiffTarget">
           <option value="">-- Chọn --</option>
           <option value="EASY" ${data.level.difficultyTarget==="EASY"?"selected":""}>DỄ</option>
@@ -2973,40 +3035,40 @@ function levelIns(b){
       </label>
     </div>
     <div class="small">Chọn độ khó dự định ngay từ đầu để GD thiết kế theo. TEST ĐỘ KHÓ chỉ là bước kiểm tra lại sau Full Play và không tự đổi mục tiêu này.</div>
-    <label>🟢 Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
+    <label>Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
     <div class="tokenPreview"><b>Hook preview:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
-    <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả Character vào một slot hợp lệ nhưng sai người; thả hụt ngoài slot không mất mạng. Đây là rule chung, GD không chỉnh theo từng level.</div>
-    <label>🟡 Main Reveal<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
+    <div class="small"><b>2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả Character vào một slot hợp lệ nhưng sai người; thả hụt ngoài slot không mất mạng. Đây là rule chung, GD không chỉnh theo từng level.</div>
+    <label>Main Reveal<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
     <div class="tokenPreview"><b>Reveal preview:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
-    <label>🟡 Main Reveal khi</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
+    <label>Main Reveal khi</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
     <div class="small">Chỉ chọn <b>Movable (Mxx)</b>, vì Fixed đã có sẵn trên scene và không có placement event.</div>
-    <label>🟡 Main Reveal nằm dưới Clue
+    <label>Main Reveal nằm dưới Clue
       <select id="lrparent"><option value="">— Không có parent —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
     </label>
     <div class="small">Nếu Reveal là một nhánh/con của clue, chọn parent ở đây. UI Reveal (✓, sáng hơn, chữ lớn/màu khác, không gạch) là rule chung của game.</div>
-    <label>🟡 Core Truth / Notes<textarea id="lt">${esc(data.level.truth)}</textarea></label>
+    <label>Core Truth / Notes<textarea id="lt">${esc(data.level.truth)}</textarea></label>
     <div class="small">Player-facing text có thể dùng token như <b>{M01}</b>; khi random tên, token tự đổi theo Character ID.</div>
   </div>
 
   <details class="group prodDetails"><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
     <div class="row"><label style="width:120px">Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Item</button></div>
-    <label>🔵 Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
-    <label>🔵 Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
-    <label>🔵 Tone màu<input id="bgTone" value="${esc(art.tone)}" placeholder="VD: ấm, pastel, cưới ngoài trời..."></label>
-    <label>🔵 Reference / chỉ dẫn reference<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
-    <label>🔵 Note riêng cho Artist<textarea id="bgArtist">${esc(art.artistNote)}</textarea></label>
+    <label>Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
+    <label>Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
+    <label>Tone màu<input id="bgTone" value="${esc(art.tone)}" placeholder="VD: ấm, pastel, cưới ngoài trời..."></label>
+    <label>Chỉ dẫn Reference<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
+    <label>Note riêng cho Artist<textarea id="bgArtist">${esc(art.artistNote)}</textarea></label>
     <div class="small">Reference Layers trên canvas + Scene PNG sẽ đi cùng Asset Request để Artist nhìn đúng bố cục.</div>
     <div id="sceneArtList">${(art.sceneItems||[]).map((it,i)=>`<div class="sceneArtItem" data-art-item="${it.id}">
       <div class="row" style="justify-content:space-between"><b>ITEM ${i+1}</b><span class="assetId">${esc(it.assetId||"")}</span></div>
-      <label>🔵 Tên / phần cần vẽ<input data-art-name="${it.id}" value="${esc(it.name)}" placeholder="VD: bàn tiệc / bục cưới / giỏ hoa"></label>
-      <label>🔵 Mô tả<textarea data-art-desc="${it.id}">${esc(it.description)}</textarea></label>
-      <label>🔵 Cách xuất<select data-art-mode="${it.id}">
+      <label>Tên / phần cần vẽ<input data-art-name="${it.id}" value="${esc(it.name)}" placeholder="VD: bàn tiệc / bục cưới / giỏ hoa"></label>
+      <label>Mô tả<textarea data-art-desc="${it.id}">${esc(it.description)}</textarea></label>
+      <label>Cách xuất<select data-art-mode="${it.id}">
         <option value="BAKED_BG" ${it.exportMode==="BAKED_BG"?"selected":""}>Dính vào BG01</option>
         <option value="SEPARATE" ${it.exportMode==="SEPARATE"?"selected":""}>PNG riêng / Object</option>
         <option value="FOREGROUND" ${it.exportMode==="FOREGROUND"?"selected":""}>Foreground PNG riêng</option>
       </select></label>
-      <label>🔵 Asset ID<input data-art-asset="${it.id}" value="${esc(it.assetId||"")}" ${it.exportMode==="BAKED_BG"?"readonly":""}></label>
-      <label>🔵 Note Artist<input data-art-note="${it.id}" value="${esc(it.artistNote||"")}"></label>
+      <label>Asset ID<input data-art-asset="${it.id}" value="${esc(it.assetId||"")}" ${it.exportMode==="BAKED_BG"?"readonly":""}></label>
+      <label>Note Artist<input data-art-note="${it.id}" value="${esc(it.artistNote||"")}"></label>
       <button class="btn danger" data-art-delete="${it.id}">Xóa item</button>
     </div>`).join("")||'<div class="small">Chưa có item background/prop.</div>'}</div>
   </div></details>`;
@@ -3067,20 +3129,20 @@ function charIns(b,c){
   ].join("");
 
   b.innerHTML=`<div class="group col">
-    <label>🟢 Mã<input id="ci" value="${c.id}"></label>
-    <label>🟢 Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
-    <label>🟡 Kho tên khi Random
+    <label>Mã (ID)<input id="ci" value="${c.id}"></label>
+    <label>Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
+    <label>Kho tên khi Random
       <select id="cpool"><option value="KEEP">Giữ nguyên tên này</option><option value="MALE">Kho tên Nam</option><option value="FEMALE">Kho tên Nữ</option><option value="NEUTRAL">Kho tên Neutral</option></select>
     </label>
-    <label>🟢 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
+    <label>Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
     <div class="row">
-<label style="flex:1">🟢 Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
+<label style="flex:1">Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
 <button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn">⇄ Lật mặt (Flip)</button>
 </div>
-    <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
+    <label>Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
-    <label>🟢 Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
-    <div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">🟢 Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
+    <label>Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
+    <div class="row"><label style="flex:1">Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
     <div class="small"><b>AUTO</b> tự tính hướng từ vị trí Character tới Target. Initial State là information player thấy ngay từ START.</div>
     ${c.type==="M"?`<div class="small">Movable luôn có cả trên Scene và Tray trong Edit. <b>Vị trí trên Scene chính là đáp án.</b></div>`:""}
   </div>
@@ -3130,7 +3192,7 @@ function clueIns(b,c){
     </label>
     <div class="small">Mã clue tự cập nhật theo cây. Root = CL01, CL02…; child = CL01.1, CL01.2…</div>
 
-    <label>🟡 Clue mẹ
+    <label>Clue mẹ
       <select id="qp">
         <option value="">-- Root / không có mẹ --</option>
         ${parentOptions}
@@ -3138,21 +3200,21 @@ function clueIns(b,c){
     </label>
 
     ${isRoot
-      ? `<div class="small"><b>🟢 Root clue:</b> có sẵn ngay từ START.</div>`
-      : `<label>🟡 Trước khi mở<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa</option><option value="HIDDEN">Ẩn — không hiện gì</option></select></label>`
+      ? `<div class="small"><b>Root clue:</b> có sẵn ngay từ START.</div>`
+      : `<label>Trước khi mở<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa</option><option value="HIDDEN">Ẩn — không hiện gì</option></select></label>`
     }
 
-    <label>🟢 Nội dung<textarea id="qt">${esc(c.text)}</textarea></label>
+    <label>Nội dung<textarea id="qt">${esc(c.text)}</textarea></label>
 
     <div class="row">
       <select id="tokenChar" style="flex:1">${opts("",true)}</select>
-      <button class="btn" id="insertToken" style="white-space:nowrap">🟢 + Tên Character</button>
+      <button class="btn" id="insertToken" style="white-space:nowrap">+ Tên Character</button>
     </div>
-    <button class="btn" id="tokenizeNames">🟢 Nhận diện tên tạm đã gõ → token</button>
+    <button class="btn" id="tokenizeNames">Nhận diện tên tạm → token</button>
     <div class="small">Data lưu dạng <b>{M01}</b>; preview/player sẽ tự đổi thành tên hiện tại.</div>
     <div class="tokenPreview"><b>Preview:</b> <span id="cluePreview">${esc(resolveTokens(c.text,editNameMap()))}</span></div>
 
-    <label>🟢 Clue hoàn tất khi (AND)</label>
+    <label>Clue hoàn tất khi (AND)</label>
     <div id="qrw" class="checks">${placementTriggerChecks(c.resolveWhen)}</div>
     <div class="small">Chỉ chọn <b>Movable (Mxx)</b>. Field này chỉ dùng để <b>tick/mờ clue</b> và mở clue con; không dùng để nói clue đang solve ai.</div>
 
@@ -3203,7 +3265,7 @@ function reactionIns(b,charId,eventId){
   b.innerHTML=`<div class="group col">
     <div><b style="font-size:12px">${c.id} · REACTION EVENT ${idx+1}</b></div>
 
-    <label>🟢 WHEN / Trigger
+    <label>Trigger (WHEN)
       <select id="evTrigger">
         ${c.type==="M"?'<option value="SELF_PLACED">Bản thân được đặt đúng</option>':""}
         <option value="CHAR_PLACED">Một Character khác được đặt đúng</option>
@@ -3215,7 +3277,7 @@ function reactionIns(b,charId,eventId){
 
     <div class="small"><b>Reaction mới cắt sequence cũ</b> của cùng Character và chạy ngay.</div>
 
-    <div class="head" style="margin-top:8px"><b>🟢 Sequence</b><button class="btn" id="addStep">+ Step</button></div>
+    <div class="head" style="margin-top:8px"><b>Sequence</b><button class="btn" id="addStep">+ Step</button></div>
     <div id="stepList"></div>
 
     <div class="row"><button class="btn" id="evUp">↑ Event</button><button class="btn" id="evDown">↓ Event</button></div>
@@ -3228,10 +3290,10 @@ function reactionIns(b,charId,eventId){
   const renderTriggerConfig=()=>{
     const box=$("#triggerConfig");
     if(ev.triggerType==="CHAR_PLACED"){
-      box.innerHTML=`<label>🟢 Character gây trigger<select id="evOne">${opts(ev.triggerChars?.[0]||"",true,movableFilter)}</select></label>`;
+      box.innerHTML=`<label>Character gây trigger<select id="evOne">${opts(ev.triggerChars?.[0]||"",true,movableFilter)}</select></label>`;
       $("#evOne").onchange=e=>{ev.triggerChars=e.target.value?[e.target.value]:[];save();renderLists();renderLogic()};
     }else if(ev.triggerType==="ALL_PLACED"){
-      box.innerHTML=`<label>🟢 Các Character phải đã đặt đúng</label><div id="evMany" class="checks">${checks(ev.triggerChars||[],movableFilter)}</div>`;
+      box.innerHTML=`<label>Các Character phải đã đặt đúng</label><div id="evMany" class="checks">${checks(ev.triggerChars||[],movableFilter)}</div>`;
       bindChecks($("#evMany"),a=>{ev.triggerChars=a;save();renderLists();renderLogic()});
     }else{
       box.innerHTML=`<div class="small">Trigger chính là ${c.id} được đặt đúng.</div>`;
@@ -3241,22 +3303,22 @@ function reactionIns(b,charId,eventId){
   const renderSteps=()=>{
     $("#stepList").innerHTML=ev.steps.map((st,i)=>`<div class="stateCard" style="cursor:default;margin-bottom:7px">
       <div class="row" style="justify-content:space-between"><b>STEP ${i+1}</b></div><div class="meta">${reactionPreview(st,c.id)} · ${esc(gazeClockText(c.id,st))}</div>
-      <label>🔵 Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
+      <label>Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
 
       <div class="row">
-        <label style="flex:1">🟢 Biểu cảm<select data-step-emotion="${st.id}">${emojiOptions(st.emotion)}</select></label>
-        <label style="flex:1">🟢 Biểu tượng<select data-step-symbol="${st.id}">${symbolOptions(st.symbol)}</select></label>
+        <label style="flex:1">Biểu cảm<select data-step-emotion="${st.id}">${emojiOptions(st.emotion)}</select></label>
+        <label style="flex:1">Biểu tượng<select data-step-symbol="${st.id}">${symbolOptions(st.symbol)}</select></label>
       </div>
 
       <div class="row">
-        <label style="flex:1">🟢 Hướng mắt<select data-step-gaze="${st.id}">${GAZES.map(g=>`<option value="${g}" ${g===st.gaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label>
-        <label style="flex:1">🟢 Target nhìn<select data-step-target="${st.id}">${opts(st.target,true)}</select></label>
+        <label style="flex:1">Hướng mắt<select data-step-gaze="${st.id}">${GAZES.map(g=>`<option value="${g}" ${g===st.gaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label>
+        <label style="flex:1">Target nhìn<select data-step-target="${st.id}">${opts(st.target,true)}</select></label>
       </div>
 
       <div class="small"><b>AUTO</b> tự đo vị trí Source → Target và quy về hướng đồng hồ. Có thể chọn 1–12 giờ để override thủ công. Asset Request sẽ ghi hướng đồng hồ đã resolve.</div>
 
       <div class="row">
-        <label style="flex:1">🟢 Thời gian (giây)<input data-step-duration="${st.id}" type="number" min="0.1" step="0.1" value="${st.duration}"></label>
+        <label style="flex:1">Thời gian (giây)<input data-step-duration="${st.id}" type="number" min="0.1" step="0.1" value="${st.duration}"></label>
         <label class="check" style="align-self:end;margin-bottom:4px"><input data-step-hold="${st.id}" type="checkbox" ${st.hold?"checked":""}> 🟢 Giữ lại</label>
       </div>
 
@@ -3304,20 +3366,22 @@ function reactionIns(b,charId,eventId){
 function imageIns(b,i){
   if(!i)return;
   b.innerHTML=`<div class="group col">
-    <div><b>🟡 REFERENCE LAYER</b></div>
-    <label>🟡 Tên layer<input id="in" value="${esc(i.name)}"></label>
-    <div class="row"><label>🟡 X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
-    <div class="row"><label>🟡 W<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 H<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
+    <div><b>REFERENCE LAYER</b></div>
+    <label>Tên layer<input id="in" value="${esc(i.name)}"></label>
+    <div class="row"><label>X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
+    <div class="row"><label>W<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>H<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
     
-    <div class="head" style="margin-top:6px"><b>🎨 FIGMA & PHOTOSHOP TOOLS</b></div>
+    <div class="head" style="margin-top:6px"><b>TRANSFORM & CÔNG CỤ</b></div>
     <div class="row">
       <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật đối xứng ngang (tâm ở giữa)">⇄ Flip H</button>
       <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật đối xứng dọc (tâm ở giữa)">⇅ Flip V</button>
       <button class="btn" id="rotResetImg" type="button" title="Góc 0°">0°</button>
-      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình Canvas">🎯 Căn giữa</button>
+      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình Canvas">Căn giữa</button>
     </div>
     <div class="row" style="margin-top:6px">
-      <button class="btn" id="followMouseImgBtn" type="button" style="width:100%" title="Di chuyển ảnh theo vị trí chuột trong thời gian thực (nhấn chuột để đặt)">🖱️ Di chuyển theo chuột (Follow Mouse)</button>
+      <button class="btn ${wrapBoundaryEnabled?'on':''}" id="toggleWrapBtn" type="button" style="width:100%" title="Tự động chuyển ảnh sang phía đối diện khi bị kéo khuất quá 60% biên Artboard">
+        Cuộn viền Artboard (Wrap 60%): ${wrapBoundaryEnabled ? 'BẬT' : 'TẮT'}
+      </button>
     </div>
     <div class="row" style="margin-top:4px">
       <label style="flex:1">Xoay (°)<input id="irot" type="number" min="0" max="360" value="${i.rotation||0}"></label>
@@ -3328,7 +3392,7 @@ function imageIns(b,i){
       <input id="iop" type="range" min="10" max="100" value="${i.opacity!==undefined?i.opacity:100}">
     </label>
 
-    <div class="head" style="margin-top:6px"><b>🖼️ HIỆU ỨNG & BỘ LỌC (PTS FILTERS)</b></div>
+    <div class="head" style="margin-top:6px"><b>HIỆU ỨNG & BỘ LỌC (FILTERS)</b></div>
     <div class="row">
       <label style="flex:1">Hòa trộn (Blend)
         <select id="iblend">
@@ -3414,7 +3478,14 @@ function imageIns(b,i){
   if($("#flipVImg"))$("#flipVImg").onclick=()=>{i.flipV=!i.flipV;save();refreshImmediate();renderInspector()};
   if($("#rot90Img"))$("#rot90Img").onclick=()=>{i.rotation=((i.rotation||0)+90)%360;save();refreshImmediate();renderInspector()};
   if($("#rotResetImg"))$("#rotResetImg").onclick=()=>{i.rotation=0;save();refreshImmediate();renderInspector()};
-  if($("#followMouseImgBtn"))$("#followMouseImgBtn").onclick=()=>startImageFollowMouse(i);
+    if($("#toggleWrapBtn")){
+    $("#toggleWrapBtn").onclick=()=>{
+      wrapBoundaryEnabled = !wrapBoundaryEnabled;
+      localStorage.setItem("dramaEditorWrapBoundary", wrapBoundaryEnabled);
+      refreshImmediate();
+      toast("Cuộn viền Artboard: " + (wrapBoundaryEnabled ? "BẬT" : "TẮT"));
+    };
+  }
   
   if($("#filterBwBtn"))$("#filterBwBtn").onclick=()=>{i.grayscale=i.grayscale===100?0:100;save();refreshImmediate();renderInspector()};
   if($("#filterSepiaBtn"))$("#filterSepiaBtn").onclick=()=>{i.sepia=i.sepia===100?0:100;save();refreshImmediate();renderInspector()};
@@ -3439,23 +3510,23 @@ function annotationIns(b,a){
   const typeName={rect:"RECTANGLE",circle:"CIRCLE",triangle:"TRIANGLE",arrow:"ARROW",text:"TEXT NOTE"}[a.type]||a.type.toUpperCase();
 
   b.innerHTML=`<div class="group col">
-    <div><b style="font-size:11px">🟡 ${typeName}</b></div>
+    <div><b style="font-size:11px">${typeName}</b></div>
 
     ${isText
-      ? `<label>🟡 Nội dung<textarea id="anText">${esc(a.text)}</textarea></label>`
-      : `<label>🟡 Chữ trong hình (optional)<textarea id="anText" placeholder="Để trống nếu không cần chữ">${esc(a.text||"")}</textarea></label>`
+      ? `<label>Nội dung<textarea id="anText">${esc(a.text)}</textarea></label>`
+      : `<label>Chữ trong hình (tùy chọn)<textarea id="anText" placeholder="Để trống nếu không cần chữ">${esc(a.text||"")}</textarea></label>`
     }
-    <label>🟡 Font size<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>
+    <label>Font size<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>
 
     ${isText
-      ? `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.stroke}"></label>`
-      : `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.textColor}"></label>`
+      ? `<label>Màu chữ<input id="anTextColor" type="color" value="${a.stroke}"></label>`
+      : `<label>Màu chữ<input id="anTextColor" type="color" value="${a.textColor}"></label>`
     }
 
-    ${!isText&&!isArrow?`<label>🟡 Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
-    ${!isText?`<label>🟡 ${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>`:""}
-    ${isArrow?`<label>🟡 Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>
-    <label>🟡 Hướng mũi tên</label>
+    ${!isText&&!isArrow?`<label>Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
+    ${!isText?`<label>${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>`:""}
+    ${isArrow?`<label>Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>
+    <label>Hướng mũi tên</label>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;">
       <button class="btn ${a.arrowXDir===1&&a.arrowYDir===0?'active':''}" id="dirR" type="button" title="Sang phải">➡ Phải</button>
       <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===0?'active':''}" id="dirL" type="button" title="Sang trái">⬅ Trái</button>
@@ -3468,8 +3539,8 @@ function annotationIns(b,a){
     </div>
     <button class="btn" id="anFlipArrow" type="button" style="margin-bottom:8px">⇄ Đảo ngược hướng (180°)</button>`:""}
 
-    <div class="row"><label>🟡 X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
-    <div class="row"><label>🟡 W<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 H<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
+    <div class="row"><label>X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
+    <div class="row"><label>W<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>H<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
 
     <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Lock</label>
     <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện trong Play</label>
@@ -5040,16 +5111,21 @@ render();
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
-    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">V1.33 · STUDIO</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">v1.34 · STUDIO</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
     <div class="changelogBody">
       <div class="clTimeline">
         <div class="clItem latest">
-          <div class="clHeader"><b>V1.33 · PRODUCTION SUITE & ZOOM STABILITY</b><span class="clTag current">MỚI NHẤT</span></div>
+          <div class="clHeader"><b>V1.34 · BORDER WRAP 60% & STUDIO UI OVERHAUL</b><span class="clTag current">MỚI NHẤT</span></div>
           <ul class="clList">
-            <li><b>⚡ Khôi phục toàn diện Menu Production & More:</b> Phục hồi hoàn toàn thanh dropdown Production (ENDING, Scene PNG, Asset Request XLSX, Dev JSON), nút More (Reset trắng), và các nút Lưu/Mở Project với hiển thị unclipped, kính mờ cao cấp.</li>
-            <li><b>🔍 Sửa lỗi Canvas Zoom Snap:</b> Loại bỏ triệt để lỗi zoom bị nhảy giật thu ngược về 1:1 khi click chuột lên sân khấu sau khi zoom ra/vào. Canvas giữ nguyên tỷ lệ scale và vị trí pan chính xác 100%.</li>
-            <li><b>🖱️ Di chuyển ảnh theo chuột (Follow Mouse Mode):</b> Hỗ trợ chế độ nhấp để gắn ảnh theo con trỏ chuột trong thời gian thực, click để đặt vào vị trí mong muốn hoặc bấm phím Esc để hủy.</li>
-            <li><b>✨ Nhân bản nhanh bằng Alt + Drag:</b> Giữ phím Alt và kéo ảnh sang vị trí bất kỳ sẽ tự động nhân bản thành hình mới (tạo bản sao trực tiếp theo hướng di chuột).</li>
+            <li><b>🔄 Cuộn viền Artboard tự động (Wrap 60%):</b> Khi di chuyển ảnh ra ngoài biên sàn diễn quá 60% (cả chiều ngang và chiều dọc), ảnh sẽ tự động chuyển sang phía đối diện của Artboard để không bao giờ bị khuất biến mất. Tích hợp nút bật/tắt trực tiếp trong thanh Inspector.</li>
+            <li><b>💎 Đại trùng tu UI/UX chuẩn Studio:</b> Loại bỏ toàn bộ các emoji thừa gây rối mắt trên tiêu đề, danh sách, nhãn input và thanh công cụ; chuẩn hóa hệ thống phase dot chuyên nghiệp; giữ lại nút đổi màu theme gọn gàng.</li>
+            <li><b>📐 Sửa lỗi tỉ lệ thanh công cụ hình khối:</b> Căn chỉnh lại tỉ lệ kích thước thanh công cụ nổi 46px với nút 36px gọn gàng, loại bỏ triệt để tình trạng các nút công cụ tràn ra ngoài viền.</li>
+          </ul>
+        </div>
+        <div class="clItem">
+          <div class="clHeader"><b>V1.33 · PRODUCTION SUITE & ZOOM STABILITY</b><span class="clTag">STABLE</span></div>
+          <ul class="clList">
+            <li>Khôi phục hoàn toàn menu Production & More; Sửa triệt để bug zoom bị thu ngược về 1:1; Nhân bản nhanh Alt+Drag.</li>
           </ul>
         </div>
         <div class="clItem">
