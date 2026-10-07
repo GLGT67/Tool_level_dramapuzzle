@@ -1,4 +1,4 @@
-# SẮP XẾP DRAMA — Live Level Editor V1.30 · Figma Studio
+# SẮP XẾP DRAMA — Live Level Editor V1.31 · Studio UI & Dark Mode
 
 > **Level Editor & Game Design Production Tool** chuyên dụng cho thể loại game giải đố kịch bản logic (Drama / Story Puzzle).
 
@@ -6,20 +6,20 @@
 
 ---
 
-## 🚀 Có gì mới ở Bản V1.30 (Figma Studio Release)?
+## 🚀 Có gì mới ở Bản V1.31 (Studio UI & Dark Mode Release)?
 
-1. 📐 **Khắc phục triệt để lỗi Vẽ Hình Tam Giác (SVG Polygon Fix):**
-   - Chuyển đổi sang SVG Polygon Vector thuần túy (`vector-effect="non-scaling-stroke"`).
-   - Khi chọn hình tam giác, viền hiển thị ôm khít 3 góc nhọn vector, loại bỏ hoàn toàn viền vuông/chữ nhật bao quanh trước đây.
-2. 🎨 **Bộ Công Cụ Chỉnh Sửa Phong Cách Figma / Photoshop:**
-   - **Flip Horizontal (`⇄ Flip H`) & Flip Vertical (`⇅ Flip V`):** Lật ảnh và lật hướng mặt nhân vật tức thì.
-   - **Xoay Tự Do (Rotate):** Slider $0^\circ - 360^\circ$ kèm nút quay nhanh $+90^\circ$ và reset về $0^\circ$.
-   - **Độ Mờ (Opacity):** Tùy chỉnh độ trong suốt của Layer từ $10\%$ đến $100\%$.
-   - **Thu Phóng & Pan Canvas (Zoom & Pan):** Giữ phím `Spacebar` hoặc `Chuột giữa` kéo chuột để lia màn hình tự do; Dock Zoom nổi hỗ trợ thu phóng từ $50\%$ đến $200\%$ và nút đưa về tỉ lệ chuẩn `1:1`.
-   - **Smart Multi-Align:** Căn lề tự động cho nhiều đối tượng đã chọn (Căn Trái, Giữa X, Phải, Đỉnh Trên, Giữa Y, Đáy Dưới).
-3. 📜 **Cửa Sổ Lộ Trình & Bản Cập Nhật (Roadmap & Changelog Modal):**
-   - Nút `V1.30` trực quan trên Header để xem chi tiết lịch sử nâng cấp và tính năng sắp tới.
-   - Cơ chế quản lý phiên bản bán tự động theo quy chuẩn Semantic Versioning (`.agents/rules/auto_versioning.md`).
+1. 🌓 **Chế Độ Giao Diện Tối / Sáng (Dark Mode & Light Mode):**
+   - **Obsidian Dark Mode:** Giao diện tối chuyên nghiệp phong cách Figma/Blender/Linear, giảm mỏi mắt khi làm việc ban đêm, bảng điều khiển có độ tương phản chuẩn WCAG AA.
+   - **Clean Studio Light Mode:** Giao diện sáng tinh tế, nhẹ nhàng cho môi trường nhiều ánh sáng.
+   - **Theme Switcher:** Nút chuyển đổi tức thì `🌙 / ☀️` trên Header kèm tính năng ghi nhớ tự động qua `localStorage`.
+2. 📐 **Tái Cấu Trúc Toàn Diện Thanh Điều Hướng (Zero-Overflow Header):**
+   - Triệt tiêu hoàn toàn lỗi vỡ dòng/tràn giao diện che khuất sân khấu khi vào chế độ `PLAY`.
+   - Phân cụm công cụ trực quan: Brand & Version, Segmented Mode Switcher (`[ EDIT | PLAY ]`), Play Controls Group tự động ẩn/hiện, Audit Tools (`FLOW`, `ĐỘ KHÓ`, `CHECK`), File & Production Tools.
+   - Đảm bảo thanh Header luôn nằm gọn trong 1 hàng (non-wrapping) và co giãn linh hoạt theo độ phân giải màn hình.
+3. ⚡ **Tối Ưu Hóa Trải Nghiệm Phím Tắt & Modal:**
+   - Phím `Esc` để đóng tức thì tất cả cửa sổ Modal (Changelog, Solve Graph, Linter, Test độ khó).
+   - Nhấp chuột ra vùng mờ (Backdrop click) để đóng popup tiện lợi.
+   - Stage Canvas bao bọc bởi lưới tọa độ Blueprint hiện đại và khung viền Smartphone Bezel sang trọng.
 
 ---
 
