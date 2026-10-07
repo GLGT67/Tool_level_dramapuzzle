@@ -1,8 +1,25 @@
-# SẮP XẾP DRAMA — Live Level Editor V1.29 · Clean Flow
+# SẮP XẾP DRAMA — Live Level Editor V1.30 · Figma Studio
 
 > **Level Editor & Game Design Production Tool** chuyên dụng cho thể loại game giải đố kịch bản logic (Drama / Story Puzzle).
 
 🌐 **Trải nghiệm trực tiếp:** [https://glgt67.github.io/Tool_level_dramapuzzle/](https://glgt67.github.io/Tool_level_dramapuzzle/)
+
+---
+
+## 🚀 Có gì mới ở Bản V1.30 (Figma Studio Release)?
+
+1. 📐 **Khắc phục triệt để lỗi Vẽ Hình Tam Giác (SVG Polygon Fix):**
+   - Chuyển đổi sang SVG Polygon Vector thuần túy (`vector-effect="non-scaling-stroke"`).
+   - Khi chọn hình tam giác, viền hiển thị ôm khít 3 góc nhọn vector, loại bỏ hoàn toàn viền vuông/chữ nhật bao quanh trước đây.
+2. 🎨 **Bộ Công Cụ Chỉnh Sửa Phong Cách Figma / Photoshop:**
+   - **Flip Horizontal (`⇄ Flip H`) & Flip Vertical (`⇅ Flip V`):** Lật ảnh và lật hướng mặt nhân vật tức thì.
+   - **Xoay Tự Do (Rotate):** Slider $0^\circ - 360^\circ$ kèm nút quay nhanh $+90^\circ$ và reset về $0^\circ$.
+   - **Độ Mờ (Opacity):** Tùy chỉnh độ trong suốt của Layer từ $10\%$ đến $100\%$.
+   - **Thu Phóng & Pan Canvas (Zoom & Pan):** Giữ phím `Spacebar` hoặc `Chuột giữa` kéo chuột để lia màn hình tự do; Dock Zoom nổi hỗ trợ thu phóng từ $50\%$ đến $200\%$ và nút đưa về tỉ lệ chuẩn `1:1`.
+   - **Smart Multi-Align:** Căn lề tự động cho nhiều đối tượng đã chọn (Căn Trái, Giữa X, Phải, Đỉnh Trên, Giữa Y, Đáy Dưới).
+3. 📜 **Cửa Sổ Lộ Trình & Bản Cập Nhật (Roadmap & Changelog Modal):**
+   - Nút `V1.30` trực quan trên Header để xem chi tiết lịch sử nâng cấp và tính năng sắp tới.
+   - Cơ chế quản lý phiên bản bán tự động theo quy chuẩn Semantic Versioning (`.agents/rules/auto_versioning.md`).
 
 ---
 
@@ -36,10 +53,10 @@ graph LR
 - **Số Mạng:** Mặc định 2 mạng (❤️❤️) cho mỗi lượt chơi.
 
 ### Bước 2: Dựng bối cảnh & Nhân vật
-- **Reference Layers:** Dán ảnh nền hoặc phác thảo bố cục sân khấu. Kéo thả căn vị trí, chỉnh kích thước và độ sâu z-index.
+- **Reference Layers:** Dán ảnh nền hoặc phác thảo bố cục sân khấu. Kéo thả căn vị trí, chỉnh kích thước, xoay, lật và độ sâu z-index.
 - **Characters:** Thêm nhân vật Nam (`+M`) hoặc Nữ (`+F`):
   - Gán mã định danh: `M01`, `F01`, `M02`...
-  - Thiết lập diện mạo (Appearance tag) và trạng thái ban đầu (Initial emotion, gaze target).
+  - Thiết lập diện mạo (Appearance tag) và trạng thái ban đầu (Initial emotion, gaze target, hướng lật mặt).
   - Tích hợp token động `{M01}`, `{F02}` giúp tự động đảo tên khi chơi lại.
 
 ### Bước 3: Xây dựng Cây Manh Mối (`Clue Tree`)
@@ -82,9 +99,14 @@ graph LR
 
 | Thao tác | Phím tắt / Chuột | Chức năng |
 | :--- | :--- | :--- |
+| **Pan Canvas** | `Spacebar + Kéo chuột` hoặc `Chuột giữa` | Di chuyển góc nhìn Canvas tự do như Figma / Photoshop |
+| **Zoom Canvas** | `Dock Zoom: − / +` hoặc `1:1` | Phóng to / Thu nhỏ Canvas linh hoạt ($50\% - 200\%$) |
 | **Dán ảnh** | `Ctrl + V` / `Cmd + V` | Dán ảnh trực tiếp từ clipboard vào Stage canvas |
 | **Giữ tỉ lệ ảnh** | `Shift + Kéo chấm xanh` | Thay đổi kích thước layer không bị méo hình |
 | **Chọn nhiều đối tượng** | `Kéo chuột trái vùng trống` | Quét vùng chọn (Marquee selection) nhiều layer/token |
+| **Căn lề đa đối tượng** | `Smart Align Toolbar` (bên Inspector) | Căn Trái, Giữa X, Phải, Trên, Giữa Y, Dưới tức thì |
+| **Lật ảnh / Nhân vật** | Nút `Flip H` / `Flip V` | Lật đối xứng theo trục ngang hoặc trục dọc |
+| **Xoay layer** | Slider `Rotate` / Nút `+90°` | Xoay hình $0^\circ - 360^\circ$ |
 | **Xóa đối tượng** | `Delete` / `Backspace` | Xóa layer, ghi chú hoặc token đang chọn |
 | **Hoàn tác** | `Ctrl + Z` / `Cmd + Z` | Undo thao tác vừa thực hiện |
 | **Menu thao tác** | `Chuột phải vào đối tượng` | Duplicate, Đổi thứ tự layer (Front/Back), Lock/Unlock |
@@ -98,4 +120,4 @@ graph LR
 - **Runtime Environment:** 100% Client-side HTML5/CSS3/Vanilla JS (Không yêu cầu Server backend).
 - **Lưu trữ dữ liệu:** Lưu/Mở file `.json` trực tiếp từ thiết bị người dùng.
 
-<!-- Last synced by GLGT67 -->
+<!-- Maintained by GLGT67 -->

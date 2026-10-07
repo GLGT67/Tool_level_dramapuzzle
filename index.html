@@ -179,12 +179,54 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
 .sgv3Edge{fill:none;stroke:#716978;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}.sgv3Edge.opening{stroke:#35a871}.sgv3Edge.or{stroke:#b08a27;stroke-dasharray:7 5}.sgv3Edge.reveal{stroke:#df6d8e;stroke-width:2;stroke-dasharray:6 5}.sgv3EndLine{stroke:#83a994;stroke-width:2;stroke-dasharray:5 5;fill:none}.sgv3EndLabel{font-size:9px;font-weight:900;fill:#5d7f6d}
 @media(max-width:1120px){.sgv3Main{grid-template-columns:1fr}.sgv3Side{min-height:0;max-height:none}}
 
+
+/* V1.30 — Figma Studio, SVG Triangle, Zoom/Pan & Changelog */
+.versionBtn{border:1px solid #ffd5e0;cursor:pointer;transition:.15s}
+.versionBtn:hover{background:#ffe3ec;transform:translateY(-1px);box-shadow:0 2px 8px #ff6f9622}
+.sceneTools{backdrop-filter:blur(8px);background:#ffffffeb;border:1px solid var(--line);border-radius:12px;padding:6px 5px;box-shadow:var(--shadow)}
+.canvasZoomDock{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:5px;background:#ffffffeb;backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:4px 9px;box-shadow:0 6px 18px #2d24351a}
+.zoomBtn{width:26px;height:26px;border:1px solid var(--line);background:#fff;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900;padding:0;cursor:pointer;transition:.12s}
+.zoomBtn:hover{background:#f3edf6;border-color:#bfaec6}
+.zoomLabel{font-size:11px;font-weight:900;color:#554b5b;min-width:38px;text-align:center}
+.stageWrap{position:relative;width:100%;display:flex;justify-content:center;overflow:hidden;min-height:560px}
+.stage{transition:transform .06s ease-out;transform-origin:center top}
+body.panning .stage{cursor:grabbing!important}
+body.spaceDown .stage{cursor:grab!important}
+
+/* Triangle SVG Precision Fix */
+.noteObj.triangle{background:transparent!important;border:0!important;overflow:visible!important}
+.noteObj.triangle.sel{outline:none!important}
+.noteObj.triangle.sel svg polygon{stroke:#4388ff!important;stroke-width:4px!important;filter:drop-shadow(0 0 5px #4388ff99)}
+.noteObj.triangle.multiSel svg polygon{stroke:#20a879!important;stroke-width:4px!important;filter:drop-shadow(0 0 5px #20a87999)}
+
+/* Character Flip */
+.char.flipped .face{transform:scaleX(-1)}
+
+/* Align Toolbar */
+.alignBar{display:flex;gap:4px;flex-wrap:wrap;background:#fbf9fc;border:1px solid var(--line);border-radius:8px;padding:6px;margin:6px 0}
+.alignBtn{flex:1;min-width:32px;height:30px;border:1px solid var(--line);background:#fff;border-radius:6px;font-size:12px;font-weight:900;cursor:pointer}
+.alignBtn:hover{background:#efe8f4}
+
+/* Changelog Modal */
+.changelogOverlay{position:fixed;inset:0;z-index:24000;background:#2d243565;display:none;place-items:center;padding:18px}
+.changelogOverlay.show{display:grid}
+.changelogShell{width:min(760px,96vw);max-height:min(780px,92vh);background:#fff;border-radius:18px;overflow:hidden;display:grid;grid-template-rows:52px minmax(0,1fr);box-shadow:var(--shadow)}
+.changelogBody{overflow:auto;padding:18px 22px;background:#fbf9fc}
+.clTimeline{display:grid;gap:14px}
+.clItem{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 3px 10px #34283c0a}
+.clItem.latest{border-color:#ff6f96;box-shadow:0 0 0 2px #ff6f9620}
+.clHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.clTag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:950;background:#e9f8f1;color:#257a59}
+.clTag.current{background:#fff0f5;color:#b14c6b}
+.clList{margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:#494050}
+.clList li b{color:#2a2330}
+
 </style>
 </head>
 <body>
 <div class="app">
 <header class="top">
-  <div class="brand">SẮP XẾP DRAMA</div><span class="version">LIVE LEVEL EDITOR V1.29 · CLEAN FLOW</span>
+  <div class="brand">SẮP XẾP DRAMA</div><button class="version versionBtn" id="changelogBtn" title="Xem Changelog và Lộ trình">LIVE LEVEL EDITOR V1.30 · FIGMA STUDIO</button>
   <button class="btn on" id="editBtn">EDIT</button><button class="btn" id="playBtn">PLAY</button>
   <button class="btn good" id="replayBtn" style="display:none">↻ CHƠI LẠI</button>
   <button class="btn" id="shuffleReplayBtn" style="display:none">🔀 CHƠI LẠI + ĐẢO TÊN</button>
@@ -241,11 +283,19 @@ body.play .noteObj{pointer-events:none}body.play .right,body.play .editOnly{opac
         <div class="toolSep"></div>
         <button class="toolBtn" data-tool="rect" title="Hình vuông / chữ nhật">□</button>
         <button class="toolBtn" data-tool="circle" title="Hình tròn / ellipse">○</button>
-        <button class="toolBtn" data-tool="triangle" title="Tam giác">△</button>
+        <button class="toolBtn" data-tool="triangle" title="Tam giác (SVG Precision)">△</button>
         <button class="toolBtn" data-tool="arrow" title="Mũi tên">➜</button>
         <button class="toolBtn" data-tool="text" title="Text note">T</button>
       </div>
-      <div id="stage" class="stage"><div class="editmark">1080 × 1610 · EDIT CANVAS</div></div>
+      <div class="stageWrap" id="stageWrap">
+        <div class="canvasZoomDock">
+          <button class="zoomBtn" id="zoomOutBtn" type="button" title="Thu nhỏ (Ctrl -)">−</button>
+          <span class="zoomLabel" id="zoomValue">100%</span>
+          <button class="zoomBtn" id="zoomInBtn" type="button" title="Phóng to (Ctrl +)">+</button>
+          <button class="zoomBtn" id="zoomResetBtn" type="button" title="Đặt lại 100%">1:1</button>
+        </div>
+        <div id="stage" class="stage"><div class="editmark">1080 × 1610 · EDIT CANVAS</div></div>
+      </div>
     </div>
 
     <div class="tray">
@@ -1241,7 +1291,8 @@ function createImageLayer(i){
   const key="image:"+i.id;
   el.className="imgLayer "+(mode==="edit"&&selected.type==="image"&&selected.id===i.id?"sel ":"")+(multiSel.has(key)?"multiSel":"");
   el.dataset.imgId=i.id;
-  el.style.cssText=`left:${i.x/1080*100}%;top:${i.y/1610*100}%;width:${i.w/1080*100}%;height:${i.h/1610*100}%;z-index:${i.z}`;
+  const flipX=i.flipH?-1:1, flipY=i.flipV?-1:1, rot=i.rotation||0, op=(i.opacity!==undefined?i.opacity:100)/100;
+el.style.cssText=`left:${i.x/1080*100}%;top:${i.y/1610*100}%;width:${i.w/1080*100}%;height:${i.h/1610*100}%;z-index:${i.z};transform:scale(${flipX},${flipY}) rotate(${rot}deg);opacity:${op};`;
   el.innerHTML=`<img src="${i.src}"><div class="resize"></div>`;
   if(mode==="edit"){
     el.onpointerdown=e=>moveImg(e,i,el);
@@ -1291,7 +1342,7 @@ function renderLive(){
       el.style.background=a.fill;el.style.borderColor=a.stroke;
       el.innerHTML=`<div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="triangle"){
-      el.innerHTML=`<div class="triShape" style="background:${a.fill}"></div><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+      el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="arrow"){
       const x1=a.arrowXDir===1?5:95,x2=a.arrowXDir===1?95:5;
       const y1=a.arrowYDir===1?8:92,y2=a.arrowYDir===1?92:8;
@@ -1542,12 +1593,24 @@ function resizeImg(e,i,el){
 
 function renderInspector(){
   const b=$("#inspector");
-  if(selected.type==="level")return levelIns(b);
-  if(selected.type==="char")return charIns(b,byChar(selected.id));
-  if(selected.type==="clue")return clueIns(b,byClue(selected.id));
-  if(selected.type==="image")return imageIns(b,byImg(selected.id));
-  if(selected.type==="annotation")return annotationIns(b,byAnn(selected.id));
-  if(selected.type==="reaction")return reactionIns(b,selected.charId,selected.eventId);
+  let alignHtml="";
+  if(multiSel.size > 1){
+    alignHtml=`<div class="alignBar">
+      <button class="alignBtn" type="button" onclick="alignSelectedObjects('left')" title="Căn lề trái">⇥ Trái</button>
+      <button class="alignBtn" type="button" onclick="alignSelectedObjects('centerX')" title="Căn giữa ngang">⇹ Giữa X</button>
+      <button class="alignBtn" type="button" onclick="alignSelectedObjects('right')" title="Căn lề phải">⇤ Phải</button>
+      <button class="alignBtn" type="button" onclick="alignSelectedObjects('top')" title="Căn lề trên">⤒ Trên</button>
+      <button class="alignBtn" type="button" onclick="alignSelectedObjects('centerY')" title="Căn giữa dọc">⇅ Giữa Y</button>
+      <button class="alignBtn" type="button" onclick="alignSelectedObjects('bottom')" title="Căn lề dưới">⤓ Dưới</button>
+    </div>`;
+  }
+  const wrapWithAlign = fn => { fn(b); if(alignHtml) b.insertAdjacentHTML("afterbegin", alignHtml); };
+  if(selected.type==="level")return wrapWithAlign(levelIns);
+  if(selected.type==="char")return wrapWithAlign(el=>charIns(el,byChar(selected.id)));
+  if(selected.type==="clue")return wrapWithAlign(el=>clueIns(el,byClue(selected.id)));
+  if(selected.type==="image")return wrapWithAlign(el=>imageIns(el,byImg(selected.id)));
+  if(selected.type==="annotation")return wrapWithAlign(el=>annotationIns(el,byAnn(selected.id)));
+  if(selected.type==="reaction")return wrapWithAlign(el=>reactionIns(el,selected.charId,selected.eventId));
   b.innerHTML="Chọn item.";
 }
 
@@ -1666,7 +1729,10 @@ function charIns(b,c){
       <select id="cpool"><option value="KEEP">Giữ nguyên tên này</option><option value="MALE">Kho tên Nam</option><option value="FEMALE">Kho tên Nữ</option><option value="NEUTRAL">Kho tên Neutral</option></select>
     </label>
     <label>🟢 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
-    <label>🟢 Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
+    <div class="row">
+<label style="flex:1">🟢 Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
+<button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn">⇄ Lật mặt (Flip)</button>
+</div>
     <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
     <label>🟢 Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
@@ -1693,7 +1759,8 @@ function charIns(b,c){
   $("#cn").oninput=e=>{c.name=e.target.value;save();$$(`[data-char-name="${c.id}"]`).forEach(n=>n.textContent=e.target.value)};$("#cn").onchange=()=>{renderLists();renderClues();renderLive()};
   $("#cpool").onchange=e=>{c.namePool=e.target.value;if(c.gender==="UNSPECIFIED")c.gender=inferGender({...c,gender:""});save();renderInspector()};
   $("#cr").oninput=e=>{c.role=e.target.value;save()};$("#cr").onchange=()=>renderLists();
-  $("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Movable":"Fixed"}${result.triggerReview?` · ${result.triggerReview} Reaction cần chọn lại trigger`:""}`)};
+  if($("#cflipH"))$("#cflipH").onclick=()=>{c.flipH=!c.flipH;save();refreshImmediate();renderInspector()};
+$("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Movable":"Fixed"}${result.triggerReview?` · ${result.triggerReview} Reaction cần chọn lại trigger`:""}`)};
   $("#ca").oninput=e=>{c.appearance=e.target.value.split("\n").map(x=>x.trim()).filter(Boolean);save()};$("#ca").onchange=()=>renderLive();
   $("#cgender").onchange=e=>{c.gender=e.target.value;save()};$("#cage").oninput=e=>{c.age=e.target.value;save()};
   $("#cbaseasset").onchange=e=>{c.assetBaseId=e.target.value.trim().toUpperCase();save();renderInspector()};if($("#ctrayasset"))$("#ctrayasset").onchange=e=>{c.assetTrayId=e.target.value.trim().toUpperCase();save();renderInspector()};
@@ -1897,13 +1964,37 @@ function imageIns(b,i){
     <label>🟡 Tên layer<input id="in" value="${esc(i.name)}"></label>
     <div class="row"><label>🟡 X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
     <div class="row"><label>🟡 W<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 H<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
-    <label class="row"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Lock</label>
-    <div class="row"><button class="btn" id="dupImg">Duplicate</button><button class="btn" id="imgFront">Front</button><button class="btn" id="imgBack">Back</button></div>
-    <div class="row"><button class="btn" id="imgForward">Forward</button><button class="btn" id="imgBackward">Backward</button></div>
+    
+    <div class="head" style="margin-top:6px"><b>🎨 FIGMA TRANSFORM</b></div>
+    <div class="row">
+      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật ngang">⇄ Flip H</button>
+      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật dọc">⇅ Flip V</button>
+      <button class="btn" id="rotResetImg" type="button" title="Góc 0°">0°</button>
+    </div>
+    <div class="row" style="margin-top:4px">
+      <label style="flex:1">Xoay (°)<input id="irot" type="number" min="0" max="360" value="${i.rotation||0}"></label>
+      <button class="btn" id="rot90Img" type="button" style="margin-top:18px">+90°</button>
+    </div>
+    <label style="margin-top:4px">Độ mờ Opacity: <b id="iopText">${i.opacity!==undefined?i.opacity:100}%</b>
+      <input id="iop" type="range" min="10" max="100" value="${i.opacity!==undefined?i.opacity:100}">
+    </label>
+
+    <label class="row" style="margin-top:6px"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Lock</label>
+    <div class="row"><button class="btn" id="dupImg" type="button">Duplicate</button><button class="btn" id="imgFront" type="button">Front</button><button class="btn" id="imgBack" type="button">Back</button></div>
+    <div class="row"><button class="btn" id="imgForward" type="button">Forward</button><button class="btn" id="imgBackward" type="button">Backward</button></div>
     <div class="small">Ảnh và shape/text dùng chung thứ tự layer.</div>
   </div>`;
-  const up=()=>{i.name=$("#in").value;i.x=+$("#ix").value;i.y=+$("#iy").value;i.w=Math.max(20,+$("#iw").value);i.h=Math.max(20,+$("#ih").value);i.locked=$("#il").checked;save();refreshImmediate()};
-  ["in","ix","iy","iw","ih","il"].forEach(id=>$("#"+id).onchange=up);
+  const up=()=>{
+    i.name=$("#in").value;i.x=+$("#ix").value;i.y=+$("#iy").value;i.w=Math.max(20,+$("#iw").value);i.h=Math.max(20,+$("#ih").value);i.locked=$("#il").checked;
+    i.rotation=+($("#irot")?$("#irot").value:0);i.opacity=+($("#iop")?$("#iop").value:100);
+    save();refreshImmediate();
+  };
+  ["in","ix","iy","iw","ih","il","irot"].forEach(id=>{const el=$("#"+id);if(el)el.onchange=up});
+  if($("#iop"))$("#iop").oninput=e=>{i.opacity=+e.target.value;$("#iopText").textContent=e.target.value+"%";save();refreshImmediate()};
+  if($("#flipHImg"))$("#flipHImg").onclick=()=>{i.flipH=!i.flipH;save();refreshImmediate();renderInspector()};
+  if($("#flipVImg"))$("#flipVImg").onclick=()=>{i.flipV=!i.flipV;save();refreshImmediate();renderInspector()};
+  if($("#rot90Img"))$("#rot90Img").onclick=()=>{i.rotation=((i.rotation||0)+90)%360;save();refreshImmediate();renderInspector()};
+  if($("#rotResetImg"))$("#rotResetImg").onclick=()=>{i.rotation=0;save();refreshImmediate();renderInspector()};
   $("#dupImg").onclick=()=>duplicateImage(i);
   $("#imgFront").onclick=()=>{moveSceneLayer("image",i,"front");save();refreshImmediate()};
   $("#imgBack").onclick=()=>{moveSceneLayer("image",i,"back");save();refreshImmediate()};
@@ -3154,7 +3245,7 @@ async function exportScenePng(){
       ctx.save();ctx.lineWidth=o.strokeWidth||4;ctx.strokeStyle=o.stroke||"#655d69";ctx.fillStyle=o.fill||"#f4f1f6";
       if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
       else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
-      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.lineTo(o.x,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}
+      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.lineTo(o.x,o.y+o.h);ctx.closePath();ctx.fillStyle=o.fill;ctx.fill();if(o.stroke){ctx.strokeStyle=o.stroke;ctx.lineWidth=o.strokeWidth||3;ctx.lineJoin="round";ctx.stroke();}ctx.stroke()}
       else if(o.type==="arrow"){const x1=o.x+(o.arrowXDir===1?0:o.w),x2=o.x+(o.arrowXDir===1?o.w:0),y1=o.y+(o.arrowYDir===1?0:o.h),y2=o.y+(o.arrowYDir===1?o.h:0);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill()}
       if(o.text){ctx.fillStyle=o.textColor||"#514953";ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15)}
       ctx.restore();
@@ -3273,9 +3364,152 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classLi
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});
 ["resetBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
+
+// V1.30 Zoom, Pan & Smart Align Engine
+let canvasZoom = 1.0;
+let canvasPan = {x: 0, y: 0};
+let isSpaceDown = false;
+let isPanning = false;
+let panStart = {x: 0, y: 0};
+
+function applyZoomPan(){
+  const st=$("#stage");
+  if(!st) return;
+  st.style.transform = `scale(${canvasZoom}) translate(${canvasPan.x}px, ${canvasPan.y}px)`;
+  const zl=$("#zoomValue");
+  if(zl) zl.textContent = Math.round(canvasZoom * 100) + "%";
+}
+
+function initZoomAndPan(){
+  const zin=$("#zoomInBtn"), zout=$("#zoomOutBtn"), zreset=$("#zoomResetBtn");
+  if(zin) zin.onclick = () => { canvasZoom = Math.min(2.5, +(canvasZoom + 0.15).toFixed(2)); applyZoomPan(); };
+  if(zout) zout.onclick = () => { canvasZoom = Math.max(0.4, +(canvasZoom - 0.15).toFixed(2)); applyZoomPan(); };
+  if(zreset) zreset.onclick = () => { canvasZoom = 1.0; canvasPan = {x: 0, y: 0}; applyZoomPan(); };
+  
+  window.addEventListener("keydown", e => {
+    if(e.code === "Space" && !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName)){
+      if(!isSpaceDown){
+        isSpaceDown = true;
+        document.body.classList.add("spaceDown");
+      }
+    }
+  });
+  window.addEventListener("keyup", e => {
+    if(e.code === "Space"){
+      isSpaceDown = false;
+      isPanning = false;
+      document.body.classList.remove("spaceDown", "panning");
+    }
+  });
+  
+  const sw=$("#stageWrap") || $("#stage");
+  if(sw){
+    sw.addEventListener("pointerdown", e => {
+      if(isSpaceDown || e.button === 1){
+        isPanning = true;
+        panStart = {x: e.clientX - canvasPan.x * canvasZoom, y: e.clientY - canvasPan.y * canvasZoom};
+        document.body.classList.add("panning");
+        e.preventDefault();
+      }
+    });
+    window.addEventListener("pointermove", e => {
+      if(isPanning){
+        canvasPan.x = (e.clientX - panStart.x) / canvasZoom;
+        canvasPan.y = (e.clientY - panStart.y) / canvasZoom;
+        applyZoomPan();
+      }
+    });
+    window.addEventListener("pointerup", () => {
+      if(isPanning){
+        isPanning = false;
+        document.body.classList.remove("panning");
+      }
+    });
+  }
+}
+
+// Changelog Modal
+function initChangelogModal(){
+  const btn=$("#changelogBtn"), close=$("#closeChangelog"), overlay=$("#changelogOverlay");
+  if(btn && overlay) btn.onclick = () => overlay.classList.add("show");
+  if(close && overlay) close.onclick = () => overlay.classList.remove("show");
+}
+
+// Smart Align Multi-Selection
+function alignSelectedObjects(dir){
+  const items = [];
+  multiSel.forEach(k => {
+    const [type, id] = k.split(":");
+    if(type === "image"){ const it = byImg(id); if(it) items.push(it); }
+    else if(type === "annotation"){ const it = byAnn(id); if(it) items.push(it); }
+  });
+  if(items.length < 2) return;
+  
+  if(dir === "left"){
+    const minX = Math.min(...items.map(it => it.x));
+    items.forEach(it => it.x = minX);
+  }else if(dir === "right"){
+    const maxR = Math.max(...items.map(it => it.x + it.w));
+    items.forEach(it => it.x = maxR - it.w);
+  }else if(dir === "centerX"){
+    const centers = items.map(it => it.x + it.w/2);
+    const avgCenter = centers.reduce((a,b)=>a+b,0) / items.length;
+    items.forEach(it => it.x = Math.round(avgCenter - it.w/2));
+  }else if(dir === "top"){
+    const minY = Math.min(...items.map(it => it.y));
+    items.forEach(it => it.y = minY);
+  }else if(dir === "bottom"){
+    const maxB = Math.max(...items.map(it => it.y + it.h));
+    items.forEach(it => it.y = maxB - it.h);
+  }else if(dir === "centerY"){
+    const centers = items.map(it => it.y + it.h/2);
+    const avgCenter = centers.reduce((a,b)=>a+b,0) / items.length;
+    items.forEach(it => it.y = Math.round(avgCenter - it.h/2));
+  }
+  save(); refreshImmediate(); toast("Đã căn lề các đối tượng");
+}
+
+initZoomAndPan();
+initChangelogModal();
 play=loadPlayProgress();
 render();
 })();
 </script>
+
+<div id="changelogOverlay" class="changelogOverlay">
+  <div class="changelogShell">
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">V1.30 · FIGMA STUDIO</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="changelogBody">
+      <div class="clTimeline">
+        <div class="clItem latest">
+          <div class="clHeader"><b>V1.30 · FIGMA CANVAS & SVG PRECISION</b><span class="clTag current">MỚI NHẤT</span></div>
+          <ul class="clList">
+            <li><b>📐 Khắc phục lỗi Tam giác (SVG Vector):</b> Chuyển đổi toàn bộ render hình tam giác sang SVG Polygon đa giác thực tế, loại bỏ triệt để lỗi viền hộp chữ nhật/vuông khi chọn, hỗ trợ viền stroke và đổ màu chuẩn xác.</li>
+            <li><b>🎨 Bộ công cụ Transform kiểu Figma:</b> Bổ sung Flip Ngang (⇄) & Flip Dọc (⇅), xoay tự do (Rotate 0°–360° / ±90°), và thanh trượt độ mờ đục (Opacity 10%–100%) cho cả ảnh tham khảo và nhân vật.</li>
+            <li><b>🔍 Canvas Zoom & Pan Navigation:</b> Thanh điều khiển Zoom trực quan (50% – 200%, 1:1, Fit), hỗ trợ giữ phím <code>Spacebar</code> hoặc chuột giữa để kéo di chuyển bàn vẽ tự do như Figma/Photoshop.</li>
+            <li><b>🎯 Smart Multi-Alignment:</b> Tự động xuất hiện thanh căn lề (Trái, Giữa, Phải, Trên, Dưới) khi chọn nhiều đối tượng cùng lúc.</li>
+            <li><b>💎 Nâng cấp UI/UX:</b> Floating Tool Dock kính mờ, typography thanh thoát và tương phản chuẩn WCAG AA.</li>
+          </ul>
+        </div>
+        <div class="clItem">
+          <div class="clHeader"><b>V1.29 · CLEAN FLOW & INFORMATION ENGINE</b><span class="clTag">STABLE</span></div>
+          <ul class="clList">
+            <li>Tối ưu hóa cây Manh mối Clue Tree và luồng suy luận logic Solve Flow.</li>
+            <li>Cơ chế Ending Maker và bộ sinh AI Prompt cho Midjourney/Stable Diffusion.</li>
+            <li>Pre-flight Level Linter (Check) và hệ thống chẩn đoán độ khó (Difficulty Diagnosis).</li>
+          </ul>
+        </div>
+        <div class="clItem">
+          <div class="clHeader"><b>V1.28 · GLOBAL 2 LIVES & PLACEMENT LOGIC</b><span class="clTag">LEGACY</span></div>
+          <ul class="clList">
+            <li>Quy chuẩn 2 mạng cố định cho toàn bộ game casual.</li>
+            <li>Đồng bộ ID nhân vật, khay nhân vật Tray và hệ thống Gaze target.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
