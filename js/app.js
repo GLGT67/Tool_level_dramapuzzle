@@ -1580,51 +1580,51 @@ function levelIns(b){
   const art=data.level.art;
   b.innerHTML=`<div class="group col">
     <div class="row">
-      <label style="flex:1">Mã màn chơi (ID)<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
-      <label style="flex:1">🟢 Độ khó dự định
+      <label style="flex:1">Level ID<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
+      <label style="flex:1">🟢 Target Difficulty
         <select id="ldiffTarget">
           <option value="">-- Chọn --</option>
-          <option value="EASY" ${data.level.difficultyTarget==="EASY"?"selected":""}>DỄ</option>
-          <option value="MEDIUM" ${data.level.difficultyTarget==="MEDIUM"?"selected":""}>VỪA</option>
-          <option value="HARD" ${data.level.difficultyTarget==="HARD"?"selected":""}>KHÓ</option>
+          <option value="EASY" ${data.level.difficultyTarget==="EASY"?"selected":""}>EASY (DỄ)</option>
+          <option value="MEDIUM" ${data.level.difficultyTarget==="MEDIUM"?"selected":""}>MEDIUM (VỪA)</option>
+          <option value="HARD" ${data.level.difficultyTarget==="HARD"?"selected":""}>HARD (KHÓ)</option>
         </select>
       </label>
     </div>
     <div class="small">Chọn độ khó dự định ngay từ đầu. Bước TEST ĐỘ KHÓ dùng để kiểm chứng sau khi chơi thử.</div>
-    <label>🟢 Móc câu cốt truyện (Hook)<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
-    <div class="tokenPreview"><b>Xem trước Hook:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
-    <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả sai vị trí nhân vật; thả trượt ra ngoài không mất mạng.</div>
-    <label>🟡 Tiết lộ cốt truyện (Reveal)<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
-    <div class="tokenPreview"><b>Xem trước Reveal:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
-    <label>🟡 Tiết lộ khi đặt đúng</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
+    <label>🟢 Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
+    <div class="tokenPreview"><b>Hook preview:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
+    <div class="small"><b>2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả sai vị trí nhân vật; thả trượt ra ngoài không mất mạng.</div>
+    <label>🟡 Main Reveal<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
+    <div class="tokenPreview"><b>Reveal preview:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
+    <label>🟡 Main Reveal khi đặt đúng</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
     <div class="small">Chỉ áp dụng với nhân vật <b>Di chuyển (Mxx)</b>.</div>
-    <label>🟡 Tiết lộ nằm dưới Manh mối
+    <label>🟡 Main Reveal nằm dưới Clue
       <select id="lrparent"><option value="">— Không có nhánh cha —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
     </label>
     <div class="small">Nếu Tiết lộ là một nhánh con của manh mối, chọn nhánh cha ở đây.</div>
-    <label>🟡 Chân tướng cốt lõi / Ghi chú<textarea id="lt">${esc(data.level.truth)}</textarea></label>
+    <label>🟡 Core Truth / Notes<textarea id="lt">${esc(data.level.truth)}</textarea></label>
     <div class="small">Nội dung có thể dùng token như <b>{M01}</b> để tự đổi theo tên nhân vật ngẫu nhiên.</div>
   </div>
 
-  <details class="group prodDetails"><summary>XUẤT BẢN · THÔNG TIN BACKGROUND & ART</summary><div class="prodDetailsBody col">
-    <div class="row"><label style="width:120px">Phiên bản<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Thêm mục</button></div>
-    <label>🔵 Mã Asset nền chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
+  <details class="group prodDetails"><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
+    <div class="row"><label style="width:120px">Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Thêm mục</button></div>
+    <label>🔵 Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
     <label>🔵 Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
     <label>🔵 Tone màu<input id="bgTone" value="${esc(art.tone)}" placeholder="VD: ấm, pastel, cưới ngoài trời..."></label>
-    <label>Chỉ dẫn ảnh tham khảo<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
-    <label>🔵 Ghi chú riêng cho Artist<textarea id="bgArtist">${esc(art.artistNote)}</textarea></label>
-    <div class="small">Các lớp ảnh tham khảo và ảnh sơ đồ khung cảnh (PNG) sẽ gửi kèm Yêu cầu Asset cho Họa sĩ.</div>
+    <label>Chỉ dẫn Reference Layer<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
+    <label>🔵 Note riêng cho Artist<textarea id="bgArtist">${esc(art.artistNote)}</textarea></label>
+    <div class="small">Các lớp ảnh tham khảo và ảnh sơ đồ khung cảnh (PNG) sẽ gửi kèm Asset Request cho Artist.</div>
     <div id="sceneArtList">${(art.sceneItems||[]).map((it,i)=>`<div class="sceneArtItem" data-art-item="${it.id}">
       <div class="row" style="justify-content:space-between"><b>MỤC ${i+1}</b><span class="assetId">${esc(it.assetId||"")}</span></div>
       <label>🔵 Tên / phần cần vẽ<input data-art-name="${it.id}" value="${esc(it.name)}" placeholder="VD: bàn tiệc / bục cưới / giỏ hoa"></label>
       <label>🔵 Mô tả chi tiết<textarea data-art-desc="${it.id}">${esc(it.description)}</textarea></label>
       <label>🔵 Quy cách xuất ảnh<select data-art-mode="${it.id}">
-        <option value="BAKED_BG" ${it.exportMode==="BAKED_BG"?"selected":""}>Dính vào BG01</option>
-        <option value="SEPARATE" ${it.exportMode==="SEPARATE"?"selected":""}>PNG riêng / Vật thể</option>
-        <option value="FOREGROUND" ${it.exportMode==="FOREGROUND"?"selected":""}>PNG tiền cảnh riêng</option>
+        <option value="BAKED_BG" ${it.exportMode==="BAKED_BG"?"selected":""}>Dính vào BG01 (BAKED_BG)</option>
+        <option value="SEPARATE" ${it.exportMode==="SEPARATE"?"selected":""}>PNG riêng / Props (SEPARATE)</option>
+        <option value="FOREGROUND" ${it.exportMode==="FOREGROUND"?"selected":""}>PNG tiền cảnh riêng (FOREGROUND)</option>
       </select></label>
-      <label>🔵 Mã Asset ID<input data-art-asset="${it.id}" value="${esc(it.assetId||"")}" ${it.exportMode==="BAKED_BG"?"readonly":""}></label>
-      <label>🔵 Ghi chú Artist<input data-art-note="${it.id}" value="${esc(it.artistNote||"")}"></label>
+      <label>🔵 Asset ID<input data-art-asset="${it.id}" value="${esc(it.assetId||"")}" ${it.exportMode==="BAKED_BG"?"readonly":""}></label>
+      <label>🔵 Note Artist<input data-art-note="${it.id}" value="${esc(it.artistNote||"")}"></label>
       <button class="btn danger" data-art-delete="${it.id}">Xóa mục</button>
     </div>`).join("")||'<div class="small">Chưa có mục background/đạo cụ nào.</div>'}</div>
   </div></details>`;
@@ -1685,35 +1685,35 @@ function charIns(b,c){
   ].join("");
 
   b.innerHTML=`<div class="group col">
-    <label>Mã (ID)<input id="ci" value="${c.id}"></label>
-    <label>🟢 Tên tạm trong Chỉnh sửa<input id="cn" value="${esc(c.name)}"></label>
-    <label>🟡 Kho tên khi Xáo trộn
+    <label>Character ID<input id="ci" value="${c.id}"></label>
+    <label>🟢 Character Name<input id="cn" value="${esc(c.name)}"></label>
+    <label>🟡 Name Pool (Shuffle)
       <select id="cpool"><option value="KEEP">Giữ nguyên tên này</option><option value="MALE">Kho tên Nam</option><option value="FEMALE">Kho tên Nữ</option><option value="NEUTRAL">Kho tên Trung tính</option></select>
     </label>
-    <label>🟢 Vai trò / Ghi chú nội bộ<input id="cr" value="${esc(c.role)}"></label>
+    <label>🟢 Role / Notes<input id="cr" value="${esc(c.role)}"></label>
     <div class="row">
 <label style="flex:1">Loại nhân vật<select id="ct"><option value="M">Di chuyển (M)</option><option value="F">Cố định (F)</option></select></label>
-<button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn đối xứng">⇄ Lật hướng nhìn</button>
+<button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn đối xứng">⇄ Direction (Flip H)</button>
 </div>
-    <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
+    <label>🟢 Ngoại hình / Appearance Tags<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
-    <label>🟢 Biểu cảm ban đầu (Bắt đầu${c.type==="M"?" / Khay":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
-    <div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"Tự động — theo Mục tiêu":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Mục tiêu nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
-    <div class="small"><b>Tự động</b> tự tính hướng từ vị trí nhân vật tới Mục tiêu.</div>
-    ${c.type==="M"?`<div class="small">Nhân vật di chuyển luôn có trên Khay và Khung vẽ. <b>Vị trí trên Khung vẽ chính là đáp án.</b></div>`:""}
+    <label>🟢 Initial Emotion (Bắt đầu${c.type==="M"?" / Khay":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
+    <div class="row"><label style="flex:1">🟢 Initial Gaze<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"Tự động — theo Target":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Gaze Target<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
+    <div class="small"><b>Tự động</b> tự tính hướng từ vị trí nhân vật tới Target.</div>
+    ${c.type==="M"?`<div class="small">Nhân vật di chuyển luôn có trên Khay và Khung vẽ. <b>Vị trí trên Artboard chính là đáp án (Solved Position).</b></div>`:""}
   </div>
 
-  <div class="group"><div class="head" style="margin:0 0 4px"><b>LIÊN HỆ TỰ ĐỘNG</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Hệ thống tự tổng hợp liên kết, không cần cấu hình thêm.</div><div class="relSection"><small>Manh mối nhắc nhân vật này</small>${incomingHtml}</div><div class="relSection"><small>Khi đặt ${esc(c.id)} tham gia kích hoạt</small>${outgoingHtml}</div></div>
+  <div class="group"><div class="head" style="margin:0 0 4px"><b>AUTO CONNECTIONS</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Hệ thống tự tổng hợp liên kết, không cần cấu hình thêm.</div><div class="relSection"><small>Clue nhắc Character này</small>${incomingHtml}</div><div class="relSection"><small>Khi đặt ${esc(c.id)} tham gia kích hoạt</small>${outgoingHtml}</div></div>
 
-  <details class="group prodDetails"><summary>XUẤT BẢN · ART NHÂN VẬT</summary><div class="prodDetailsBody col">
-    <div class="row"><label style="flex:1">Giới tính<select id="cgender"><option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label><label style="flex:1">Độ tuổi<input id="cage" value="${esc(c.age||"")}" placeholder="VD: 8 tuổi / 20-25 / trung niên"></label></div>
-    <label>Mã Asset cơ bản<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>
-    ${c.type==="M"?`<label>Mã Asset trên khay<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label>`:""}
-    <label>Ghi chú riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
+  <details class="group prodDetails"><summary>PRODUCTION · CHARACTER ART</summary><div class="prodDetailsBody col">
+    <div class="row"><label style="flex:1">Gender<select id="cgender"><option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label><label style="flex:1">Độ tuổi<input id="cage" value="${esc(c.age||"")}" placeholder="VD: 8 tuổi / 20-25 / trung niên"></label></div>
+    <label>Base Asset ID<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>
+    ${c.type==="M"?`<label>Tray Asset ID<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label>`:""}
+    <label>Note riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
     <div class="assetBox">${visualRows||'<span class="assetMuted">Chưa có trạng thái asset.</span>'}</div>
   </div></details>
 
-  <div class="group"><div class="head" style="margin:0 0 6px"><b>Sự kiện phản ứng</b><button class="btn" id="addEvent">+ Thêm phản ứng</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>SỰ KIỆN ${i+1} · ${ev.steps.length} bước</b><div class="meta">KHI: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có phản ứng.</div>'}</div></div>
+  <div class="group"><div class="head" style="margin:0 0 6px"><b>Reaction Events</b><button class="btn" id="addEvent">+ Thêm phản ứng</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>EVENT ${i+1} · ${ev.steps.length} bước</b><div class="meta">KHI: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có phản ứng.</div>'}</div></div>
   <button class="btn danger" id="cd">Xóa nhân vật</button>`;
 
   $("#ct").value=c.type;$("#cpool").value=c.namePool||"KEEP";$("#cgender").value=c.gender||"UNSPECIFIED";
@@ -1743,12 +1743,12 @@ function clueIns(b,c){
     .join("");
 
   b.innerHTML=`<div class="group col">
-    <label>Mã manh mối
+    <label>Clue ID
       <input value="${c.id}" readonly title="Mã tự đổi theo cấu trúc cha/con">
     </label>
     <div class="small">Mã manh mối tự cập nhật theo cây. Gốc = CL01, CL02…; con = CL01.1, CL01.2…</div>
 
-    <label>🟡 Manh mối cha / gốc
+    <label>🟡 Parent Clue
       <select id="qp">
         <option value="">-- Gốc / không có cha --</option>
         ${parentOptions}
@@ -1756,26 +1756,26 @@ function clueIns(b,c){
     </label>
 
     ${isRoot
-      ? `<div class="small"><b>🟢 Manh mối gốc:</b> có sẵn ngay từ đầu màn chơi.</div>`
-      : `<label>🟡 Trước khi mở<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa</option><option value="HIDDEN">Ẩn — không hiện gì</option></select></label>`
+      ? `<div class="small"><b>🟢 Root Clue:</b> có sẵn ngay từ đầu màn chơi.</div>`
+      : `<label>🟡 Pre-open State<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa (LOCKED)</option><option value="HIDDEN">Ẩn — không hiện gì (HIDDEN)</option></select></label>`
     }
 
-    <label>🟢 Nội dung manh mối<textarea id="qt">${esc(c.text)}</textarea></label>
+    <label>🟢 Clue Text<textarea id="qt">${esc(c.text)}</textarea></label>
 
     <div class="row">
       <select id="tokenChar" style="flex:1">${opts("",true)}</select>
-      <button class="btn" id="insertToken" style="white-space:nowrap">🟢 + Tên nhân vật</button>
+      <button class="btn" id="insertToken" style="white-space:nowrap">🟢 + Token {ID}</button>
     </div>
-    <button class="btn" id="tokenizeNames">Chuyển tên nhân vật → token</button>
+    <button class="btn" id="tokenizeNames">Tokenize Names (→ {M01})</button>
     <div class="small">Dữ liệu lưu dạng <b>{M01}</b>; màn chơi sẽ tự đổi thành tên nhân vật tương ứng.</div>
-    <div class="tokenPreview"><b>Xem trước:</b> <span id="cluePreview">${esc(resolveTokens(c.text,editNameMap()))}</span></div>
+    <div class="tokenPreview"><b>Xem trước Clue:</b> <span id="cluePreview">${esc(resolveTokens(c.text,editNameMap()))}</span></div>
 
-    <label>🟢 Manh mối hoàn tất khi (VÀ)</label>
+    <label>🟢 Solve Requires (Placement VÀ)</label>
     <div id="qrw" class="checks">${placementTriggerChecks(c.resolveWhen)}</div>
     <div class="small">Chỉ chọn <b>Di chuyển (Mxx)</b>. Mục này dùng để gạch hoàn tất manh mối và mở nhánh con.</div>
 
     <div class="small">Manh mối con tự mở khi <b>manh mối cha hoàn tất</b>.</div>
-    <button class="btn" id="qchild">+ Manh mối con</button>
+    <button class="btn" id="qchild">+ Sub-Clue</button>
     <button class="btn danger" id="qd">Xóa manh mối</button>
   </div>`;
 
@@ -1819,13 +1819,13 @@ function reactionIns(b,charId,eventId){
   const movableFilter=x=>x.type==="M";
 
   b.innerHTML=`<div class="group col">
-    <div><b style="font-size:12px">${c.id} · SỰ KIỆN PHẢN ỨNG ${idx+1}</b></div>
+    <div><b style="font-size:12px">${c.id} · REACTION EVENT ${idx+1}</b></div>
 
-    <label>Điều kiện kích hoạt (Khi)
+    <label>Trigger Condition (Khi)
       <select id="evTrigger">
-        ${c.type==="M"?'<option value="SELF_PLACED">Bản thân được đặt đúng vị trí</option>':""}
-        <option value="CHAR_PLACED">Một Nhân vật khác được đặt đúng vị trí</option>
-        <option value="ALL_PLACED">Nhiều Nhân vật đã được đặt đúng vị trí</option>
+        ${c.type==="M"?'<option value="SELF_PLACED">Bản thân được đặt đúng vị trí (SELF_PLACED)</option>':""}
+        <option value="CHAR_PLACED">Một Nhân vật khác được đặt đúng vị trí (CHAR_PLACED)</option>
+        <option value="ALL_PLACED">Nhiều Nhân vật đã được đặt đúng vị trí (ALL_PLACED)</option>
       </select>
     </label>
 
@@ -1833,12 +1833,12 @@ function reactionIns(b,charId,eventId){
 
     <div class="small"><b>Phản ứng mới sẽ cắt chuỗi cũ</b> của cùng nhân vật và chạy ngay lập tức.</div>
 
-    <div class="head" style="margin-top:8px"><b>🟢 Chuỗi phản ứng</b><button class="btn" id="addStep">+ Thêm bước</button></div>
+    <div class="head" style="margin-top:8px"><b>🟢 Reaction Sequence</b><button class="btn" id="addStep">+ Thêm bước</button></div>
     <div id="stepList"></div>
 
     <div class="row"><button class="btn" id="evUp">↑ Lên</button><button class="btn" id="evDown">↓ Xuống</button></div>
-    <button class="btn danger" id="evDelete">Xóa sự kiện phản ứng</button>
-    <button class="btn" id="backChar">← Quay lại Nhân vật</button>
+    <button class="btn danger" id="evDelete">Xóa Reaction Event</button>
+    <button class="btn" id="backChar">← Quay lại Character</button>
   </div>`;
 
   $("#evTrigger").value=ev.triggerType;
@@ -1922,87 +1922,87 @@ function reactionIns(b,charId,eventId){
 function imageIns(b,i){
   if(!i)return;
   b.innerHTML=`<div class="group col">
-    <div><b>🟡 LỚP ẢNH THAM KHẢO</b></div>
-    <label>🟡 Tên lớp ảnh<input id="in" value="${esc(i.name)}"></label>
-    <div class="row"><label>🟡 Tọa độ X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Tọa độ Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
-    <div class="row"><label>🟡 Chiều rộng<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 Chiều cao<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
+    <div><b>🟡 REFERENCE LAYER · IMAGE INSPECTOR</b></div>
+    <label>🟡 Layer Name<input id="in" value="${esc(i.name)}"></label>
+    <div class="row"><label>🟡 Position X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Position Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
+    <div class="row"><label>🟡 Width<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 Height<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
     
-    <div class="head" style="margin-top:6px"><b>BIẾN ĐỔI & CÔNG CỤ</b></div>
+    <div class="head" style="margin-top:6px"><b>TRANSFORM & UTILITIES</b></div>
     <div class="row">
-      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật đối xứng ngang (tâm ở giữa)">⇄ Lật ngang</button>
-      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật đối xứng dọc (tâm ở giữa)">⇅ Lật dọc</button>
+      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật đối xứng ngang (tâm ở giữa)">⇄ Flip H</button>
+      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật đối xứng dọc (tâm ở giữa)">⇅ Flip V</button>
       <button class="btn" id="rotResetImg" type="button" title="Góc 0°">0°</button>
-      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình">Căn giữa</button>
+      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa Artboard">Center Artboard</button>
     </div>
     <div class="row" style="margin-top:6px">
       <button class="btn ${wrapBoundaryEnabled?'on':''}" id="toggleWrapBtn" type="button" style="width:100%" title="Tự động chuyển ảnh sang phía đối diện khi bị kéo khuất quá 60% biên Artboard">
-        Tự cuộn viền màn chơi (60%): ${wrapBoundaryEnabled ? 'BẬT' : 'TẮT'}
+        Wrap Artboard Boundary (60%): ${wrapBoundaryEnabled ? 'BẬT' : 'TẮT'}
       </button>
     </div>
     <div class="row" style="margin-top:4px">
-      <label style="flex:1">Xoay (°)<input id="irot" type="number" min="0" max="360" value="${i.rotation||0}"></label>
+      <label style="flex:1">Rotation (°)<input id="irot" type="number" min="0" max="360" value="${i.rotation||0}"></label>
       <button class="btn" id="rot90Img" type="button" style="margin-top:18px">+90°</button>
     </div>
     
-    <label style="margin-top:4px">Độ mờ đục: <b id="iopText">${i.opacity!==undefined?i.opacity:100}%</b>
+    <label style="margin-top:4px">Opacity: <b id="iopText">${i.opacity!==undefined?i.opacity:100}%</b>
       <input id="iop" type="range" min="10" max="100" value="${i.opacity!==undefined?i.opacity:100}">
     </label>
 
-    <div class="head" style="margin-top:6px"><b>HIỆU ỨNG & BỘ LỌC</b></div>
+    <div class="head" style="margin-top:6px"><b>EFFECTS & FILTERS</b></div>
     <div class="row">
-      <label style="flex:1">Hòa trộn màu
+      <label style="flex:1">Blend Mode
         <select id="iblend">
-          <option value="normal" ${(!i.blendMode||i.blendMode==='normal')?'selected':''}>Bình thường</option>
-          <option value="multiply" ${i.blendMode==='multiply'?'selected':''}>Nhân tối</option>
-          <option value="screen" ${i.blendMode==='screen'?'selected':''}>Làm sáng</option>
-          <option value="overlay" ${i.blendMode==='overlay'?'selected':''}>Phủ lớp</option>
-          <option value="darken" ${i.blendMode==='darken'?'selected':''}>Làm tối</option>
-          <option value="lighten" ${i.blendMode==='lighten'?'selected':''}>Làm sáng nét</option>
-          <option value="color-dodge" ${i.blendMode==='color-dodge'?'selected':''}>Tăng sáng màu</option>
-          <option value="difference" ${i.blendMode==='difference'?'selected':''}>Đảo tương phản</option>
+          <option value="normal" ${(!i.blendMode||i.blendMode==='normal')?'selected':''}>Normal</option>
+          <option value="multiply" ${i.blendMode==='multiply'?'selected':''}>Multiply</option>
+          <option value="screen" ${i.blendMode==='screen'?'selected':''}>Screen</option>
+          <option value="overlay" ${i.blendMode==='overlay'?'selected':''}>Overlay</option>
+          <option value="darken" ${i.blendMode==='darken'?'selected':''}>Darken</option>
+          <option value="lighten" ${i.blendMode==='lighten'?'selected':''}>Lighten</option>
+          <option value="color-dodge" ${i.blendMode==='color-dodge'?'selected':''}>Color Dodge</option>
+          <option value="difference" ${i.blendMode==='difference'?'selected':''}>Difference</option>
         </select>
       </label>
-      <label style="flex:1">Bóng đổ
+      <label style="flex:1">Drop Shadow
         <select id="ishadow">
-          <option value="none" ${(!i.shadow||i.shadow==='none')?'selected':''}>Không bóng</option>
-          <option value="soft" ${i.shadow==='soft'?'selected':''}>Bóng mềm</option>
-          <option value="hard" ${i.shadow==='hard'?'selected':''}>Bóng sắc nét</option>
-          <option value="glow" ${i.shadow==='glow'?'selected':''}>Phát sáng dạ quang</option>
+          <option value="none" ${(!i.shadow||i.shadow==='none')?'selected':''}>None</option>
+          <option value="soft" ${i.shadow==='soft'?'selected':''}>Soft Shadow</option>
+          <option value="hard" ${i.shadow==='hard'?'selected':''}>Hard Shadow</option>
+          <option value="glow" ${i.shadow==='glow'?'selected':''}>Glow</option>
         </select>
       </label>
     </div>
 
-    <label style="margin-top:4px">Bo góc viền: <b id="iradText">${i.radius||0}px</b>
+    <label style="margin-top:4px">Corner Radius: <b id="iradText">${i.radius||0}px</b>
       <input id="irad" type="range" min="0" max="60" value="${i.radius||0}">
     </label>
 
-    <label style="margin-top:4px">Độ sáng: <b id="ibrightText">${i.brightness!==undefined?i.brightness:100}%</b>
+    <label style="margin-top:4px">Brightness: <b id="ibrightText">${i.brightness!==undefined?i.brightness:100}%</b>
       <input id="ibright" type="range" min="50" max="150" value="${i.brightness!==undefined?i.brightness:100}">
     </label>
 
-    <label style="margin-top:4px">Độ tương phản: <b id="icontrastText">${i.contrast!==undefined?i.contrast:100}%</b>
+    <label style="margin-top:4px">Contrast: <b id="icontrastText">${i.contrast!==undefined?i.contrast:100}%</b>
       <input id="icontrast" type="range" min="50" max="150" value="${i.contrast!==undefined?i.contrast:100}">
     </label>
 
-    <label style="margin-top:4px">Độ bão hòa màu: <b id="isatText">${i.saturate!==undefined?i.saturate:100}%</b>
+    <label style="margin-top:4px">Saturation: <b id="isatText">${i.saturate!==undefined?i.saturate:100}%</b>
       <input id="isat" type="range" min="0" max="200" value="${i.saturate!==undefined?i.saturate:100}">
     </label>
 
-    <label style="margin-top:4px">Độ làm mờ: <b id="iblurText">${i.blur||0}px</b>
+    <label style="margin-top:4px">Blur: <b id="iblurText">${i.blur||0}px</b>
       <input id="iblur" type="range" min="0" max="15" value="${i.blur||0}">
     </label>
 
     <div class="row" style="margin-top:6px">
-      <button class="btn smBtn ${i.grayscale===100?'on':''}" id="filterBwBtn" type="button">Đen trắng</button>
-      <button class="btn smBtn ${i.sepia===100?'on':''}" id="filterSepiaBtn" type="button">Cổ điển (Sepia)</button>
-      <button class="btn smBtn ${i.invert===100?'on':''}" id="filterInvertBtn" type="button">Đảo màu</button>
-      <button class="btn smBtn danger" id="resetFiltersBtn" type="button">Đặt lại bộ lọc</button>
+      <button class="btn smBtn ${i.grayscale===100?'on':''}" id="filterBwBtn" type="button">B&W</button>
+      <button class="btn smBtn ${i.sepia===100?'on':''}" id="filterSepiaBtn" type="button">Sepia</button>
+      <button class="btn smBtn ${i.invert===100?'on':''}" id="filterInvertBtn" type="button">Invert</button>
+      <button class="btn smBtn danger" id="resetFiltersBtn" type="button">Reset Filters</button>
     </div>
 
-    <div class="head" style="margin-top:8px"><b>Thao tác lớp</b></div>
-    <label class="row"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Khóa vị trí</label>
-    <div class="row"><button class="btn" id="dupImg" type="button">Nhân bản</button><button class="btn" id="imgFront" type="button">Lên trên cùng</button><button class="btn" id="imgBack" type="button">Xuống dưới cùng</button></div>
-    <div class="row"><button class="btn" id="imgForward" type="button">Lên một lớp</button><button class="btn" id="imgBackward" type="button">Xuống một lớp</button></div>
+    <div class="head" style="margin-top:8px"><b>LAYER ORDER & Z-INDEX</b></div>
+    <label class="row"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Khóa vị trí (Lock)</label>
+    <div class="row"><button class="btn" id="dupImg" type="button">Duplicate</button><button class="btn" id="imgFront" type="button">Bring to Front</button><button class="btn" id="imgBack" type="button">Send to Back</button></div>
+    <div class="row"><button class="btn" id="imgForward" type="button">Bring Forward</button><button class="btn" id="imgBackward" type="button">Send Backward</button></div>
     <div class="small">Ảnh và hình vẽ dùng chung thứ tự lớp hiển thị.</div>
   </div>`;
   const up=()=>{
@@ -2083,7 +2083,7 @@ function annotationIns(b,a){
 
     const isPen = a.type === "pen";
     b.innerHTML = `<div class="group col">
-      <div><b style="font-size:11px">🟡 THUỘC TÍNH ${typeTitle}</b></div>
+      <div><b style="font-size:11px">🟡 THUỘC TÍNH ${typeTitle} · PATH INSPECTOR</b></div>
 
       <div class="row">
         <label style="flex:1">Màu nét vẽ<input id="anStroke" type="color" value="${a.stroke || '#2563eb'}"></label>
@@ -2099,42 +2099,42 @@ function annotationIns(b,a){
 
       <label>Kiểu nét vẽ
         <select id="anStrokeStyle">
-          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền</option>
-          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt</option>
-          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi</option>
+          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền (Solid)</option>
+          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt (Dashed)</option>
+          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi (Dotted)</option>
         </select>
       </label>
 
       ${isPen ? `
       <label class="row" style="margin:4px 0">
-        <input id="anClosed" type="checkbox" style="width:auto" ${a.closed ? 'checked' : ''}> Khép kín đường vẽ (Đóng hình)
+        <input id="anClosed" type="checkbox" style="width:auto" ${a.closed ? 'checked' : ''}> Khép kín đường vẽ (Close Path)
       </label>
       ${a.closed ? `
       <div class="row">
-        <label style="flex:1">Màu tô bên trong
+        <label style="flex:1">Màu tô bên trong (Fill)
           <input id="anFill" type="color" value="${a.fill && a.fill !== 'transparent' && a.fill !== 'none' ? a.fill : '#ffffff'}">
         </label>
         <label class="row" style="margin-top:14px;font-size:11px">
           <input id="anNoFill" type="checkbox" style="width:auto" ${(!a.fill || a.fill === 'transparent' || a.fill === 'none') ? 'checked' : ''}> Trong suốt
         </label>
       </div>` : ''}
-      <div class="small" style="margin:4px 0;line-height:1.4"><b>Mẹo nắn điểm neo:</b> Nhấp giữ kéo điểm neo để dời đỉnh. Kéo tay đòn tròn để uốn cong nét vẽ mềm mại theo ý muốn.</div>
+      <div class="small" style="margin:4px 0;line-height:1.4"><b>Mẹo nắn điểm neo (Bézier):</b> Nhấp giữ kéo điểm neo để dời đỉnh. Kéo tay đòn tròn để uốn cong nét vẽ mềm mại theo ý muốn.</div>
       ` : ''}
 
-      <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng</label>
-      <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử</label>
+      <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng (Lock)</label>
+      <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử (Visible in Play)</label>
 
       <div class="row">
-        <button class="btn" id="anDup">Nhân bản</button>
-        <button class="btn" id="anFront">Lên trên cùng</button>
-        <button class="btn" id="anBack">Xuống dưới cùng</button>
+        <button class="btn" id="anDup">Duplicate</button>
+        <button class="btn" id="anFront">Bring to Front</button>
+        <button class="btn" id="anBack">Send to Back</button>
       </div>
       <div class="row">
-        <button class="btn" id="anForward">Lên một lớp</button>
-        <button class="btn" id="anBackward">Xuống một lớp</button>
+        <button class="btn" id="anForward">Bring Forward</button>
+        <button class="btn" id="anBackward">Send Backward</button>
       </div>
 
-      <button class="btn danger" id="anDelete" style="margin-top:8px">Xóa nét vẽ</button>
+      <button class="btn danger" id="anDelete" style="margin-top:8px">Xóa nét vẽ (Delete)</button>
     </div>`;
 
     if($("#anStroke")) $("#anStroke").oninput = e => { a.stroke = e.target.value; save(); refreshImmediate(); };
@@ -2171,7 +2171,7 @@ function annotationIns(b,a){
   }
 
   b.innerHTML=`<div class="group col">
-    <div><b style="font-size:11px">🟡 ${typeName}</b></div>
+    <div><b style="font-size:11px">🟡 ${typeName} · VECTOR SHAPE</b></div>
 
     ${isText
       ? `<label>🟡 Nội dung ghi chú<textarea id="anText">${esc(a.text)}</textarea></label>`
@@ -2190,9 +2190,9 @@ function annotationIns(b,a){
       <label>Độ dày viền<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||3}"></label>
       <label>Kiểu nét viền
         <select id="anStrokeStyle">
-          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền</option>
-          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt</option>
-          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi</option>
+          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền (Solid)</option>
+          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt (Dashed)</option>
+          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi (Dotted)</option>
         </select>
       </label>
       ${a.type==='rect'?`<label>Bo góc viền: <span id="anRadiusVal">${a.radius||0}px</span><input id="anRadius" type="range" min="0" max="60" value="${a.radius||0}"></label>`:''}
@@ -2200,42 +2200,42 @@ function annotationIns(b,a){
     ${isArrow?`<label>🟡 Độ dày mũi tên<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||4}"></label>
     <label>Kiểu nét mũi tên
       <select id="anStrokeStyle">
-        <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền</option>
-        <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt</option>
-        <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi</option>
+        <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền (Solid)</option>
+        <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt (Dashed)</option>
+        <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi (Dotted)</option>
       </select>
     </label>
     <label>Hướng mũi tên</label>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;">
-      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===0?'active':''}" id="dirR" type="button" title="Sang phải">➡ Phải</button>
-      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===0?'active':''}" id="dirL" type="button" title="Sang trái">⬅ Trái</button>
-      <button class="btn ${a.arrowXDir===0&&a.arrowYDir===1?'active':''}" id="dirD" type="button" title="Xuống dưới">⬇ Xuống</button>
-      <button class="btn ${a.arrowXDir===0&&a.arrowYDir===-1?'active':''}" id="dirU" type="button" title="Lên trên">⬆ Lên</button>
-      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===1?'active':''}" id="dirDR" type="button" title="Chéo xuống-phải">↘ X.Phải</button>
-      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===1?'active':''}" id="dirDL" type="button" title="Chéo xuống-trái">↙ X.Trái</button>
-      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===-1?'active':''}" id="dirUR" type="button" title="Chéo lên-phải">↗ L.Phải</button>
-      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===-1?'active':''}" id="dirUL" type="button" title="Chéo lên-trái">↖ L.Trái</button>
+      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===0?'active':''}" id="dirR" type="button" title="Sang phải">➡ Right</button>
+      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===0?'active':''}" id="dirL" type="button" title="Sang trái">⬅ Left</button>
+      <button class="btn ${a.arrowXDir===0&&a.arrowYDir===1?'active':''}" id="dirD" type="button" title="Xuống dưới">⬇ Down</button>
+      <button class="btn ${a.arrowXDir===0&&a.arrowYDir===-1?'active':''}" id="dirU" type="button" title="Lên trên">⬆ Up</button>
+      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===1?'active':''}" id="dirDR" type="button" title="Chéo xuống-phải">↘ Down-R</button>
+      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===1?'active':''}" id="dirDL" type="button" title="Chéo xuống-trái">↙ Down-L</button>
+      <button class="btn ${a.arrowXDir===1&&a.arrowYDir===-1?'active':''}" id="dirUR" type="button" title="Chéo lên-phải">↗ Up-R</button>
+      <button class="btn ${a.arrowXDir===-1&&a.arrowYDir===-1?'active':''}" id="dirUL" type="button" title="Chéo lên-trái">↖ Up-L</button>
     </div>
-    <button class="btn" id="anFlipArrow" type="button" style="margin-bottom:8px">⇄ Đảo ngược hướng (180°)</button>`:""}
+    <button class="btn" id="anFlipArrow" type="button" style="margin-bottom:8px">⇄ Flip Arrow (180°)</button>`:""}
 
-    <div class="row"><label>🟡 Tọa độ X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Tọa độ Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
-    <div class="row"><label>🟡 Chiều rộng<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 Chiều cao<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
+    <div class="row"><label>🟡 Position X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Position Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
+    <div class="row"><label>🟡 Width<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 Height<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
 
-    <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng</label>
-    <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử</label>
+    <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng (Lock)</label>
+    <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử (Visible in Play)</label>
 
     <div class="row">
-      <button class="btn" id="anDup">Nhân bản</button>
-      <button class="btn" id="anFront">Lên trên cùng</button>
-      <button class="btn" id="anBack">Xuống dưới cùng</button>
+      <button class="btn" id="anDup">Duplicate</button>
+      <button class="btn" id="anFront">Bring to Front</button>
+      <button class="btn" id="anBack">Send to Back</button>
     </div>
     <div class="row">
-      <button class="btn" id="anForward">Lên một lớp</button>
-      <button class="btn" id="anBackward">Xuống một lớp</button>
+      <button class="btn" id="anForward">Bring Forward</button>
+      <button class="btn" id="anBackward">Send Backward</button>
     </div>
 
     <div class="small">Hình vẽ / mũi tên có thể cho hiện trong Chơi thử. Ghi chú chữ cũng có tùy chọn hiện hoặc ẩn khi Chơi thử. Nhấp đúp vào hình để nhập chữ trực tiếp.</div>
-    <button class="btn danger" id="anDelete">Xóa hình</button>
+    <button class="btn danger" id="anDelete">Xóa hình (Delete)</button>
   </div>`;
 
   $("#anText").oninput=e=>{

@@ -1,6 +1,6 @@
-# Công cụ thiết kế màn chơi Sắp Xếp Drama
+# Drama Puzzle Level Editor
 
-Công cụ hỗ trợ người thiết kế màn chơi và người sáng tạo nội dung xây dựng, trực quan hóa và kiểm thử các màn chơi giải đố tình huống kịch tính trực tiếp trên trình duyệt web.
+Công cụ hỗ trợ Game Designer, Level Designer và Content Creator xây dựng, trực quan hóa và kiểm thử các màn chơi giải đố tình huống drama (kịch tính) trực tiếp trên trình duyệt web.
 
 Đường dẫn trải nghiệm trực tiếp: https://glgt67.github.io/Tool_level_dramapuzzle/
 
@@ -8,113 +8,95 @@ Công cụ hỗ trợ người thiết kế màn chơi và người sáng tạo 
 
 ## Giới thiệu chung
 
-Công cụ này được tạo ra nhằm giúp bạn tạo ra các màn chơi giải đố câu chuyện một cách trực quan, nhanh chóng mà không cần phải biết lập trình hay cài đặt phần mềm phức tạp.
+Drama Puzzle Level Editor được phát triển nhằm tối ưu hóa quy trình thiết kế màn chơi giải đố cốt truyện theo hướng trực quan và khép kín. Công cụ loại bỏ hoàn toàn rào cản kỹ thuật phức tạp, giúp người làm game tập trung tối đa vào trải nghiệm gameplay và logic kịch bản.
 
-Từ khâu lên ý tưởng tình huống, sắp đặt bối cảnh, bố trí nhân vật, viết lời thoại, liên kết chuỗi manh mối cho đến việc tự mình chơi thử và xuất file dữ liệu bàn giao cho đội ngũ làm game, mọi thao tác đều có thể thực hiện trọn vẹn tại một nơi.
-
----
-
-## Những tính năng chính
-
-### Dựng bối cảnh sân khấu và bộ công cụ vẽ đồ họa
-- Bạn có thể dán ảnh phác thảo, ảnh nhân vật hoặc sử dụng bộ công cụ vẽ hình khối và nét vẽ vector có sẵn để bố trí sàn diễn.
-- Bộ ba công cụ vẽ đa năng:
-  - **Bút chì:** Vẽ các nét mảnh đều đặn, nhạy bén, thích hợp để phác thảo nhanh ý tưởng hoặc ghi chú vị trí trên sàn diễn.
-  - **Cọ vẽ:** Nét cọ dày dặn, mượt mà, bo tròn hai đầu nét vẽ và hỗ trợ độ mờ đục mềm, tạo cảm giác nét vẽ nghệ thuật uyển chuyển.
-  - **Bút mực:** Cơ chế vẽ đường cong chuyên nghiệp tương tự các phần mềm đồ họa hiện đại. Nhấp chuột để đặt điểm neo góc nhọn, bấm giữ và kéo chuột để kéo dài tay đòn uốn cong nét vẽ hai bên. Khi rê chuột quay trở lại gần điểm đầu tiên, hệ thống sẽ tự động khép kín nét vẽ thành một hình khối kín hoàn chỉnh. Bạn cũng có thể bấm phím Enter, bấm đúp chuột hoặc bấm nút Chốt nét để hoàn tất một đường vẽ hở.
-- **Khả năng chọn và tinh chỉnh nét vẽ trực tiếp:** Mọi nét vẽ sau khi vẽ xong đều trở thành một đối tượng độc lập. Bạn có thể bấm công cụ Chọn để nhấp vào nét vẽ, di chuyển vị trí, nhân bản hoặc xóa bỏ.
-- **Nắn chỉnh điểm neo và độ cong trên sàn diễn:** Khi chọn một nét vẽ bút mực, toàn bộ các điểm neo và tay đòn uốn cong sẽ xuất hiện trực quan trên sàn diễn. Bạn có thể nhấp giữ kéo điểm neo để dời đỉnh hoặc kéo các tay đòn tròn để nắn lại độ cong của nét vẽ bất kỳ lúc nào.
-- **Bảng thuộc tính nét vẽ chuyên sâu:** Tự do đổi màu nét vẽ, độ dày nét, độ mờ đục, chuyển kiểu viền sang nét đứt hoặc chấm bi, bật tắt khép kín và chọn màu tô bên trong đối với các hình khép kín.
-- Hỗ trợ nhiều loại hình khối thông dụng như ngôi sao, tam giác, lục giác, hình tròn, hình chữ nhật, đường kẻ và mũi tên chỉ dẫn.
-- Tự do di chuyển, đổi kích thước, xoay góc, lật hình đối xứng và sắp xếp thứ tự trước sau của các lớp hình ảnh.
-- Dễ dàng bo tròn góc cho ảnh hoặc hình chữ nhật, tùy chỉnh độ dày viền và chọn kiểu nét vẽ liền, đứt quãng hoặc chấm bi.
-
-### Quản lý nhân vật và cảm xúc
-- Thêm nhanh các nhân vật nam và nữ vào màn chơi.
-- Đặt tên, gán mã nhận diện, thiết lập hướng nhìn và biểu cảm ban đầu cho từng nhân vật.
-- Hỗ trợ các thẻ thay thế tự động giúp tên nhân vật có thể linh hoạt thay đổi trong các tình huống khác nhau.
-
-### Xây dựng chuỗi manh mối logic
-- Tổ chức cốt truyện theo cây phân cấp rõ ràng: bắt đầu từ manh mối mở đầu hiển thị sẵn cho người chơi, tiếp đến các manh mối hé lộ dần theo từng hành động, và kết thúc bằng manh mối lật mở toàn bộ sự thật.
-- Cho phép kéo thả chuột để sắp xếp lại thứ tự ưu tiên của các manh mối một cách linh hoạt.
-
-### Thiết lập phản ứng và hội thoại kịch tính
-- Cài đặt điều kiện kích hoạt: khi một nhân vật được đặt vào đúng vị trí, hoặc khi hai nhân vật đứng cạnh nhau trên sân khấu.
-- Tự động đổi nét mặt, hiện bóng thoại cảm xúc và hướng ánh nhìn tương ứng để tạo điểm nhấn kịch tính cho câu chuyện.
-
-### Kiểm tra luồng giải đố tự động
-- Tự động vẽ sơ đồ liên kết giữa các manh mối và hành động của người chơi.
-- Giúp người làm kịch bản nhìn thấy ngay những điểm nghẽn, ngõ cụt hoặc liên kết bị đứt gãy, đảm bảo người chơi luôn có cách giải hợp lý trước khi đưa màn chơi vào sản xuất.
-
-### Chơi thử nghiệm thực tế ngay trên màn hình
-- Chuyển sang giao diện của người chơi chỉ bằng một nút bấm để kiểm tra cảm giác chơi thực tế.
-- Khay nhân vật tự động xáo trộn vị trí, cho phép kéo thả nhân vật lên sân khấu, trừ mạng khi đặt sai và kích hoạt hiệu ứng khi làm đúng.
-- Nét vẽ tự do có tùy chọn hiển thị trực tiếp trong chế độ chơi thử để phục vụ các màn chơi có câu đố vẽ hình hoặc hình minh họa hiện trường.
-- Có sẵn bảng đánh giá độ khó sau khi chơi thử để người thiết kế đối chiếu lại với mục tiêu ban đầu xem màn chơi có bị quá khó hay quá dễ không.
-
-### Tạo màn kết thúc và xuất dữ liệu hoàn chỉnh
-- Thiết kế khung hình kết màn với lời kết, câu chốt hạ kịch tính và phần thưởng qua màn.
-- Tự động tạo câu lệnh mô tả chi tiết bằng tiếng Anh phục vụ việc tạo ảnh minh họa kết màn bằng các công cụ sinh ảnh thông minh.
-- Xuất file dữ liệu kịch bản dạng chuẩn để đội ngũ lập trình có thể nạp thẳng vào trò chơi, cùng ảnh sơ đồ khung cảnh và bảng danh sách tổng hợp tài nguyên phục vụ đội ngũ họa sĩ vẽ tranh.
+Từ khâu định hình ý tưởng (Drama Hook & Main Reveal), dựng bối cảnh (Artboard & Reference Layer), bố trí nhân vật (Characters & Tray), viết cây manh mối (Clue Tree), thiết lập chuỗi phản ứng (Reaction Events) cho đến kiểm thử trực tiếp (Play Mode) và xuất bàn giao (Dev JSON, Asset Request XLSX, Scene PNG), mọi khâu đều được tích hợp đồng bộ trong một giao diện duy nhất.
 
 ---
 
-## Điểm mới nổi bật trong phiên bản hiện tại
+## Tính năng chính
 
-- **Nâng cấp Bút mực chuẩn đồ họa vector:** Cho phép tạo nét cong mượt mà thông qua việc kéo tay đòn điều khiển, tự động nhận diện khép kín đường vẽ khi rê chuột về điểm bắt đầu, và hỗ trợ kết thúc đường hở linh hoạt bằng phím Enter hoặc nút chốt nét.
-- **Nét vẽ có thể chọn và chỉnh sửa trực tiếp:** Biến các nét vẽ bút chì, cọ vẽ và bút mực thành đối tượng độc lập trên sàn diễn. Người thiết kế có thể nhấp chọn để di chuyển, đổi màu, tăng giảm độ dày, đổi nét đứt hoặc tô màu bên trong.
-- **Tương tác điểm neo và uốn cong trực quan:** Khi chọn nét vẽ bút mực, các điểm neo và tay đòn uốn cong sẽ hiển thị rõ ràng trên sàn diễn, cho phép nhấp giữ kéo điểm neo để chỉnh sửa góc cạnh và uốn lại đường cong bất cứ lúc nào.
-- **Bộ ba công cụ vẽ Bút chì, Cọ vẽ và Bút mực:** Bổ sung lớp vẽ tự do tích hợp trực tiếp trên sàn diễn. Bạn có thể tự do phác họa, tô vẽ chi tiết hoặc tạo các đường nối vector. Toàn bộ nét vẽ được lưu giữ đầy đủ trong file dự án và xuất chuẩn xác khi kết xuất ảnh sân khấu.
-- **Xem trước hình dạng thật khi vẽ:** Khi bạn bấm chọn vẽ ngôi sao, tam giác hay lục giác và kéo chuột trên màn hình, hình dạng thực tế của hình đó sẽ hiện ra mờ mờ theo chuyển động chuột thay vì chỉ là một khung vuông thô cứng.
-- **Giữ phím Shift để khóa chuẩn tỷ lệ:** Khi đang kéo vẽ hình mới hoặc thay đổi kích thước của ảnh, chỉ cần giữ thêm phím Shift, hình sẽ tự động giữ tỷ lệ vuông đều, tròn đều hoặc giữ nguyên tỷ lệ ban đầu của ảnh mà không bao giờ bị méo hình.
-- **Giao diện làm việc cố định và êm ái:** Chuyển đổi giữa chế độ thiết kế và chơi thử hoàn toàn không làm xê dịch thanh công cụ trên cùng hay sàn diễn trung tâm, giúp trải nghiệm mượt mà và tập trung.
-- **Giao diện thuần tiếng Việt thân thiện:** Toàn bộ tên gọi công cụ, nút bấm và bảng hướng dẫn đều được trình bày bằng tiếng Việt tự nhiên, chuẩn mực và dễ hiểu, không có từ ngoại ngữ chen ngang.
+### 1. Artboard 1080x1610 và Bộ công cụ vẽ Vector
+- Khung Artboard chuẩn tỷ lệ dọc điện thoại (1080 x 1610 px).
+- Hỗ trợ dán ảnh tham khảo trực tiếp (Ctrl/Cmd+V) và quản lý nhiều lớp Reference Layer độc lập.
+- Bộ ba công cụ vẽ chuyên sâu:
+  - **Pencil (Bút chì):** Vẽ nét mảnh tự do, phản hồi tức thì, tối ưu cho việc phác thảo nhanh vị trí và ghi chú hiện trường.
+  - **Brush (Cọ vẽ):** Nét cọ dày mượt mà, bo tròn hai đầu nét vẽ và hỗ trợ độ mờ đục mềm, phù hợp cho việc đánh dấu vùng không gian nghệ thuật.
+  - **Pen (Bút mực Vector Bézier):** Cơ chế vẽ đường cong chuyên nghiệp tương tự Adobe Illustrator. Nhấp chuột tạo điểm neo (Anchor Point) góc nhọn, nhấp giữ và kéo chuột để kéo dài tay đòn cong Bézier hai bên. Khi rê chuột về điểm neo đầu tiên, hệ thống tự động khép kín đường vẽ (Close Path). Hỗ trợ chốt nét hở bằng phím Enter hoặc nút bấm chuyên dụng.
+- **Tương tác và chỉnh sửa Path trực tiếp:** Nét vẽ sau khi hoàn tất trở thành đối tượng vector độc lập. Bấm công cụ Select để chọn nét, hiển thị toàn bộ điểm neo và tay đòn trên Artboard để kéo dời đỉnh hoặc nắn chỉnh độ cong bất cứ lúc nào.
+- **Inspector chuyên sâu cho Vector & Path:** Tùy biến linh hoạt Stroke Color, Stroke Width, Opacity, Stroke Style (Solid, Dashed, Dotted), Closed Path, Fill Color bên trong, Z-Index và khóa đối tượng (Lock).
+- Hỗ trợ các hình khối Vector cơ bản: Star, Triangle, Polygon, Circle, Rectangle, Line, Arrow và Text.
+- Xem trước hình dạng thật khi vẽ (Live Shape Preview) và giữ phím Shift để khóa chuẩn tỷ lệ 1:1.
+
+### 2. Quản lý Characters và Tray
+- Phân loại nhân vật rõ ràng: Nhân vật di chuyển (M - Movable) và Nhân vật cố định (F - Fixed).
+- Quản lý Character ID, Character Name, Gender (M/F/Other), Name Pool khi xáo trộn (Shuffle), Role và Ghi chú nội bộ.
+- Thiết lập Initial Emotion, Initial Gaze và Gaze Target trực quan.
+- Xác định vị trí đáp án (Solved Position) trực tiếp trên Artboard.
+- Khay Tray nhân vật mô phỏng chính xác giao diện người chơi thực tế.
+
+### 3. Cây manh mối Clue Tree
+- Tổ chức cây manh mối nhiều tầng: Root Clues hiển thị sẵn từ đầu và Sub-Clues mở khóa khi điều kiện logic được đáp ứng.
+- Hỗ trợ cú pháp thẻ token dạng {M01}, {F02} tự động đồng bộ theo tên nhân vật khi người chơi đổi tên hoặc xáo trộn ngẫu nhiên.
+- Thiết lập điều kiện giải (Solve Requires) dựa trên vị trí đặt nhân vật đúng.
+
+### 4. Chuỗi phản ứng kịch tính (Reaction Events)
+- Điều kiện kích hoạt linh hoạt: Self Placed (bản thân được đặt đúng), Char Placed (nhân vật khác được đặt đúng) hoặc All Placed (tổ hợp nhân vật được đặt đúng).
+- Chuỗi hành động tuần tự theo bước (Reaction Sequence): thay đổi nét mặt, đổi hướng mắt nhìn, đổi mục tiêu nhìn hoặc hiển thị biểu tượng thoại.
+
+### 5. Kiểm tra luồng Logic (Logic Flow · Solve Graph)
+- Tự động phân tích toàn bộ dữ liệu màn chơi để vẽ sơ đồ đồ thị giải đố (Solve Graph).
+- Phát hiện trực quan các điểm nghẽn, ngõ cụt logic, manh mối không thể mở khóa hoặc điều kiện đặt bị mâu thuẫn trước khi chuyển giao sản xuất.
+
+### 6. Linter kiểm tra lỗi (Check Level)
+- Quét toàn diện tính toàn vẹn dữ liệu: kiểm tra thiếu thông tin bắt buộc, mã ID trùng lặp, tham chiếu rỗng hoặc tài nguyên chưa gắn kết.
+- Phân loại cảnh báo theo mức độ nghiêm trọng giúp tinh chỉnh dữ liệu chính xác.
+
+### 7. Chế độ Chơi thử (Play Mode Sandbox) & Test độ khó
+- Chuyển đổi một chạm giữa Edit Mode và Play Mode mà không làm xê dịch bố cục Artboard hay thanh điều hướng.
+- Mô phỏng chính xác cơ chế gameplay: kéo thả nhân vật từ Tray lên Artboard, trừ mạng khi đặt sai, kích hoạt phản ứng khi đặt đúng và kiểm tra điều kiện hoàn thành màn chơi.
+- Module Test độ khó độc lập: Level Designer chơi thử trực tiếp, tự đánh giá cảm nhận thời gian/số lần thử, sau đó hệ thống đối chiếu với Target Difficulty ban đầu để đưa ra đề xuất cân bằng.
+
+### 8. Ending & Prompt AI & Xuất dữ liệu Production
+- Thiết lập màn kết thúc (Ending): tóm tắt bối cảnh, câu thoại chốt hạ (Ending Line) và nút phán quyết thưởng (Verdict CTA).
+- Tự động sinh Prompt AI chuẩn tiếng Anh mô tả khoảnh khắc đắt giá nhất của drama để tạo ảnh kết thúc qua Midjourney / DALL-E / Stable Diffusion.
+- Xuất dữ liệu bàn giao tiêu chuẩn:
+  - **Dev JSON:** Cấu trúc dữ liệu chuẩn hóa nạp trực tiếp vào game engine (Unity / Cocos / Godot / Web).
+  - **Asset Request XLSX:** Bảng kê chi tiết toàn bộ tài nguyên nền, nhân vật, biểu cảm và đạo cụ cho đội ngũ Artist.
+  - **Scene PNG:** Ảnh chụp toàn cảnh khung cảnh Artboard kèm các lớp minh họa và ghi chú hiện trường.
 
 ---
 
-## Quy trình 7 bước tạo một màn chơi hoàn chỉnh
+## Bảng phím tắt và thao tác chuột
 
-1. **Thiết lập thông tin chung:** Đặt mã màn chơi, chọn mức độ khó dự kiến, nhập câu mở đầu gây tò mò cho người chơi và đặt số mạng cho màn chơi.
-2. **Dựng bối cảnh và đưa nhân vật vào:** Dán ảnh nền tham khảo, dùng bút chì, cọ vẽ, bút mực hoặc các hình khối để vẽ chi tiết hiện trường, sau đó tạo danh sách các nhân vật cần có cho câu chuyện.
-3. **Viết cây manh mối:** Soạn manh mối mở màn, các manh mối bước đệm và manh mối then chốt hé lộ kịch bản.
-4. **Cài đặt phản ứng nhân vật:** Chọn biểu cảm mặt, viết câu thoại sẽ bật lên khi người chơi kéo nhân vật vào đúng vị trí.
-5. **Kiểm tra sơ đồ luồng:** Bấm nút xem luồng để rà soát toàn bộ cây logic xem có nhánh nào bị thiếu điều kiện hoặc dẫn vào ngõ cụt hay không.
-6. **Chơi thử:** Trực tiếp kéo thả nhân vật trên sàn diễn để trải nghiệm độ mượt mà của kịch bản và ghi nhận cảm nhận về độ khó.
-7. **Làm màn kết thúc và xuất file:** Hoàn thiện lời chúc mừng chiến thắng, sau đó bấm nút kiểm tra và tải về file dữ liệu cho lập trình viên cùng bảng danh sách tài nguyên cho họa sĩ.
-
----
-
-## Bảng phím tắt thông dụng
-
-| Thao tác | Phím tắt hoặc cách dùng chuột | Công dụng |
+| Thao tác | Phím tắt / Cách thực hiện | Mô tả |
 | :--- | :--- | :--- |
-| Vẽ tự do bằng bút chì hoặc cọ | Nhấp chọn công cụ rồi kéo chuột trên sân khấu | Vẽ nét phác thảo thanh mảnh hoặc nét cọ mềm dày |
-| Đặt điểm neo bút mực | Nhấp chọn công cụ rồi nhấp chuột từng điểm | Tạo các điểm nối góc nhọn |
-| Bẻ cong nét vẽ bút mực | Bấm giữ và kéo chuột tại điểm neo | Kéo dài tay đòn để uốn cong nét vẽ |
-| Khép kín đường vẽ bút mực | Rê chuột về gần điểm đầu tiên và nhấp chuột | Tự động đóng nét vẽ thành một hình kín |
-| Chốt nét vẽ bút mực hở | Phím Enter hoặc nhấp đúp chuột, hoặc nút Chốt nét | Hoàn thành đường vẽ bút mực hở |
-| Chọn nét vẽ để sửa | Chọn công cụ Chọn rồi nhấp vào nét vẽ | Hiển thị thuộc tính và các điểm neo uốn cong |
-| Nắn lại điểm neo và đường cong | Nhấp giữ kéo điểm neo hoặc tay đòn tròn trên sàn diễn | Tinh chỉnh vị trí đỉnh và độ cong của nét vẽ |
-| Hủy đường vẽ dở | Phím Escape hoặc nút Hủy nét | Hủy các điểm neo đang vẽ dở của bút mực |
-| Hoàn tất vẽ | Phím Escape hoặc nút Về công cụ chọn | Trở về công cụ chọn đối tượng |
-| Di chuyển vùng nhìn | Giữ phím cách rồi kéo chuột, hoặc bấm giữ chuột giữa | Kéo sàn diễn đến vị trí thuận mắt |
-| Phóng to hoặc thu nhỏ | Nút cộng trừ ở góc màn hình hoặc nút về tỷ lệ chuẩn | Phóng to để vẽ chi tiết hoặc thu nhỏ để xem toàn cảnh |
-| Dán ảnh nhanh | Phím tắt dán quen thuộc trên bàn phím | Dán ảnh chụp màn hình trực tiếp vào sàn diễn |
-| Giữ chuẩn tỷ lệ hình | Giữ phím Shift trong lúc kéo chuột | Giữ hình vuông đều, tròn đều hoặc tránh làm méo ảnh |
-| Chọn nhiều đối tượng | Kéo chuột trái trên khoảng trống | Quét vùng chọn để di chuyển hoặc chỉnh sửa nhiều hình cùng lúc |
-| Căn thẳng hàng nhanh | Bảng nút căn lề ở thanh bên phải | Căn các đối tượng thẳng hàng trái, phải, trên, dưới hoặc chính giữa |
-| Lật đối xứng | Nút lật ngang hoặc lật dọc | Đổi chiều nhìn của nhân vật hoặc lật ảnh |
-| Xoay đối tượng | Thanh trượt xoay hoặc nút xoay một góc vuông | Xoay đối tượng theo góc mong muốn |
-| Nhân bản nhanh | Nút nhân bản hoặc giữ phím Alt rồi kéo chuột | Tạo thêm một bản sao giống hệt của hình hoặc nét vẽ |
-| Đổi thứ tự lớp | Nút đưa lên trên cùng hoặc đưa xuống dưới cùng | Chọn đối tượng nào nằm đè lên đối tượng nào |
-| Xóa đối tượng | Phím xóa trên bàn phím hoặc nút Xóa | Xóa hình, nét vẽ, nhân vật hoặc ghi chú đang chọn |
-| Hoàn tác | Phím tắt quay lại trên bàn phím | Hủy thao tác vừa làm nếu lỡ tay làm sai |
+| Vẽ Bút chì / Cọ vẽ | Chọn Pencil / Brush rồi kéo chuột trên Artboard | Phác thảo nét tự do hoặc tô nét cọ dày |
+| Đặt điểm neo Pen | Chọn Pen rồi nhấp chuột từng điểm | Tạo các điểm nối góc nhọn (Anchor Point) |
+| Uốn cong nét vẽ Pen | Nhấp giữ và kéo chuột tại điểm neo | Tạo và kéo dài tay đòn Bézier hai bên |
+| Khép kín đường Pen | Rê chuột về gần điểm neo đầu tiên | Tự động đóng đường vẽ thành hình khép kín |
+| Chốt nét Pen hở | Phím Enter hoặc nhấp đúp chuột | Hoàn tất nét vẽ Pen dạng hở |
+| Chọn nét vẽ / đối tượng | Chọn Select Tool rồi nhấp vào đối tượng | Mở Inspector và hiển thị điểm neo/tay đòn |
+| Nắn chỉnh điểm neo | Kéo điểm neo hoặc tay đòn tròn trên Artboard | Tinh chỉnh vị trí đỉnh và độ cong của nét vẽ |
+| Hủy nét đang vẽ | Phím Escape hoặc nút Hủy nét | Hủy các điểm đang vẽ dở của công cụ Pen |
+| Về công cụ Chọn | Phím Escape khi không vẽ | Trở về Select Tool |
+| Pan vùng nhìn Artboard | Giữ phím Space rồi kéo chuột, hoặc chuột giữa | Di chuyển khung nhìn Artboard |
+| Zoom Artboard | Nút +, - ở góc dưới hoặc nút 1:1 | Phóng to, thu nhỏ hoặc đặt lại tỷ lệ chuẩn |
+| Dán ảnh nhanh | Ctrl+V (Windows) / Cmd+V (macOS) | Dán ảnh trực tiếp từ bộ nhớ tạm vào Artboard |
+| Khóa tỷ lệ 1:1 | Giữ phím Shift khi kéo chuột | Giữ chuẩn tỷ lệ vuông, tròn hoặc tỷ lệ ảnh |
+| Quét chọn nhiều đối tượng | Kéo chuột trái trên vùng trống | Chọn đồng thời nhiều layer để dời vị trí |
+| Căn chỉnh vị trí | Bảng nút Align trong Inspector | Căn lề trái, phải, trên, dưới hoặc tâm |
+| Lật đối xứng | Nút Flip H hoặc Flip V | Lật ảnh hoặc đổi hướng nhìn nhân vật |
+| Xoay đối tượng | Slider xoay hoặc nút +90 độ | Xoay góc đối tượng |
+| Nhân bản đối tượng | Nút Duplicate hoặc giữ Alt rồi kéo chuột | Tạo bản sao của hình khối, nét vẽ, ảnh |
+| Thứ tự hiển thị | Bring to Front / Send to Back / Forward / Backward | Điều chỉnh Z-Index của các layer |
+| Xóa đối tượng | Phím Delete / Backspace hoặc nút Delete | Xóa layer đang chọn |
 
 ---
 
-## Thông số và môi trường sử dụng
+## Thông số kỹ thuật
 
-- **Kích thước khung sân khấu:** 1080 x 1610 điểm ảnh, chuẩn theo tỷ lệ màn hình dọc của điện thoại thông minh.
-- **Tỷ lệ ảnh kết màn:** Tỷ lệ khung hình ngang 4:3.
-- **Thiết bị và nền tảng:** Chạy mượt mà trên các trình duyệt web phổ biến hiện nay như Chrome, Cốc Cốc, Edge, Firefox, Safari mà không cần cài thêm bất kỳ tiện ích mở rộng nào.
-- **Lưu trữ dữ liệu:** Dữ liệu màn chơi được lưu trực tiếp thành file trên máy tính của bạn, giúp bạn chủ động quản lý và không lo bị mất dữ liệu khi mất kết nối mạng.
+- **Kích thước Artboard:** 1080 x 1610 px (chuẩn 9:16 dọc trên thiết bị di động).
+- **Tỷ lệ ảnh Ending:** 4:3 ngang.
+- **Trình duyệt tương thích:** Chrome, Edge, Firefox, Safari, Cốc Cốc (hỗ trợ đầy đủ Canvas API, SVG Path2D và Pointer Events).
+- **Lưu trữ dữ liệu:** Dự án được lưu trực tiếp dưới dạng tệp JSON trên máy cục bộ, không phụ thuộc server và bảo mật tuyệt đối.

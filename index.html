@@ -19,51 +19,51 @@
 
   <div class="navGroup centerNav">
     <div class="modeSwitcher" id="modeSwitcher">
-      <button class="modeBtn on" id="editBtn" title="Chế độ biên tập màn chơi">CHỈNH SỬA</button>
-      <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">CHƠI THỬ</button>
+      <button class="modeBtn on" id="editBtn" title="Chế độ biên tập kịch bản">EDIT</button>
+      <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">PLAY</button>
     </div>
 
     <div class="navSep"></div>
 
     <div class="btnGroup">
-      <button class="btn smBtn" id="logicFlowBtn" title="Kiểm tra sơ đồ suy luận logic">SƠ ĐỒ LOGIC</button>
-      <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">KIỂM TRA ĐỘ KHÓ</button>
-      <button class="btn smBtn" id="checkLevelBtn" title="Kiểm tra lỗi logic & tài nguyên">KIỂM TRA LỖI</button>
+      <button class="btn smBtn" id="logicFlowBtn" title="Kiểm tra sơ đồ suy luận logic (Solve Graph)">LOGIC FLOW</button>
+      <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">TEST ĐỘ KHÓ</button>
+      <button class="btn smBtn" id="checkLevelBtn" title="Linter kiểm tra lỗi logic & asset">CHECK LEVEL</button>
     </div>
   </div>
 
   <div class="navGroup rightNav">
     <div class="btnGroup">
-      <button class="btn smBtn" id="saveBtn" title="Lưu màn chơi ra file JSON">LƯU DỰ ÁN</button>
-      <label class="btn smBtn" title="Mở màn chơi từ file JSON">MỞ DỰ ÁN<input id="importFile" type="file" accept=".json" style="display:none"></label>
+      <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU PROJECT</button>
+      <label class="btn smBtn" title="Mở Level từ file JSON">MỞ PROJECT<input id="importFile" type="file" accept=".json" style="display:none"></label>
     </div>
 
     <details class="topMenu" id="productionMenu">
-      <summary class="btn smBtn">XUẤT BẢN ▾</summary>
+      <summary class="btn smBtn">PRODUCTION ▾</summary>
       <div class="topMenuPanel">
-        <button class="btn" id="endingBtn">ĐOẠN KẾT</button>
-        <button class="btn" id="scenePngBtn">Ảnh Khung Cảnh (PNG)</button>
-        <button class="btn" id="assetRequestBtn">Bảng Yêu Cầu Asset (XLSX)</button>
-        <button class="btn" id="exportBtn">Xuất Dữ Liệu Màn (JSON)</button>
+        <button class="btn" id="endingBtn">ENDING</button>
+        <button class="btn" id="scenePngBtn">Scene PNG</button>
+        <button class="btn" id="assetRequestBtn">Asset Request XLSX</button>
+        <button class="btn" id="exportBtn">Dev JSON</button>
       </div>
     </details>
 
     <details class="topMenu" id="sampleMenu">
-      <summary class="btn smBtn">MẪU CÓ SẴN ▾</summary>
+      <summary class="btn smBtn">SAMPLE ▾</summary>
       <div class="topMenuPanel">
-        <button class="btn" id="sampleWeddingBtn">Mẫu Đám Cưới · L001</button>
-        <button class="btn" id="sampleBirthdayBtn">Mẫu Sinh Nhật · L003</button>
+        <button class="btn" id="sampleWeddingBtn">Wedding · L001</button>
+        <button class="btn" id="sampleBirthdayBtn">Birthday Photo Booth · L003</button>
       </div>
     </details>
 
-    <button class="btn iconBtn themeToggle" id="themeToggleBtn" title="Chuyển chế độ Tối / Sáng">
+    <button class="btn iconBtn themeToggle" id="themeToggleBtn" title="Chuyển chế độ Tối / Sáng (Dark / Light Mode)">
       <span id="themeIcon">🌙</span>
     </button>
 
     <details class="topMenu" id="moreMenu">
       <summary class="btn iconBtn smBtn" title="Tùy chọn khác">⋯</summary>
       <div class="topMenuPanel">
-        <button class="btn danger" id="resetBtn">Đặt lại dự án trắng</button>
+        <button class="btn danger" id="resetBtn">Reset trắng</button>
       </div>
     </details>
   </div>
@@ -72,21 +72,21 @@
 <div class="work">
 <aside class="panel left">
   <div class="editOnly">
-    <h3>Màn chơi</h3>
-    <div class="card sel" id="levelCard"><b>CÀI ĐẶT MÀN CHƠI</b><div class="meta">Mã ID · Độ khó dự định · Móc câu cốt truyện · 2 mạng cố định · Tiết lộ</div></div>
+    <h3>Level</h3>
+    <div class="card sel" id="levelCard"><b>CÀI ĐẶT LEVEL</b><div class="meta">Level ID · Target Difficulty · Drama Hook · 2 Lives cố định · Main Reveal</div></div>
 
-    <div class="head"><b>🟡 Lớp ảnh tham khảo</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
+    <div class="head"><b>Reference Layer</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
     <div class="small">Dán Ctrl/Cmd+V. Kéo ảnh để di chuyển, kéo chấm xanh để thu phóng. <b>Giữ Shift để giữ nguyên tỉ lệ ảnh.</b> Chuột phải: Nhân bản / đổi lớp / khóa / xóa.</div>
     <div class="small" style="margin-top:5px"><b>Chọn cụm:</b> kéo chuột trái trên vùng trống → kéo đối tượng đã chọn để di chuyển cả cụm. <b>Backspace/Delete</b> để xóa. <b>Ctrl/Cmd+Z</b> để Hoàn tác.</div>
     <div id="imgList"></div>
 
-    <div class="head"><b>Nhân vật</b><div class="row"><button class="btn" id="addM">+ Nam</button><button class="btn" id="addF">+ Nữ</button></div></div>
+    <div class="head"><b>Characters</b><div class="row"><button class="btn" id="addM">+ Nam</button><button class="btn" id="addF">+ Nữ</button></div></div>
     <div id="charList"></div>
 
-    <div class="head"><b>Cây manh mối</b><button class="btn" id="addClue">🟢 + Gốc</button></div>
+    <div class="head"><b>Clue Tree</b><button class="btn" id="addClue">🟢 + Gốc</button></div>
     <div id="clueList"></div>
 
-    <div class="head"><b>Sự kiện phản ứng</b></div>
+    <div class="head"><b>Reaction Events</b></div>
     <div id="reactionList"></div>
   </div>
 </aside>
@@ -95,13 +95,13 @@
   <div class="editor">
     <div class="leveltop">
       <div>
-        <div class="small">MÀN CHƠI THỬ NGHIỆM</div>
-        <b id="liveName">MÀN CHƠI</b>
+        <div class="small">LEVEL DESIGN</div>
+        <b id="liveName">LEVEL</b>
       </div>
       <div class="playGroup" id="playGroup" style="display:none">
-        <button class="btn iconBtn good" id="replayBtn" title="Chơi lại kịch bản này">↻ Chơi lại</button>
-        <button class="btn iconBtn" id="shuffleReplayBtn" title="Chơi lại và xáo trộn tên nhân vật">🔀 Đảo tên</button>
-        <span class="pill playPill" id="playNameStatus">Tên: Chỉnh sửa</span>
+        <button class="btn iconBtn good" id="replayBtn" title="Chơi lại kịch bản này">↻ Replay</button>
+        <button class="btn iconBtn" id="shuffleReplayBtn" title="Chơi lại và xáo trộn tên nhân vật">🔀 Shuffle Names</button>
+        <span class="pill playPill" id="playNameStatus">Tên: Edit</span>
       </div>
       <div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div>
     </div>
@@ -133,25 +133,25 @@
         </div>
         <div id="stage" class="stage">
           <canvas id="drawingCanvas" class="drawingCanvas" width="1080" height="1610"></canvas>
-          <div class="editmark">1080 × 1610 · KHUNG BIÊN TẬP</div>
+          <div class="editmark">1080 × 1610 · ARTBOARD</div>
         </div>
       </div>
     </div>
 
     <div class="tray">
-      <div class="ctop"><span>KHAY NHÂN VẬT</span><span id="trayHint">Nam/Nữ đều hiện ở đây khi Chỉnh sửa</span></div>
+      <div class="ctop"><span>TRAY NHÂN VẬT</span><span id="trayHint">Kéo character vào scene · M/F đều có trên Tray + Scene trong Edit</span></div>
       <div id="trayRow" class="trayrow"></div>
     </div>
 
     <div class="clues">
-      <div class="ctop"><span>MANH MỐI</span><span id="progress"></span></div>
+      <div class="ctop"><span>CLUE TREE</span><span id="progress"></span></div>
       <div id="liveClues"></div>
     </div>
 
   </div>
 </main>
 
-<aside class="panel right"><h3>Bảng thuộc tính</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Màn chơi / Ảnh / Nhân vật / Manh mối / Sự kiện phản ứng để chỉnh sửa.</div></aside>
+<aside class="panel right"><h3>INSPECTOR</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Nhân vật / Manh mối / Nét vẽ để xem thuộc tính.</div></aside>
 </div>
 </div>
 
@@ -169,14 +169,14 @@
 
 <div id="overlay" class="overlay">
   <div class="logicFlowCard">
-    <div class="gtop"><b>SƠ ĐỒ SUY LUẬN LOGIC</b><span class="small">Tự động đọc manh mối · vị trí đặt · phản ứng · tiết lộ</span><div class="spacer"></div><button class="btn" id="closeLogicFlow">Đóng</button></div>
+    <div class="gtop"><b>LOGIC FLOW · SOLVE GRAPH</b><span class="small">Tự động đọc manh mối · vị trí đặt · phản ứng · tiết lộ</span><div class="spacer"></div><button class="btn" id="closeLogicFlow">Đóng</button></div>
     <div class="logicFlowBody" id="logicFlowFull"></div>
   </div>
 </div>
 
 <div id="endingOverlay" class="endingOverlay">
   <div class="endingShell">
-    <div class="gtop"><b>KẾT CỤC MÀN CHƠI</b><span class="small">Thiết kế cửa sổ kết màn & ảnh tóm tắt AI</span><div class="spacer"></div><button class="btn" id="closeEnding">Đóng</button></div>
+    <div class="gtop"><b>ENDING & PROMPT AI</b><span class="small">Thiết kế màn kết thúc & câu lệnh Prompt AI</span><div class="spacer"></div><button class="btn" id="closeEnding">Đóng</button></div>
     <div class="endingBody">
       <div class="endingPreviewCol">
         <div class="endCardWrap">
@@ -196,22 +196,22 @@
       <div class="endingFormCol">
         <div class="col">
           <div class="endingGuide"><b>TINH THẦN ẢNH KẾT CỤC</b><br>Không vẽ lại toàn bộ màn chơi. Chọn <b>1 khoảnh khắc đắt giá nhất của tình huống drama</b>. Nhìn 1 giây phải hiểu chuyện gì vừa xảy ra. Ưu tiên 2–4 nhân vật quan trọng, phản ứng rõ ràng, tư thế rõ ràng, khung ảnh ngang <b>4:3</b>.</div>
-          <label>🔵 Tóm tắt bối cảnh ảnh kết cục<textarea id="endingBrief" placeholder="VD: Người yêu cũ của cô dâu tán tỉnh người yêu cũ của chú rể, trong khi cô dâu và chú rể đứng nhìn sững sờ."></textarea></label>
+          <label>🔵 Tóm tắt bối cảnh Ending<textarea id="endingBrief" placeholder="VD: Người yêu cũ của cô dâu tán tỉnh người yêu cũ của chú rể, trong khi cô dâu và chú rể đứng nhìn sững sờ."></textarea></label>
           <div class="small">Mô tả ai đang làm gì + ai phản ứng thế nào. <b>Không gọi tên riêng</b>, chỉ gọi theo vai vế: cô dâu, chú rể, người yêu cũ, thợ chụp ảnh...</div>
 
           <div class="row"><b style="font-size:13px">CÂU LỆNH AI (PROMPT)</b><div class="spacer"></div><button class="btn" id="copyEndingPrompt">Sao chép Prompt AI</button></div>
           <div class="promptBox" id="endingPromptPreview"></div>
 
-          <label>🔵 Ảnh kết cục</label>
+          <label>🔵 Ảnh Ending</label>
           <div class="endingImageInput" id="endingImagePaste" tabindex="0">
-            <div><b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br><span class="small">hoặc Tải ảnh PNG/JPG · khuyên dùng tỉ lệ 4:3</span><div class="row" style="justify-content:center;margin-top:7px"><label class="btn">Tải ảnh lên<input id="endingImageFile" type="file" accept="image/*" style="display:none"></label><button class="btn" id="exportEndingPng">Xuất ảnh kết cục (PNG)</button><button class="btn danger" id="clearEndingImage">Xóa ảnh</button></div></div>
+            <div><b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br><span class="small">hoặc Tải ảnh PNG/JPG · khuyên dùng tỉ lệ 4:3</span><div class="row" style="justify-content:center;margin-top:7px"><label class="btn">Tải ảnh lên<input id="endingImageFile" type="file" accept="image/*" style="display:none"></label><button class="btn" id="exportEndingPng">Xuất ảnh Ending (PNG)</button><button class="btn danger" id="clearEndingImage">Xóa ảnh</button></div></div>
           </div>
 
-          <label>🔵 Câu thoại kết màn<input id="endingLineInput" maxlength="100" placeholder="Tiếng Việt thuần · ngắn gọn 6–12 từ · tóm tắt & chốt hạ hài hước"></label>
+          <label>🔵 Câu thoại Ending<input id="endingLineInput" maxlength="100" placeholder="Tiếng Việt thuần · ngắn gọn 6–12 từ · tóm tắt & chốt hạ hài hước"></label>
           <div class="endCounter" id="endingLineCounter"></div>
           <div class="small">1 câu ngắn, vừa tóm tắt drama vừa có punchline gây cười. Có thể dùng token <b>{M01}</b>, <b>{F02}</b> nếu cần đảo tên.</div>
 
-          <div class="head" style="margin-bottom:3px"><b>🔵 PHÁN QUYẾT NGƯỜI CHƠI (×2 THƯỞNG)</b><span class="small">2–3 từ súc tích</span></div>
+          <div class="head" style="margin-bottom:3px"><b>🔵 PHÁN QUYẾT CTA (×2 THƯỞNG)</b><span class="small">2–3 từ súc tích</span></div>
           <div class="verdictGrid" id="verdictSuggestions"></div>
           <label>🔵 Tự nhập / chỉnh nút Phán quyết CTA<input id="verdictCustom" maxlength="40" placeholder="VD: VẠCH TRẦN SỰ THẬT"></label>
           <div class="endCounter" id="verdictCounter"></div>
@@ -226,7 +226,7 @@
 
 <div id="difficultyOverlay" class="difficultyOverlay">
   <div class="difficultyShell">
-    <div class="gtop"><b>KIỂM TRA ĐỘ KHÓ</b><span class="small">Chơi thử trước → Tự cảm nhận → Đối chiếu với mục tiêu</span><div class="spacer"></div><button class="btn" id="closeDifficultyTest">Đóng</button></div>
+    <div class="gtop"><b>TEST ĐỘ KHÓ</b><span class="small">Full Play trước → GD tự cảm nhận → Tool đối chiếu với mục tiêu</span><div class="spacer"></div><button class="btn" id="closeDifficultyTest">Đóng</button></div>
     <div class="difficultyBody">
       <div class="difficultyIntro"><b>Không nhìn ước tính trước.</b> Hãy Chơi thử màn chơi từ đầu tới cuối rồi tự đánh giá. Sau khi bấm <b>ĐỐI CHIẾU</b>, hệ thống sẽ so sánh cảm nhận sau khi chơi với mục tiêu ban đầu và đưa ra chẩn đoán để bạn tinh chỉnh.</div>
       <div class="difficultyForm">
@@ -242,7 +242,7 @@
 
 <div id="checkOverlay" class="checkOverlay">
   <div class="checkShell">
-    <div class="gtop"><b>KIỂM TRA LỖI MÀN CHƠI</b><span class="small">Quét lỗi dữ liệu & tài nguyên tham chiếu · không chấm thẩm mỹ thiết kế</span><div class="spacer"></div><button class="btn" id="closeCheckLevel">Đóng</button></div>
+    <div class="gtop"><b>CHECK LEVEL</b><span class="small">Linter quét lỗi data & reference assets · không chấm thẩm mỹ</span><div class="spacer"></div><button class="btn" id="closeCheckLevel">Đóng</button></div>
     <div class="checkBody" id="checkLevelBody"></div>
   </div>
 </div>
@@ -251,7 +251,7 @@
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
-    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT VÀ LỘ TRÌNH</b><span class="version">v1.38 · BÚT MỰC VECTOR VÀ CHỈNH SỬA NÉT VẼ</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">v1.38 · BÚT MỰC VECTOR VÀ CHỈNH SỬA NÉT VẼ</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
     <div class="changelogBody">
       <div class="clTimeline">
         <div class="clItem latest">
