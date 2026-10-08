@@ -16,13 +16,15 @@ Từ khâu lên ý tưởng tình huống, sắp đặt bối cảnh, bố trí 
 
 ## Những tính năng chính
 
-### Dựng bối cảnh sân khấu và bộ công cụ vẽ tự do
-- Bạn có thể dán ảnh phác thảo, ảnh nhân vật hoặc sử dụng bộ công cụ vẽ hình khối và nét vẽ tự do có sẵn để bố trí sàn diễn.
-- Bộ ba công cụ vẽ tự do đa năng:
+### Dựng bối cảnh sân khấu và bộ công cụ vẽ đồ họa
+- Bạn có thể dán ảnh phác thảo, ảnh nhân vật hoặc sử dụng bộ công cụ vẽ hình khối và nét vẽ vector có sẵn để bố trí sàn diễn.
+- Bộ ba công cụ vẽ đa năng:
   - **Bút chì:** Vẽ các nét mảnh đều đặn, nhạy bén, thích hợp để phác thảo nhanh ý tưởng hoặc ghi chú vị trí trên sàn diễn.
   - **Cọ vẽ:** Nét cọ dày dặn, mượt mà, bo tròn hai đầu nét vẽ và hỗ trợ độ mờ đục mềm, tạo cảm giác nét vẽ nghệ thuật uyển chuyển.
-  - **Bút mực:** Chấm từng điểm neo liên tiếp trên sân khấu để nối thành đường nét vector chuẩn xác; dễ dàng hoàn thành đường vẽ bằng cách bấm phím Enter hoặc nhấp đúp chuột.
-- Bộ điều khiển nét vẽ linh hoạt: Tự do chọn màu sắc, tăng giảm độ dày nét vẽ, chỉnh độ mờ đục, hoàn tác nét vẽ vừa vẽ hoặc xóa trắng bảng vẽ chỉ bằng một nút bấm.
+  - **Bút mực:** Cơ chế vẽ đường cong chuyên nghiệp tương tự các phần mềm đồ họa hiện đại. Nhấp chuột để đặt điểm neo góc nhọn, bấm giữ và kéo chuột để kéo dài tay đòn uốn cong nét vẽ hai bên. Khi rê chuột quay trở lại gần điểm đầu tiên, hệ thống sẽ tự động khép kín nét vẽ thành một hình khối kín hoàn chỉnh. Bạn cũng có thể bấm phím Enter, bấm đúp chuột hoặc bấm nút Chốt nét để hoàn tất một đường vẽ hở.
+- **Khả năng chọn và tinh chỉnh nét vẽ trực tiếp:** Mọi nét vẽ sau khi vẽ xong đều trở thành một đối tượng độc lập. Bạn có thể bấm công cụ Chọn để nhấp vào nét vẽ, di chuyển vị trí, nhân bản hoặc xóa bỏ.
+- **Nắn chỉnh điểm neo và độ cong trên sàn diễn:** Khi chọn một nét vẽ bút mực, toàn bộ các điểm neo và tay đòn uốn cong sẽ xuất hiện trực quan trên sàn diễn. Bạn có thể nhấp giữ kéo điểm neo để dời đỉnh hoặc kéo các tay đòn tròn để nắn lại độ cong của nét vẽ bất kỳ lúc nào.
+- **Bảng thuộc tính nét vẽ chuyên sâu:** Tự do đổi màu nét vẽ, độ dày nét, độ mờ đục, chuyển kiểu viền sang nét đứt hoặc chấm bi, bật tắt khép kín và chọn màu tô bên trong đối với các hình khép kín.
 - Hỗ trợ nhiều loại hình khối thông dụng như ngôi sao, tam giác, lục giác, hình tròn, hình chữ nhật, đường kẻ và mũi tên chỉ dẫn.
 - Tự do di chuyển, đổi kích thước, xoay góc, lật hình đối xứng và sắp xếp thứ tự trước sau của các lớp hình ảnh.
 - Dễ dàng bo tròn góc cho ảnh hoặc hình chữ nhật, tùy chỉnh độ dày viền và chọn kiểu nét vẽ liền, đứt quãng hoặc chấm bi.
@@ -59,19 +61,21 @@ Từ khâu lên ý tưởng tình huống, sắp đặt bối cảnh, bố trí 
 
 ## Điểm mới nổi bật trong phiên bản hiện tại
 
-- **Bộ ba công cụ vẽ Bút chì, Cọ vẽ và Bút mực:** Bổ sung lớp vẽ tự do tích hợp trực tiếp trên sàn diễn. Bạn có thể tự do phác họa, tô vẽ chi tiết hoặc tạo các đường nối vector thông qua hệ thống điểm neo chính xác. Toàn bộ nét vẽ được lưu giữ đầy đủ trong file dự án và xuất chuẩn xác khi kết xuất ảnh sân khấu.
-- **Tùy biến nét vẽ chuyên nghiệp trên bảng thuộc tính:** Khi chọn bất kỳ công cụ vẽ nào, bảng bên phải sẽ tự động hiển thị thanh chỉnh màu, độ dày nét vẽ, độ mờ đục, nút hoàn tác nét gần nhất, nút xóa trắng bảng vẽ và tùy chọn bật tắt nét vẽ khi chơi thử.
-- **Xem trước hình dạng thật khi vẽ:** Khi bạn bấm chọn vẽ ngôi sao, tam giác hay lục giác và kéo chuột trên màn hình, hình dạng thực tế của hình đó sẽ hiện ra mờ mờ theo chuyển động chuột thay vì chỉ là một khung vuông thô cứng. Điều này giúp bạn dễ dàng căn chỉnh tỷ lệ và vị trí ngay từ thao tác đầu tiên.
+- **Nâng cấp Bút mực chuẩn đồ họa vector:** Cho phép tạo nét cong mượt mà thông qua việc kéo tay đòn điều khiển, tự động nhận diện khép kín đường vẽ khi rê chuột về điểm bắt đầu, và hỗ trợ kết thúc đường hở linh hoạt bằng phím Enter hoặc nút chốt nét.
+- **Nét vẽ có thể chọn và chỉnh sửa trực tiếp:** Biến các nét vẽ bút chì, cọ vẽ và bút mực thành đối tượng độc lập trên sàn diễn. Người thiết kế có thể nhấp chọn để di chuyển, đổi màu, tăng giảm độ dày, đổi nét đứt hoặc tô màu bên trong.
+- **Tương tác điểm neo và uốn cong trực quan:** Khi chọn nét vẽ bút mực, các điểm neo và tay đòn uốn cong sẽ hiển thị rõ ràng trên sàn diễn, cho phép nhấp giữ kéo điểm neo để chỉnh sửa góc cạnh và uốn lại đường cong bất cứ lúc nào.
+- **Bộ ba công cụ vẽ Bút chì, Cọ vẽ và Bút mực:** Bổ sung lớp vẽ tự do tích hợp trực tiếp trên sàn diễn. Bạn có thể tự do phác họa, tô vẽ chi tiết hoặc tạo các đường nối vector. Toàn bộ nét vẽ được lưu giữ đầy đủ trong file dự án và xuất chuẩn xác khi kết xuất ảnh sân khấu.
+- **Xem trước hình dạng thật khi vẽ:** Khi bạn bấm chọn vẽ ngôi sao, tam giác hay lục giác và kéo chuột trên màn hình, hình dạng thực tế của hình đó sẽ hiện ra mờ mờ theo chuyển động chuột thay vì chỉ là một khung vuông thô cứng.
 - **Giữ phím Shift để khóa chuẩn tỷ lệ:** Khi đang kéo vẽ hình mới hoặc thay đổi kích thước của ảnh, chỉ cần giữ thêm phím Shift, hình sẽ tự động giữ tỷ lệ vuông đều, tròn đều hoặc giữ nguyên tỷ lệ ban đầu của ảnh mà không bao giờ bị méo hình.
-- **Giao diện làm việc cố định và êm ái:** Chuyển đổi giữa chế độ thiết kế và chơi thử hoàn toàn không làm xê dịch thanh công cụ trên cùng hay sàn diễn trung tâm, giúp mắt bạn luôn cảm thấy dễ chịu và không bị giật khung hình.
-- **Giao diện thuần tiếng Việt thân thiện:** Toàn bộ tên gọi công cụ, nút bấm và bảng hướng dẫn đều được dịch sang tiếng Việt tự nhiên, ngắn gọn và dễ hiểu, loại bỏ các từ ngoại ngữ chen ngang.
+- **Giao diện làm việc cố định và êm ái:** Chuyển đổi giữa chế độ thiết kế và chơi thử hoàn toàn không làm xê dịch thanh công cụ trên cùng hay sàn diễn trung tâm, giúp trải nghiệm mượt mà và tập trung.
+- **Giao diện thuần tiếng Việt thân thiện:** Toàn bộ tên gọi công cụ, nút bấm và bảng hướng dẫn đều được trình bày bằng tiếng Việt tự nhiên, chuẩn mực và dễ hiểu, không có từ ngoại ngữ chen ngang.
 
 ---
 
 ## Quy trình 7 bước tạo một màn chơi hoàn chỉnh
 
 1. **Thiết lập thông tin chung:** Đặt mã màn chơi, chọn mức độ khó dự kiến, nhập câu mở đầu gây tò mò cho người chơi và đặt số mạng cho màn chơi.
-2. **Dựng bối cảnh và đưa nhân vật vào:** Dán ảnh nền tham khảo, dùng bút chì, cọ vẽ hoặc các hình khối để vẽ chi tiết hiện trường, sau đó tạo danh sách các nhân vật cần có cho câu chuyện.
+2. **Dựng bối cảnh và đưa nhân vật vào:** Dán ảnh nền tham khảo, dùng bút chì, cọ vẽ, bút mực hoặc các hình khối để vẽ chi tiết hiện trường, sau đó tạo danh sách các nhân vật cần có cho câu chuyện.
 3. **Viết cây manh mối:** Soạn manh mối mở màn, các manh mối bước đệm và manh mối then chốt hé lộ kịch bản.
 4. **Cài đặt phản ứng nhân vật:** Chọn biểu cảm mặt, viết câu thoại sẽ bật lên khi người chơi kéo nhân vật vào đúng vị trí.
 5. **Kiểm tra sơ đồ luồng:** Bấm nút xem luồng để rà soát toàn bộ cây logic xem có nhánh nào bị thiếu điều kiện hoặc dẫn vào ngõ cụt hay không.
@@ -85,10 +89,14 @@ Từ khâu lên ý tưởng tình huống, sắp đặt bối cảnh, bố trí 
 | Thao tác | Phím tắt hoặc cách dùng chuột | Công dụng |
 | :--- | :--- | :--- |
 | Vẽ tự do bằng bút chì hoặc cọ | Nhấp chọn công cụ rồi kéo chuột trên sân khấu | Vẽ nét phác thảo thanh mảnh hoặc nét cọ mềm dày |
-| Đặt điểm neo bút mực | Nhấp chọn công cụ rồi nhấp chuột từng điểm | Tạo các điểm nối của đường vẽ vector |
-| Chốt đường vẽ bút mực | Phím Enter hoặc nhấp đúp chuột, hoặc nút Chốt nét | Hoàn thành đường vẽ bút mực hiện tại |
+| Đặt điểm neo bút mực | Nhấp chọn công cụ rồi nhấp chuột từng điểm | Tạo các điểm nối góc nhọn |
+| Bẻ cong nét vẽ bút mực | Bấm giữ và kéo chuột tại điểm neo | Kéo dài tay đòn để uốn cong nét vẽ |
+| Khép kín đường vẽ bút mực | Rê chuột về gần điểm đầu tiên và nhấp chuột | Tự động đóng nét vẽ thành một hình kín |
+| Chốt nét vẽ bút mực hở | Phím Enter hoặc nhấp đúp chuột, hoặc nút Chốt nét | Hoàn thành đường vẽ bút mực hở |
+| Chọn nét vẽ để sửa | Chọn công cụ Chọn rồi nhấp vào nét vẽ | Hiển thị thuộc tính và các điểm neo uốn cong |
+| Nắn lại điểm neo và đường cong | Nhấp giữ kéo điểm neo hoặc tay đòn tròn trên sàn diễn | Tinh chỉnh vị trí đỉnh và độ cong của nét vẽ |
 | Hủy đường vẽ dở | Phím Escape hoặc nút Hủy nét | Hủy các điểm neo đang vẽ dở của bút mực |
-| Hoàn tất vẽ | Phím Escape hoặc nút Hoàn tất vẽ | Trở về công cụ chọn đối tượng |
+| Hoàn tất vẽ | Phím Escape hoặc nút Về công cụ chọn | Trở về công cụ chọn đối tượng |
 | Di chuyển vùng nhìn | Giữ phím cách rồi kéo chuột, hoặc bấm giữ chuột giữa | Kéo sàn diễn đến vị trí thuận mắt |
 | Phóng to hoặc thu nhỏ | Nút cộng trừ ở góc màn hình hoặc nút về tỷ lệ chuẩn | Phóng to để vẽ chi tiết hoặc thu nhỏ để xem toàn cảnh |
 | Dán ảnh nhanh | Phím tắt dán quen thuộc trên bàn phím | Dán ảnh chụp màn hình trực tiếp vào sàn diễn |
@@ -97,9 +105,9 @@ Từ khâu lên ý tưởng tình huống, sắp đặt bối cảnh, bố trí 
 | Căn thẳng hàng nhanh | Bảng nút căn lề ở thanh bên phải | Căn các đối tượng thẳng hàng trái, phải, trên, dưới hoặc chính giữa |
 | Lật đối xứng | Nút lật ngang hoặc lật dọc | Đổi chiều nhìn của nhân vật hoặc lật ảnh |
 | Xoay đối tượng | Thanh trượt xoay hoặc nút xoay một góc vuông | Xoay đối tượng theo góc mong muốn |
-| Nhân bản nhanh | Nút nhân bản hoặc giữ phím Alt rồi kéo chuột | Tạo thêm một bản sao giống hệt của hình đang chọn |
-| Đổi thứ tự lớp | Nút đưa lên trên cùng hoặc đưa xuống dưới cùng | Chọn hình nào nằm đè lên hình nào |
-| Xóa đối tượng | Phím xóa trên bàn phím | Xóa hình, nhân vật hoặc ghi chú đang chọn |
+| Nhân bản nhanh | Nút nhân bản hoặc giữ phím Alt rồi kéo chuột | Tạo thêm một bản sao giống hệt của hình hoặc nét vẽ |
+| Đổi thứ tự lớp | Nút đưa lên trên cùng hoặc đưa xuống dưới cùng | Chọn đối tượng nào nằm đè lên đối tượng nào |
+| Xóa đối tượng | Phím xóa trên bàn phím hoặc nút Xóa | Xóa hình, nét vẽ, nhân vật hoặc ghi chú đang chọn |
 | Hoàn tác | Phím tắt quay lại trên bàn phím | Hủy thao tác vừa làm nếu lỡ tay làm sai |
 
 ---

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
-<title>SẮP XẾP DRAMA — Live Level Editor V1.36 · Thuần Việt & Vector Chuẩn</title>
-<link rel="stylesheet" href="css/style.css?v=1.37">
+<title>SẮP XẾP DRAMA — Trình Biên Tập Màn Chơi</title>
+<link rel="stylesheet" href="css/style.css?v=1.38">
 </head>
 <body>
 <div class="app">
@@ -14,7 +14,7 @@
     <div class="brand">
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="v1.37 · Xem Lịch sử cập nhật & Lộ trình">v1.37</button>
+    <button class="version versionBtn" id="changelogBtn" title="Xem lịch sử cập nhật và lộ trình">v1.38</button>
   </div>
 
   <div class="navGroup centerNav">
@@ -109,7 +109,7 @@
 
     <div class="sceneRow">
       <div class="sceneTools editOnly" id="sceneTools" aria-label="Công cụ vẽ">
-        <button class="toolBtn active" data-tool="select" title="Chọn đối tượng / chọn cụm">↖</button>
+        <button class="toolBtn active" data-tool="select" id="toolSelect" title="Chọn đối tượng / chọn cụm">↖</button>
         <div class="toolSep"></div>
         <button class="toolBtn" data-tool="rect" title="Hình chữ nhật / vuông">□</button>
         <button class="toolBtn" data-tool="circle" title="Hình tròn / bầu dục">○</button>
@@ -251,15 +251,23 @@
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
-    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & LỘ TRÌNH</b><span class="version">v1.36 · THUẦN VIỆT & VECTOR CHUẨN</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT VÀ LỘ TRÌNH</b><span class="version">v1.38 · BÚT MỰC VECTOR VÀ CHỈNH SỬA NÉT VẼ</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
     <div class="changelogBody">
       <div class="clTimeline">
         <div class="clItem latest">
-          <div class="clHeader"><b>V1.36 · VIỆT HÓA TOÀN DIỆN & SỬA TRIỆT ĐỂ VIỀN VECTOR</b><span class="clTag current">MỚI NHẤT</span></div>
+          <div class="clHeader"><b>V1.38 · BÚT MỰC VECTOR VÀ CHỈNH SỬA NÉT VẼ</b><span class="clTag current">MỚI NHẤT</span></div>
           <ul class="clList">
-            <li><b>🇻🇳 Thuần hóa tiếng Việt 100%:</b> Loại bỏ triệt để toàn bộ từ ngữ tiếng Anh và các dạng phụ đề tiếng Anh trong ngoặc (Solid, Dashed, Stroke Width, FIGMA...) trên toàn bộ menu, thanh công cụ, bảng thuộc tính Inspector và các cửa sổ tính năng.</li>
-            <li><b>✏️ Sửa lỗi Độ dày viền & Kiểu nét viền (Stroke Width & Style):</b> Bổ sung đầy đủ sự kiện lắng nghe onchange/oninput cho kiểu viền (nét liền, nét đứt, nét chấm bi) và thanh trượt bo góc. Gỡ bỏ hoàn toàn CSS ghi đè cứng làm mất nét viền người dùng tùy chỉnh khi chọn hình.</li>
-            <li><b>🎯 Hỗ trợ xuất Canvas WYSIWYG:</b> Bổ sung cơ chế vẽ nét đứt (setLineDash) và bo tròn góc (roundRect) vào luồng xuất ảnh canvas export PNG để đảm bảo tính đồng nhất tuyệt đối giữa màn hình vẽ và ảnh xuất ra.</li>
+            <li><b>Bút mực bẻ cong tay đòn:</b> Cho phép kéo chuột để uốn cong nét vẽ mềm mại thông qua hệ thống tay đòn điều khiển hai bên.</li>
+            <li><b>Tự động khép kín hình dạng:</b> Rê chuột về gần điểm đầu tiên để tự động đóng nét vẽ thành một hình khối kín hoàn chỉnh, hỗ trợ tô màu bên trong.</li>
+            <li><b>Chọn và chỉnh sửa nét vẽ trực tiếp:</b> Biến nét vẽ bút chì, cọ vẽ và bút mực thành đối tượng độc lập, cho phép chọn trên sàn diễn, đổi màu, chỉnh độ dày, nắn lại điểm neo hoặc nhân bản và xóa bỏ.</li>
+          </ul>
+        </div>
+        <div class="clItem">
+          <div class="clHeader"><b>V1.36 · VIỆT HÓA TOÀN DIỆN VÀ SỬA TRIỆT ĐỂ VIỀN VECTOR</b><span class="clTag">STABLE</span></div>
+          <ul class="clList">
+            <li><b>Thuần hóa tiếng Việt toàn diện:</b> Chuẩn hóa toàn bộ tên gọi công cụ và giao diện, không sử dụng từ ngữ ngoại ngữ chen ngang.</li>
+            <li><b>Sửa lỗi độ dày viền và kiểu nét viền:</b> Đồng bộ kiểu nét liền, nét đứt, nét chấm bi và thanh trượt bo góc.</li>
+            <li><b>Hỗ trợ xuất ảnh đồng bộ:</b> Đảm bảo độ sắc nét và tính đồng nhất giữa màn hình vẽ và ảnh kết xuất.</li>
           </ul>
         </div>
         <div class="clItem">
@@ -306,8 +314,8 @@
   </div>
 </div>
 
-<script src="data/sample_levels.js?v=1.37"></script>
-<script src="js/app.js?v=1.37"></script>
+<script src="data/sample_levels.js?v=1.38"></script>
+<script src="js/app.js?v=1.38"></script>
 
 </body>
 </html>

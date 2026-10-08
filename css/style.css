@@ -593,6 +593,69 @@ body.play .drawingCanvas.hidePlay {
   pointer-events: none;
 }
 
+/* Định dạng đối tượng nét vẽ Vector & Tương tác điểm neo chuẩn Illustrator */
+.noteObj.pathObj {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.noteObj.pathObj svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.noteObj.pathObj path.mainStroke {
+  pointer-events: stroke;
+  cursor: pointer;
+}
+.noteObj.pathObj path.closedFill {
+  pointer-events: fill;
+  cursor: pointer;
+}
+.noteObj.pathObj.sel path.mainStroke {
+  filter: drop-shadow(0 0 3px rgba(37, 99, 235, 0.75));
+}
+.anchorPointMarker {
+  fill: #ffffff;
+  stroke: #2563eb;
+  stroke-width: 2.5px;
+  cursor: move;
+  pointer-events: auto;
+  transition: r .1s ease, fill .1s ease;
+}
+.anchorPointMarker:hover {
+  fill: #2563eb;
+  r: 7;
+}
+.anchorPointMarker.startPoint {
+  stroke: #10b981;
+}
+.handleControlPoint {
+  fill: #06b6d4;
+  stroke: #ffffff;
+  stroke-width: 2px;
+  cursor: crosshair;
+  pointer-events: auto;
+  transition: r .1s ease, fill .1s ease;
+}
+.handleControlPoint:hover {
+  fill: #0891b2;
+  r: 6;
+}
+.handleLine {
+  stroke: #06b6d4;
+  stroke-width: 1.5px;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
 .canvasZoomDock {
   position: absolute;
   left: 50%;

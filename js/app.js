@@ -943,6 +943,78 @@ function renderLive(){
     const show=inEdit||a.visibleInPlay;
     if(!show)return;
 
+    if(["pen", "pencil", "brush"].includes(a.type)){
+      const el = document.createElement("div");
+      const key = "annotation:" + a.id;
+      const selectedNow = inEdit && selected.type === "annotation" && selected.id === a.id;
+      el.className = "noteObj pathObj " + a.type + " " + (selectedNow ? "sel " : "") + (inEdit && multiSel.has(key) ? "multiSel" : "");
+      el.dataset.annotationId = a.id;
+      el.style.zIndex = a.z || 20;
+      if(a.locked) el.classList.add("locked");
+
+      const svgD = generateSvgPathD(a);
+      const sDash = a.strokeStyle === "dashed" ? 'stroke-dasharray="8 6"' : (a.strokeStyle === "dotted" ? 'stroke-dasharray="3 4"' : '');
+      const isPen = a.type === "pen";
+
+      let handlesHtml = "";
+      if(selectedNow && isPen && inEdit && !a.locked){
+        (a.points || []).forEach((pt, idx) => {
+          const isStart = idx === 0;
+          if(pt.cp1 && (pt.cp1.x !== pt.x || pt.cp1.y !== pt.y)){
+            handlesHtml += `<line class="handleLine" x1="${pt.x}" y1="${pt.y}" x2="${pt.cp1.x}" y2="${pt.cp1.y}" />
+            <circle class="handleControlPoint" cx="${pt.cp1.x}" cy="${pt.cp1.y}" r="4.5" data-anchor-idx="${idx}" data-handle="cp1" />`;
+          }
+          if(pt.cp2 && (pt.cp2.x !== pt.x || pt.cp2.y !== pt.y)){
+            handlesHtml += `<line class="handleLine" x1="${pt.x}" y1="${pt.y}" x2="${pt.cp2.x}" y2="${pt.cp2.y}" />
+            <circle class="handleControlPoint" cx="${pt.cp2.x}" cy="${pt.cp2.y}" r="4.5" data-anchor-idx="${idx}" data-handle="cp2" />`;
+          }
+          handlesHtml += `<circle class="anchorPointMarker ${isStart ? 'startPoint' : ''}" cx="${pt.x}" cy="${pt.y}" r="5.5" data-anchor-idx="${idx}" data-handle="anchor" />`;
+        });
+      }
+
+      el.innerHTML = `<svg viewBox="0 0 1080 1610">
+        ${a.closed && a.fill && a.fill !== 'transparent' && a.fill !== 'none' ? `<path class="closedFill" d="${svgD}" fill="${a.fill}" />` : ''}
+        <path class="mainStroke" d="${svgD}" fill="none" stroke="${a.stroke || '#2563eb'}" stroke-width="${a.strokeWidth || 3}" stroke-opacity="${a.strokeOpacity !== undefined ? a.strokeOpacity : 1}" ${sDash} stroke-linecap="round" stroke-linejoin="round" />
+        ${handlesHtml}
+      </svg>`;
+
+      if(inEdit){
+        if(selectedNow && isPen && !a.locked){
+          el.querySelectorAll(".anchorPointMarker, .handleControlPoint").forEach(h => {
+            h.onpointerdown = ev => {
+              ev.stopPropagation();
+              ev.preventDefault();
+              startAnchorDrag(ev, a, parseInt(h.dataset.anchorIdx, 10), h.dataset.handle);
+            };
+          });
+        }
+
+        const strokePath = el.querySelector(".mainStroke");
+        const fillPath = el.querySelector(".closedFill");
+        const targetPaths = [strokePath, fillPath].filter(Boolean);
+        targetPaths.forEach(pEl => {
+          pEl.onpointerdown = ev => {
+            moveAnnotation(ev, a, el);
+          };
+          pEl.onclick = ev => {
+            ev.stopPropagation();
+            const k = "annotation:" + a.id;
+            if(ev.shiftKey){
+              if(multiSel.has(k)) multiSel.delete(k); else multiSel.add(k);
+            } else if(!multiSel.has(k)){
+              multiSel.clear(); multiSel.add(k);
+            }
+            selected = { type: "annotation", id: a.id };
+            refreshImmediate();
+          };
+          pEl.oncontextmenu = ev => openSceneCtx(ev, "annotation", a.id);
+        });
+      }
+
+      st.appendChild(el);
+      return;
+    }
+
     const el=document.createElement("div");
     const key="annotation:"+a.id;
     el.className="noteObj "+a.type+" "+(inEdit&&selected.type==="annotation"&&selected.id===a.id?"sel ":"")+(inEdit&&multiSel.has(key)?"multiSel":"");
@@ -1273,19 +1345,47 @@ function moveSelectionGroup(e,primaryKey){
     const [type,id]=key.split(":");
     if(type==="char"){const c=byChar(id);if(c)snapshot.push({type,id,obj:c,x:c.x,y:c.y})}
     if(type==="image"){const i=byImg(id);if(i&&!i.locked)snapshot.push({type,id,obj:i,x:i.x,y:i.y})}
-    if(type==="annotation"){const a=byAnn(id);if(a)snapshot.push({type,id,obj:a,x:a.x,y:a.y})}
+    if(type==="annotation"){
+      const a=byAnn(id);
+      if(a&&!a.locked){
+        const isPath = ["pen", "pencil", "brush"].includes(a.type);
+        snapshot.push({
+          type,
+          id,
+          obj:a,
+          x:a.x,
+          y:a.y,
+          isPath,
+          origPoints: isPath && a.points ? deep(a.points) : null
+        });
+      }
+    }
   });
   const mv=ev=>{
     const p=logical(ev),dx=p.x-start.x,dy=p.y-start.y;
+    let hasPath = false;
     snapshot.forEach(s=>{
       s.obj.x=s.x+dx;s.obj.y=s.y+dy;
-      const el=s.type==="char"
-        ? document.querySelector(`.char[data-char-id="${s.id}"]`)
-        : s.type==="image"
-          ? document.querySelector(`.imgLayer[data-img-id="${s.id}"]`)
-          : document.querySelector(`.noteObj[data-annotation-id="${s.id}"]`);
-      if(el){el.style.left=(s.obj.x/1080*100)+"%";el.style.top=(s.obj.y/1610*100)+"%"}
+      if(s.isPath && s.origPoints){
+        hasPath = true;
+        s.obj.points.forEach((pt, i) => {
+          const orig = s.origPoints[i];
+          if(!orig) return;
+          pt.x = Math.round(orig.x + dx);
+          pt.y = Math.round(orig.y + dy);
+          if(orig.cp1){ pt.cp1.x = Math.round(orig.cp1.x + dx); pt.cp1.y = Math.round(orig.cp1.y + dy); }
+          if(orig.cp2){ pt.cp2.x = Math.round(orig.cp2.x + dx); pt.cp2.y = Math.round(orig.cp2.y + dy); }
+        });
+      } else {
+        const el=s.type==="char"
+          ? document.querySelector(`.char[data-char-id="${s.id}"]`)
+          : s.type==="image"
+            ? document.querySelector(`.imgLayer[data-img-id="${s.id}"]`)
+            : document.querySelector(`.noteObj[data-annotation-id="${s.id}"]`);
+        if(el){el.style.left=(s.obj.x/1080*100)+"%";el.style.top=(s.obj.y/1610*100)+"%"}
+      }
     });
+    if(hasPath) renderLive();
   };
   const up=()=>{
     window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);
@@ -1974,6 +2074,102 @@ function annotationIns(b,a){
     text:"GHI CHÚ CHỮ"
   }[a.type]||a.type.toUpperCase();
 
+  if(["pen", "pencil", "brush"].includes(a.type)){
+    const typeTitle = {
+      pen: "NÉT VẼ BÚT MỰC",
+      brush: "NÉT VẼ CỌ VẼ",
+      pencil: "NÉT VẼ BÚT CHÌ"
+    }[a.type] || "NÉT VẼ";
+
+    const isPen = a.type === "pen";
+    b.innerHTML = `<div class="group col">
+      <div><b style="font-size:11px">🟡 THUỘC TÍNH ${typeTitle}</b></div>
+
+      <div class="row">
+        <label style="flex:1">Màu nét vẽ<input id="anStroke" type="color" value="${a.stroke || '#2563eb'}"></label>
+      </div>
+
+      <label>Độ dày nét: <b id="anStrokeWidthVal">${a.strokeWidth || 3} px</b>
+        <input id="anStrokeWidth" type="range" min="1" max="40" value="${a.strokeWidth || 3}">
+      </label>
+
+      <label>Độ mờ đục: <b id="anOpacityVal">${Math.round((a.strokeOpacity !== undefined ? a.strokeOpacity : 1) * 100)}%</b>
+        <input id="anOpacity" type="range" min="10" max="100" value="${Math.round((a.strokeOpacity !== undefined ? a.strokeOpacity : 1) * 100)}">
+      </label>
+
+      <label>Kiểu nét vẽ
+        <select id="anStrokeStyle">
+          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền</option>
+          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt</option>
+          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi</option>
+        </select>
+      </label>
+
+      ${isPen ? `
+      <label class="row" style="margin:4px 0">
+        <input id="anClosed" type="checkbox" style="width:auto" ${a.closed ? 'checked' : ''}> Khép kín đường vẽ (Đóng hình)
+      </label>
+      ${a.closed ? `
+      <div class="row">
+        <label style="flex:1">Màu tô bên trong
+          <input id="anFill" type="color" value="${a.fill && a.fill !== 'transparent' && a.fill !== 'none' ? a.fill : '#ffffff'}">
+        </label>
+        <label class="row" style="margin-top:14px;font-size:11px">
+          <input id="anNoFill" type="checkbox" style="width:auto" ${(!a.fill || a.fill === 'transparent' || a.fill === 'none') ? 'checked' : ''}> Trong suốt
+        </label>
+      </div>` : ''}
+      <div class="small" style="margin:4px 0;line-height:1.4"><b>Mẹo nắn điểm neo:</b> Nhấp giữ kéo điểm neo để dời đỉnh. Kéo tay đòn tròn để uốn cong nét vẽ mềm mại theo ý muốn.</div>
+      ` : ''}
+
+      <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng</label>
+      <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử</label>
+
+      <div class="row">
+        <button class="btn" id="anDup">Nhân bản</button>
+        <button class="btn" id="anFront">Lên trên cùng</button>
+        <button class="btn" id="anBack">Xuống dưới cùng</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="anForward">Lên một lớp</button>
+        <button class="btn" id="anBackward">Xuống một lớp</button>
+      </div>
+
+      <button class="btn danger" id="anDelete" style="margin-top:8px">Xóa nét vẽ</button>
+    </div>`;
+
+    if($("#anStroke")) $("#anStroke").oninput = e => { a.stroke = e.target.value; save(); refreshImmediate(); };
+    if($("#anStrokeWidth")) $("#anStrokeWidth").oninput = e => {
+      a.strokeWidth = +e.target.value;
+      if($("#anStrokeWidthVal")) $("#anStrokeWidthVal").textContent = a.strokeWidth + " px";
+      save(); refreshImmediate();
+    };
+    if($("#anOpacity")) $("#anOpacity").oninput = e => {
+      a.strokeOpacity = (+e.target.value) / 100;
+      if($("#anOpacityVal")) $("#anOpacityVal").textContent = Math.round(a.strokeOpacity * 100) + "%";
+      save(); refreshImmediate();
+    };
+    if($("#anStrokeStyle")) $("#anStrokeStyle").onchange = e => { a.strokeStyle = e.target.value; save(); refreshImmediate(); };
+    if($("#anClosed")) $("#anClosed").onchange = e => { a.closed = e.target.checked; save(); refreshImmediate(); renderInspector(); };
+    if($("#anFill")) $("#anFill").oninput = e => { a.fill = e.target.value; save(); refreshImmediate(); };
+    if($("#anNoFill")) $("#anNoFill").onchange = e => { a.fill = e.target.checked ? "transparent" : ($("#anFill")?.value || "#ffffff"); save(); refreshImmediate(); };
+
+    $("#anLock").onchange = e => { a.locked = e.target.checked; save(); refreshImmediate(); };
+    $("#anShowPlay").onchange = e => { a.visibleInPlay = e.target.checked; save(); refreshImmediate(); };
+    $("#anDup").onclick = () => duplicateAnnotation(a);
+    $("#anFront").onclick = () => { moveSceneLayer("annotation", a, "front"); save(); refreshImmediate(); };
+    $("#anBack").onclick = () => { moveSceneLayer("annotation", a, "back"); save(); refreshImmediate(); };
+    $("#anForward").onclick = () => { moveSceneLayer("annotation", a, "forward"); save(); refreshImmediate(); };
+    $("#anBackward").onclick = () => { moveSceneLayer("annotation", a, "backward"); save(); refreshImmediate(); };
+    $("#anDelete").onclick = () => {
+      data.annotations = data.annotations.filter(x => x !== a);
+      normalizeSceneZData();
+      multiSel.delete("annotation:" + a.id);
+      selected = { type: "level", id: "level" };
+      save(); refreshImmediate();
+    };
+    return;
+  }
+
   b.innerHTML=`<div class="group col">
     <div><b style="font-size:11px">🟡 ${typeName}</b></div>
 
@@ -2093,7 +2289,7 @@ function annotationIns(b,a){
 }
 
 // ==========================================
-// BỘ BA CÔNG CỤ VẼ: BÚT CHÌ, CỌ VẼ, BÚT MỰC
+// BỘ BA CÔNG CỤ VẼ: BÚT CHÌ, CỌ VẼ, BÚT MỰC CHUẨN ILLUSTRATOR
 // ==========================================
 const drawState = {
   pencil: { color: "#2d3748", size: 2, opacity: 1.0 },
@@ -2101,6 +2297,7 @@ const drawState = {
   pen:    { color: "#2563eb", size: 3, opacity: 1.0 }
 };
 let penActivePoints = [];
+let isDraggingPenHandle = false;
 let isFreehandDrawing = false;
 let currentFreehandStroke = null;
 let penHoverPoint = null;
@@ -2111,38 +2308,161 @@ function ensureDrawingData(){
   if(data.drawing.visibleInPlay === undefined) data.drawing.visibleInPlay = true;
 }
 
+function generateSvgPathD(a){
+  const pts = a.points;
+  if(!pts || pts.length === 0) return "";
+  if(a.type === "pen"){
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for(let i = 1; i < pts.length; i++){
+      const prev = pts[i - 1];
+      const curr = pts[i];
+      const cp1 = prev.cp2 || { x: prev.x, y: prev.y };
+      const cp2 = curr.cp1 || { x: curr.x, y: curr.y };
+      if(cp1.x !== prev.x || cp1.y !== prev.y || cp2.x !== curr.x || cp2.y !== curr.y){
+        d += ` C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${curr.x} ${curr.y}`;
+      } else {
+        d += ` L ${curr.x} ${curr.y}`;
+      }
+    }
+    if(a.closed && pts.length >= 3){
+      const last = pts[pts.length - 1];
+      const first = pts[0];
+      const cp1 = last.cp2 || { x: last.x, y: last.y };
+      const cp2 = first.cp1 || { x: first.x, y: first.y };
+      if(cp1.x !== last.x || cp1.y !== last.y || cp2.x !== first.x || cp2.y !== first.y){
+        d += ` C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${first.x} ${first.y} Z`;
+      } else {
+        d += ` Z`;
+      }
+    }
+    return d;
+  } else {
+    if(pts.length === 1) return `M ${pts[0].x} ${pts[0].y} L ${pts[0].x + 0.1} ${pts[0].y + 0.1}`;
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for(let i = 1; i < pts.length - 1; i++){
+      const midX = (pts[i].x + pts[i + 1].x) / 2;
+      const midY = (pts[i].y + pts[i + 1].y) / 2;
+      d += ` Q ${pts[i].x} ${pts[i].y}, ${midX} ${midY}`;
+    }
+    d += ` L ${pts[pts.length - 1].x} ${pts[pts.length - 1].y}`;
+    return d;
+  }
+}
+
+function createPathAnnotation(type, points, extra = {}){
+  if(!points || points.length < 1) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  points.forEach(p => {
+    minX = Math.min(minX, p.x, p.cp1?.x ?? p.x, p.cp2?.x ?? p.x);
+    minY = Math.min(minY, p.y, p.cp1?.y ?? p.y, p.cp2?.y ?? p.y);
+    maxX = Math.max(maxX, p.x, p.cp1?.x ?? p.x, p.cp2?.x ?? p.x);
+    maxY = Math.max(maxY, p.y, p.cp1?.y ?? p.y, p.cp2?.y ?? p.y);
+  });
+  const w = Math.max(20, maxX - minX);
+  const h = Math.max(20, maxY - minY);
+
+  const defColor = type === "pen" ? drawState.pen.color : (type === "brush" ? drawState.brush.color : drawState.pencil.color);
+  const defSize = type === "pen" ? drawState.pen.size : (type === "brush" ? drawState.brush.size : drawState.pencil.size);
+  const defOpacity = type === "pen" ? drawState.pen.opacity : (type === "brush" ? drawState.brush.opacity : drawState.pencil.opacity);
+
+  const a = {
+    id: uid("AN_"),
+    type,
+    x: Math.round(minX),
+    y: Math.round(minY),
+    w: Math.round(w),
+    h: Math.round(h),
+    points: deep(points),
+    closed: !!extra.closed,
+    fill: extra.fill || "transparent",
+    stroke: extra.stroke || defColor,
+    strokeWidth: extra.strokeWidth || defSize,
+    strokeOpacity: extra.strokeOpacity !== undefined ? extra.strokeOpacity : defOpacity,
+    strokeStyle: extra.strokeStyle || "solid",
+    locked: false,
+    visibleInPlay: true,
+    z: 10 + sceneLayerItems().length
+  };
+  data.annotations.push(a);
+  normalizeSceneZData();
+  multiSel.clear();
+  multiSel.add("annotation:" + a.id);
+  selected = { type: "annotation", id: a.id };
+  setTool("select");
+  save();
+  refreshImmediate();
+  return a;
+}
+
+function startAnchorDrag(e, a, anchorIdx, handleType){
+  if(a.locked || activeTool !== "select") return;
+  e.stopPropagation();
+  e.preventDefault();
+  const startMouse = logical(e);
+  const pt = a.points[anchorIdx];
+  if(!pt) return;
+
+  const initAnchor = { x: pt.x, y: pt.y };
+  const initCp1 = pt.cp1 ? { x: pt.cp1.x, y: pt.cp1.y } : { x: pt.x, y: pt.y };
+  const initCp2 = pt.cp2 ? { x: pt.cp2.x, y: pt.cp2.y } : { x: pt.x, y: pt.y };
+
+  const mv = ev => {
+    const cur = logical(ev);
+    const dx = cur.x - startMouse.x;
+    const dy = cur.y - startMouse.y;
+
+    if(handleType === "anchor"){
+      pt.x = Math.round(initAnchor.x + dx);
+      pt.y = Math.round(initAnchor.y + dy);
+      if(pt.cp1){
+        pt.cp1.x = Math.round(initCp1.x + dx);
+        pt.cp1.y = Math.round(initCp1.y + dy);
+      }
+      if(pt.cp2){
+        pt.cp2.x = Math.round(initCp2.x + dx);
+        pt.cp2.y = Math.round(initCp2.y + dy);
+      }
+    } else if(handleType === "cp2"){
+      pt.cp2 = { x: Math.round(initCp2.x + dx), y: Math.round(initCp2.y + dy) };
+      if(!ev.altKey){
+        pt.cp1 = { x: Math.round(2 * pt.x - pt.cp2.x), y: Math.round(2 * pt.y - pt.cp2.y) };
+      }
+    } else if(handleType === "cp1"){
+      pt.cp1 = { x: Math.round(initCp1.x + dx), y: Math.round(initCp1.y + dy) };
+      if(!ev.altKey){
+        pt.cp2 = { x: Math.round(2 * pt.x - pt.cp1.x), y: Math.round(2 * pt.y - pt.cp1.y) };
+      }
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    a.points.forEach(p => {
+      minX = Math.min(minX, p.x, p.cp1?.x ?? p.x, p.cp2?.x ?? p.x);
+      minY = Math.min(minY, p.y, p.cp1?.y ?? p.y, p.cp2?.y ?? p.y);
+      maxX = Math.max(maxX, p.x, p.cp1?.x ?? p.x, p.cp2?.x ?? p.x);
+      maxY = Math.max(maxY, p.y, p.cp1?.y ?? p.y, p.cp2?.y ?? p.y);
+    });
+    a.x = Math.round(minX); a.y = Math.round(minY);
+    a.w = Math.round(Math.max(20, maxX - minX)); a.h = Math.round(Math.max(20, maxY - minY));
+
+    renderLive();
+  };
+
+  const up = () => {
+    window.removeEventListener("pointermove", mv);
+    window.removeEventListener("pointerup", up);
+    save();
+    refreshImmediate();
+  };
+  window.addEventListener("pointermove", mv);
+  window.addEventListener("pointerup", up);
+}
+
 function redrawDrawingCanvas(){
   ensureDrawingData();
   const canvas = $("#drawingCanvas");
   if(!canvas) return;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const strokes = data.drawing.strokes || [];
-  strokes.forEach(s => {
-    if(!s.points || !s.points.length) return;
-    ctx.save();
-    ctx.strokeStyle = s.color || "#000000";
-    ctx.lineWidth = s.size || 2;
-    ctx.globalAlpha = s.opacity !== undefined ? s.opacity : 1.0;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-    if(s.points.length === 1){
-      ctx.beginPath();
-      ctx.arc(s.points[0].x, s.points[0].y, Math.max(1, (s.size || 2) / 2), 0, Math.PI * 2);
-      ctx.fillStyle = s.color || "#000000";
-      ctx.fill();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(s.points[0].x, s.points[0].y);
-      for(let i = 1; i < s.points.length; i++){
-        ctx.lineTo(s.points[i].x, s.points[i].y);
-      }
-      ctx.stroke();
-    }
-    ctx.restore();
-  });
 
   if(activeTool === "pen" && penActivePoints.length > 0){
     ctx.save();
@@ -2156,28 +2476,91 @@ function redrawDrawingCanvas(){
     ctx.beginPath();
     ctx.moveTo(penActivePoints[0].x, penActivePoints[0].y);
     for(let i = 1; i < penActivePoints.length; i++){
-      ctx.lineTo(penActivePoints[i].x, penActivePoints[i].y);
+      const prev = penActivePoints[i - 1];
+      const curr = penActivePoints[i];
+      const cp1 = prev.cp2 || { x: prev.x, y: prev.y };
+      const cp2 = curr.cp1 || { x: curr.x, y: curr.y };
+      if(cp1.x !== prev.x || cp1.y !== prev.y || cp2.x !== curr.x || cp2.y !== curr.y){
+        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, curr.x, curr.y);
+      } else {
+        ctx.lineTo(curr.x, curr.y);
+      }
     }
     ctx.stroke();
 
+    const lastPt = penActivePoints[penActivePoints.length - 1];
+    let isNearStart = false;
     if(penHoverPoint){
+      const firstPt = penActivePoints[0];
+      const distToStart = Math.hypot(penHoverPoint.x - firstPt.x, penHoverPoint.y - firstPt.y);
+      if(penActivePoints.length >= 3 && distToStart <= 16){
+        isNearStart = true;
+      }
+
       ctx.beginPath();
       ctx.setLineDash([8, 6]);
-      const lastPt = penActivePoints[penActivePoints.length - 1];
-      ctx.moveTo(lastPt.x, lastPt.y);
-      ctx.lineTo(penHoverPoint.x, penHoverPoint.y);
+      const cp1 = lastPt.cp2 || { x: lastPt.x, y: lastPt.y };
+      if(isNearStart){
+        ctx.bezierCurveTo(cp1.x, cp1.y, firstPt.x, firstPt.y, firstPt.x, firstPt.y);
+      } else {
+        ctx.bezierCurveTo(cp1.x, cp1.y, penHoverPoint.x, penHoverPoint.y, penHoverPoint.x, penHoverPoint.y);
+      }
       ctx.stroke();
       ctx.setLineDash([]);
     }
 
     penActivePoints.forEach((pt, idx) => {
+      const isStart = idx === 0;
+      if(pt.cp1 && (pt.cp1.x !== pt.x || pt.cp1.y !== pt.y)){
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = "#06b6d4";
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(pt.x, pt.y);
+        ctx.lineTo(pt.cp1.x, pt.cp1.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(pt.cp1.x, pt.cp1.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#06b6d4";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+      if(pt.cp2 && (pt.cp2.x !== pt.x || pt.cp2.y !== pt.y)){
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = "#06b6d4";
+        ctx.lineWidth = 1.5;
+        ctx.moveTo(pt.x, pt.y);
+        ctx.lineTo(pt.cp2.x, pt.cp2.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(pt.cp2.x, pt.cp2.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#06b6d4";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = idx === 0 ? "#10b981" : "#ffffff";
+      ctx.arc(pt.x, pt.y, isNearStart && isStart ? 8 : 5.5, 0, Math.PI * 2);
+      ctx.fillStyle = isStart ? "#10b981" : "#ffffff";
       ctx.fill();
+      ctx.strokeStyle = "#2563eb";
       ctx.lineWidth = 2.5;
-      ctx.strokeStyle = pCfg.color;
       ctx.stroke();
+
+      if(isNearStart && isStart){
+        ctx.beginPath();
+        ctx.arc(pt.x + 12, pt.y - 12, 5, 0, Math.PI * 2);
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
     });
 
     ctx.restore();
@@ -2188,20 +2571,22 @@ function redrawDrawingCanvas(){
 
 function finishPenPath(){
   if(penActivePoints.length >= 2){
-    ensureDrawingData();
-    data.drawing.strokes.push({
-      type: "pen",
-      color: drawState.pen.color,
-      size: drawState.pen.size,
-      opacity: drawState.pen.opacity,
-      points: [...penActivePoints]
+    const pts = [...penActivePoints];
+    penActivePoints = [];
+    penHoverPoint = null;
+    redrawDrawingCanvas();
+    createPathAnnotation("pen", pts, {
+      closed: false,
+      stroke: drawState.pen.color,
+      strokeWidth: drawState.pen.size,
+      strokeOpacity: drawState.pen.opacity
     });
-    save();
     toast("Đã chốt đường vẽ bút mực");
+  } else {
+    penActivePoints = [];
+    penHoverPoint = null;
+    redrawDrawingCanvas();
   }
-  penActivePoints = [];
-  penHoverPoint = null;
-  redrawDrawingCanvas();
 }
 
 function cancelPenPath(){
@@ -2214,29 +2599,35 @@ function cancelPenPath(){
 }
 
 function undoDrawingStroke(){
-  ensureDrawingData();
-  if(data.drawing.strokes.length > 0){
-    data.drawing.strokes.pop();
-    save();
-    redrawDrawingCanvas();
-    toast("Đã hoàn tác nét vẽ");
-  } else {
-    toast("Không có nét vẽ để hoàn tác");
+  if(data.annotations.length > 0){
+    const pathIdx = data.annotations.map((x, i) => ["pen", "pencil", "brush"].includes(x.type) ? i : -1).filter(i => i >= 0).pop();
+    if(pathIdx !== undefined){
+      data.annotations.splice(pathIdx, 1);
+      normalizeSceneZData();
+      selected = { type: "level", id: "level" };
+      save();
+      refreshImmediate();
+      toast("Đã hoàn tác nét vẽ gần nhất");
+      return;
+    }
   }
+  toast("Không có nét vẽ để hoàn tác");
 }
 
 function clearDrawingStrokes(){
-  ensureDrawingData();
-  if(data.drawing.strokes.length === 0 && penActivePoints.length === 0){
-    toast("Bảng vẽ hiện đang trống");
+  const paths = data.annotations.filter(x => ["pen", "pencil", "brush"].includes(x.type));
+  if(paths.length === 0 && penActivePoints.length === 0){
+    toast("Hiện không có nét vẽ nào trên sàn diễn");
     return;
   }
   if(confirm("Bạn có chắc chắn muốn xóa toàn bộ nét vẽ tự do trên màn chơi?")){
-    data.drawing.strokes = [];
+    data.annotations = data.annotations.filter(x => !["pen", "pencil", "brush"].includes(x.type));
     penActivePoints = [];
     penHoverPoint = null;
+    normalizeSceneZData();
+    selected = { type: "level", id: "level" };
     save();
-    redrawDrawingCanvas();
+    refreshImmediate();
     toast("Đã xóa sạch toàn bộ nét vẽ");
   }
 }
@@ -2254,11 +2645,11 @@ function drawingIns(b){
 
   let helpText = "";
   if(tool === "pencil"){
-    helpText = "Kéo chuột để vẽ nét tự do thanh mảnh và nhạy bén.";
+    helpText = "Kéo chuột để vẽ nét tự do. Sau khi vẽ, nét trở thành đối tượng độc lập có thể chọn và chỉnh sửa.";
   } else if(tool === "brush"){
-    helpText = "Kéo chuột để vẽ nét cọ mềm mượt, bo tròn hai đầu nét vẽ.";
+    helpText = "Kéo chuột để vẽ nét cọ dày mượt mà. Nét vẽ có thể chọn và di chuyển tự do.";
   } else if(tool === "pen"){
-    helpText = "Bấm chuột để đặt từng điểm neo. Bấm đúp hoặc bấm Enter để hoàn thành đường vẽ. Bấm Esc để hủy.";
+    helpText = "Nhấp chuột tạo điểm nhọn, Kéo chuột tạo tay đòn cong Bézier. Rê về điểm đầu để khép kín hình hoặc bấm Enter để chốt nét hở.";
   }
 
   b.innerHTML = `<div class="group col">
@@ -2277,10 +2668,6 @@ function drawingIns(b){
       <input id="drawOpacity" type="range" min="10" max="100" value="${Math.round(cfg.opacity * 100)}">
     </label>
 
-    <label class="row" style="margin:6px 0">
-      <input id="drawShowPlay" type="checkbox" style="width:auto" ${data.drawing.visibleInPlay !== false ? "checked" : ""}> Hiện nét vẽ khi Chơi thử
-    </label>
-
     ${tool === "pen" ? `
     <div class="row" style="margin-top:6px">
       <button class="btn" id="penFinishBtn" type="button">Chốt nét (Enter)</button>
@@ -2292,7 +2679,7 @@ function drawingIns(b){
       <button class="btn danger" id="drawClearBtn" type="button">Xóa bảng vẽ</button>
     </div>
 
-    <button class="btn" id="drawBackSelectBtn" type="button" style="margin-top:10px">Hoàn tất vẽ (Về công cụ chọn)</button>
+    <button class="btn" id="drawBackSelectBtn" type="button" style="margin-top:10px">Về công cụ chọn (Esc)</button>
   </div>`;
 
   const cInput = $("#drawColor");
@@ -2321,15 +2708,6 @@ function drawingIns(b){
     };
   }
 
-  const spCheck = $("#drawShowPlay");
-  if(spCheck){
-    spCheck.onchange = e => {
-      data.drawing.visibleInPlay = e.target.checked;
-      save();
-      redrawDrawingCanvas();
-    };
-  }
-
   if($("#penFinishBtn")) $("#penFinishBtn").onclick = finishPenPath;
   if($("#penCancelBtn")) $("#penCancelBtn").onclick = cancelPenPath;
   if($("#drawUndoBtn")) $("#drawUndoBtn").onclick = undoDrawingStroke;
@@ -2338,8 +2716,14 @@ function drawingIns(b){
 }
 
 function setTool(tool){
-  if(activeTool === "pen" && tool !== "pen" && penActivePoints.length > 0){
-    finishPenPath();
+  if(activeTool === "pen" && tool !== "pen"){
+    if(penActivePoints.length >= 2){
+      finishPenPath();
+    } else {
+      penActivePoints = [];
+      penHoverPoint = null;
+      redrawDrawingCanvas();
+    }
   }
   activeTool = tool;
   $$(".toolBtn").forEach(b => b.classList.toggle("active", b.dataset.tool === tool));
@@ -2375,9 +2759,16 @@ function createAnnotation(type,x,y,w,h,extra={}){
 }
 function duplicateAnnotation(a){
   const copy={...deep(a),id:uid("AN_"),x:a.x+28,y:a.y+28,locked:false,visibleInPlay:!!a.visibleInPlay,z:10+sceneLayerItems().length};
+  if(copy.points){
+    copy.points.forEach(p => {
+      p.x += 28; p.y += 28;
+      if(p.cp1){ p.cp1.x += 28; p.cp1.y += 28; }
+      if(p.cp2){ p.cp2.x += 28; p.cp2.y += 28; }
+    });
+  }
   data.annotations.push(copy);normalizeSceneZData();
   multiSel.clear();multiSel.add("annotation:"+copy.id);selected={type:"annotation",id:copy.id};
-  save();refreshImmediate();toast("Đã duplicate shape/text");
+  save();refreshImmediate();toast("Đã duplicate nét vẽ/hình");
 }
 function moveAnnotation(e,a,el){
   if(activeTool!=="select"||a.locked)return;
@@ -2386,8 +2777,32 @@ function moveAnnotation(e,a,el){
   if(!multiSel.has(key)){multiSel.clear();multiSel.add(key)}
   selected={type:"annotation",id:a.id};
   if(multiSel.size>1)return moveSelectionGroup(e,key);
-  e.preventDefault();e.stopPropagation();const p=logical(e),sx=a.x,sy=a.y;
-  const mv=ev=>{const q=logical(ev);a.x=sx+q.x-p.x;a.y=sy+q.y-p.y;el.style.left=(a.x/1080*100)+"%";el.style.top=(a.y/1610*100)+"%"};
+  e.preventDefault();e.stopPropagation();
+  const p=logical(e),sx=a.x,sy=a.y;
+  const isPath = ["pen", "pencil", "brush"].includes(a.type);
+  const origPoints = isPath && a.points ? deep(a.points) : null;
+
+  const mv=ev=>{
+    const q=logical(ev);
+    const dx = q.x - p.x;
+    const dy = q.y - p.y;
+    a.x=sx+dx;
+    a.y=sy+dy;
+    if(isPath && origPoints){
+      a.points.forEach((pt, i) => {
+        const orig = origPoints[i];
+        if(!orig) return;
+        pt.x = Math.round(orig.x + dx);
+        pt.y = Math.round(orig.y + dy);
+        if(orig.cp1){ pt.cp1.x = Math.round(orig.cp1.x + dx); pt.cp1.y = Math.round(orig.cp1.y + dy); }
+        if(orig.cp2){ pt.cp2.x = Math.round(orig.cp2.x + dx); pt.cp2.y = Math.round(orig.cp2.y + dy); }
+      });
+      renderLive();
+    } else {
+      el.style.left=(a.x/1080*100)+"%";
+      el.style.top=(a.y/1610*100)+"%";
+    }
+  };
   const up=()=>{window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);save();refreshImmediate()};
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }
@@ -2680,6 +3095,13 @@ function pasteSceneClipboard(){
   sceneClipboard.filter(x=>x.type==="annotation").forEach(item=>{
     const a=deep(item.obj);
     a.id=uid("AN_");a.x+=35;a.y+=35;a.locked=false;a.z=10+sceneLayerItems().length;
+    if(a.points){
+      a.points.forEach(p => {
+        p.x += 35; p.y += 35;
+        if(p.cp1){ p.cp1.x += 35; p.cp1.y += 35; }
+        if(p.cp2){ p.cp2.x += 35; p.cp2.y += 35; }
+      });
+    }
     data.annotations.push(a);pasted.push("annotation:"+a.id);
   });
 
@@ -3663,7 +4085,22 @@ async function exportScenePng(){
       else if(o.strokeStyle === "dotted") ctx.setLineDash([3, 4]);
       else ctx.setLineDash([]);
 
-      if(o.type==="rect"){
+      if(["pen", "pencil", "brush"].includes(o.type)){
+        const svgD = generateSvgPathD(o);
+        if(svgD){
+          const p2d = new Path2D(svgD);
+          if(o.closed && o.fill && o.fill !== "transparent" && o.fill !== "none"){
+            ctx.fillStyle = o.fill;
+            ctx.fill(p2d);
+          }
+          if(sWidth > 0){
+            ctx.globalAlpha = o.strokeOpacity !== undefined ? o.strokeOpacity : 1;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.stroke(p2d);
+          }
+        }
+      }else if(o.type==="rect"){
         const rad = o.radius !== undefined ? o.radius : 8;
         ctx.beginPath();
         if(ctx.roundRect) ctx.roundRect(o.x, o.y, o.w, o.h, rad);
@@ -4051,6 +4488,7 @@ function initDrawingLayer(){
 
     const l = logical(e);
     const pt = { x: Math.round(l.x), y: Math.round(l.y) };
+
     if(activeTool === "pencil" || activeTool === "brush"){
       isFreehandDrawing = true;
       const cfg = drawState[activeTool];
@@ -4074,7 +4512,36 @@ function initDrawingLayer(){
       ctx.fill();
       ctx.restore();
     } else if(activeTool === "pen"){
-      penActivePoints.push(pt);
+      // Kiểm tra rê chuột gần điểm đầu để khép kín hình dạng (Close Path)
+      if(penActivePoints.length >= 3){
+        const firstPt = penActivePoints[0];
+        const dist = Math.hypot(pt.x - firstPt.x, pt.y - firstPt.y);
+        if(dist <= 16){
+          const pts = [...penActivePoints];
+          penActivePoints = [];
+          penHoverPoint = null;
+          isDraggingPenHandle = false;
+          redrawDrawingCanvas();
+          createPathAnnotation("pen", pts, {
+            closed: true,
+            stroke: drawState.pen.color,
+            strokeWidth: drawState.pen.size,
+            strokeOpacity: drawState.pen.opacity
+          });
+          toast("Đã khép kín đường vẽ bút mực");
+          return;
+        }
+      }
+
+      // Thêm điểm neo mới với tay đòn ban đầu
+      const newPt = {
+        x: pt.x,
+        y: pt.y,
+        cp1: { x: pt.x, y: pt.y },
+        cp2: { x: pt.x, y: pt.y }
+      };
+      penActivePoints.push(newPt);
+      isDraggingPenHandle = true;
       penHoverPoint = null;
       redrawDrawingCanvas();
     }
@@ -4102,12 +4569,22 @@ function initDrawingLayer(){
       ctx.stroke();
       ctx.restore();
     } else if(activeTool === "pen" && penActivePoints.length > 0){
-      const st = $("#stage");
-      const r = st.getBoundingClientRect();
-      if(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom){
-        const l = logical(e);
-        penHoverPoint = { x: Math.round(l.x), y: Math.round(l.y) };
+      const l = logical(e);
+      const cur = { x: Math.round(l.x), y: Math.round(l.y) };
+
+      if(isDraggingPenHandle){
+        // Kéo chuột tạo tay đòn cong Bézier (chuẩn Illustrator)
+        const activePt = penActivePoints[penActivePoints.length - 1];
+        activePt.cp2 = { x: cur.x, y: cur.y };
+        activePt.cp1 = { x: Math.round(2 * activePt.x - cur.x), y: Math.round(2 * activePt.y - cur.y) };
         redrawDrawingCanvas();
+      } else {
+        const st = $("#stage");
+        const r = st.getBoundingClientRect();
+        if(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom){
+          penHoverPoint = cur;
+          redrawDrawingCanvas();
+        }
       }
     }
   });
@@ -4115,12 +4592,23 @@ function initDrawingLayer(){
   window.addEventListener("pointerup", () => {
     if(isFreehandDrawing && currentFreehandStroke){
       isFreehandDrawing = false;
-      if(currentFreehandStroke.points.length > 0){
-        ensureDrawingData();
-        data.drawing.strokes.push(currentFreehandStroke);
-        save();
+      if(currentFreehandStroke.points.length >= 2){
+        createPathAnnotation(activeTool, currentFreehandStroke.points, {
+          stroke: currentFreehandStroke.color,
+          strokeWidth: currentFreehandStroke.size,
+          strokeOpacity: currentFreehandStroke.opacity
+        });
       }
       currentFreehandStroke = null;
+      redrawDrawingCanvas();
+    }
+    if(isDraggingPenHandle && penActivePoints.length > 0){
+      isDraggingPenHandle = false;
+      const last = penActivePoints[penActivePoints.length - 1];
+      if(Math.hypot(last.cp2.x - last.x, last.cp2.y - last.y) < 4){
+        last.cp1 = { x: last.x, y: last.y };
+        last.cp2 = { x: last.x, y: last.y };
+      }
       redrawDrawingCanvas();
     }
   });
@@ -4143,8 +4631,10 @@ render();
 
 // Reactive Getters & Tool APIs for Verification & Testing
 window.data = data;
-window.selected = selected;
-window.mode = mode;
+Object.defineProperty(window, "selected", { get: () => selected, set: v => { selected = v; } });
+Object.defineProperty(window, "mode", { get: () => mode, set: v => { mode = v; } });
+Object.defineProperty(window, "activeTool", { get: () => activeTool, set: v => { setTool(v); } });
+window.multiSel = multiSel;
 window.drawState = drawState;
 window.getPenActivePoints = () => penActivePoints;
 window.redrawDrawingCanvas = redrawDrawingCanvas;
@@ -4153,4 +4643,9 @@ window.cancelPenPath = cancelPenPath;
 window.undoDrawingStroke = undoDrawingStroke;
 window.clearDrawingStrokes = clearDrawingStrokes;
 window.setTool = setTool;
+window.exportScenePng = exportScenePng;
+window.createPathAnnotation = createPathAnnotation;
+window.save = save;
+window.render = render;
+window.renderLive = renderLive;
 })();
