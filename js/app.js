@@ -308,13 +308,13 @@ function normalize(d){
   d.level.id=String(d.level.id||"").trim().toUpperCase();
   d.level.version=String(d.level.version||"1.0").trim()||"1.0";
   delete d.level.moves;
-  d.images=d.images||[];
-  d.characters=d.characters||[];
-  d.clues=d.clues||[];
+  d.images=(d.images||[]).filter(Boolean);
+  d.characters=(d.characters||[]).filter(Boolean);
+  d.clues=(d.clues||[]).filter(Boolean);
   const legacySceneEvidence=Array.isArray(d.sceneEvidence)?d.sceneEvidence:[];
   delete d.sceneEvidence;
   Object.defineProperty(d,"sceneEvidence",{value:[],writable:true,configurable:true,enumerable:false});
-  d.annotations=d.annotations||[];
+  d.annotations=(d.annotations||[]).filter(Boolean);
   d.level.revealWhen=d.level.revealWhen||[];
   d.level.revealParentClueId=String(d.level.revealParentClueId||"").trim().toUpperCase();
   d.level.difficultyTarget=["EASY","MEDIUM","HARD"].includes(d.level.difficultyTarget)?d.level.difficultyTarget:"";
@@ -336,7 +336,7 @@ function normalize(d){
   d.level.ending.normalRewardCoins=ENDING_NORMAL_COINS;
   d.level.art={...blankLevelArt(),...(d.level.art||{})};
   d.level.art.backgroundAssetId=d.level.art.backgroundAssetId||"BG01";
-  d.level.art.sceneItems=Array.isArray(d.level.art.sceneItems)?d.level.art.sceneItems:[];
+  d.level.art.sceneItems=((d.level.art&&d.level.art.sceneItems)||[]).filter(Boolean);
   d.level.art.sceneItems.forEach(item=>{
     item.id=item.id||uid("ART_");
     item.name=item.name||"";item.description=item.description||"";item.artistNote=item.artistNote||"";
@@ -502,6 +502,88 @@ function normalize(d){
   return d;
 }
 
+function adaptRuntimeToEditor(raw){
+  if(!raw || typeof raw !== "object") return null;
+  const isRuntime = typeof raw.schemaVersion === "string" && raw.schemaVersion.startsWith("drama-level-runtime");
+  if(!isRuntime && !raw.characters) return null;
+
+  const result = blank();
+  if(raw.level){
+    result.level.id = String(raw.level.id || "L001").trim().toUpperCase();
+    result.level.version = String(raw.level.version || "1.0").trim();
+    result.level.hook = String(raw.level.dramaHook || raw.level.hook || "").trim();
+  }
+  if(raw.dramaReveal){
+    result.level.reveal = String(raw.dramaReveal.text || "").trim();
+    result.level.revealParentClueId = String(raw.dramaReveal.parentClueId || "").trim().toUpperCase();
+  }
+  if(raw.scene && raw.scene.backgroundAssetId){
+    result.level.art.backgroundAssetId = String(raw.scene.backgroundAssetId).trim();
+  }
+
+  if(Array.isArray(raw.characters)){
+    result.characters = raw.characters.filter(Boolean).map((c, idx) => {
+      const rawType = String(c.type || "M").trim().toUpperCase();
+      const isFixed = rawType === "FIXED" || rawType === "F";
+      const pos = c.correctPosition || c.position || { x: 140 + (idx % 4) * 200, y: 300 + Math.floor(idx / 4) * 200 };
+      const posX = Number(pos.x);
+      const posY = Number(pos.y);
+      const fallbackId = isFixed ? `F${String(idx+1).padStart(2,"0")}` : `M${String(idx+1).padStart(2,"0")}`;
+
+      return {
+        id: String(c.id || fallbackId).trim().toUpperCase(),
+        name: String(c.fixedName || c.name || c.id || "").trim(),
+        type: isFixed ? "F" : "M",
+        x: isFinite(posX) ? posX : 200,
+        y: isFinite(posY) ? posY : 300,
+        assetBaseId: String(c.assets?.base || `${c.id || fallbackId}_BASE`).trim(),
+        assetTrayId: !isFixed ? String(c.assets?.tray || `${c.id || fallbackId}_TRAY`).trim() : "",
+        namePool: c.namePool || "KEEP",
+        reactionEvents: (c.reactionEvents || []).map(ev => ({
+          id: uid("RE_"),
+          triggerType: ev.whenPlaced ? (ev.whenPlaced.length === 1 && ev.whenPlaced[0] === c.id ? "SELF_PLACED" : "CHAR_PLACED") : (ev.triggerType || "SELF_PLACED"),
+          triggerChars: Array.isArray(ev.whenPlaced) ? ev.whenPlaced : (ev.triggerChars || []),
+          steps: (ev.steps || []).map(st => ({
+            id: uid("ST_"),
+            emotion: normalizeEmotionEmoji(st.emotion || "😐", true),
+            symbol: st.symbol || "",
+            gaze: normalizeGazeValue(st.gaze || "NONE"),
+            target: st.target || "",
+            duration: Math.max(0.1, Number(st.duration) || 0.6),
+            hold: !!st.hold,
+            assetId: String(st.assetId || "").trim()
+          }))
+        }))
+      };
+    });
+  }
+
+  if(Array.isArray(raw.clues)){
+    result.clues = raw.clues.filter(Boolean).map((cl, idx) => ({
+      id: String(cl.id || `CL${String(idx+1).padStart(2,"0")}`).trim().toUpperCase(),
+      parent: cl.parentId || cl.parent || null,
+      text: String(cl.text || "").trim(),
+      preOpen: cl.startState === "HIDDEN" ? "HIDDEN" : (cl.startState === "LOCKED" ? "LOCKED" : (cl.preOpen || "ACTIVE")),
+      resolveWhen: Array.isArray(cl.completeWhenPlaced) ? cl.completeWhenPlaced : (Array.isArray(cl.resolveWhen) ? cl.resolveWhen : [])
+    }));
+  }
+
+  if(raw.ending || raw.level?.ending){
+    const endSrc = raw.ending || raw.level?.ending || {};
+    result.level.ending = {
+      ...blankEnding(),
+      imageBrief: String(endSrc.imageBrief || "").trim(),
+      endingLine: String(endSrc.endingLine || "").trim(),
+      verdictCta: String(endSrc.verdictCta || "").trim().toUpperCase(),
+      imageAssetId: String(endSrc.imageAssetId || "ENDING01").trim().toUpperCase() || "ENDING01",
+      imageSrc: String(endSrc.imageSrc || "").trim()
+    };
+  }
+
+  return normalize(result);
+}
+window.adaptRuntimeToEditor = adaptRuntimeToEditor;
+
 let data=normalize((()=>{try{return JSON.parse(localStorage.getItem("dramaEditorV1_1"))}catch(e){return null}})()||blank());
 let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxType="image", activeTool="select";
 let multiSel=new Set();
@@ -509,9 +591,12 @@ let wrapBoundaryEnabled = localStorage.getItem("dramaEditorWrapBoundary") !== "f
 Object.defineProperty(window, "data", { get() { return data; }, set(v) { data = v; }, configurable: true });
 Object.defineProperty(window, "selected", { get() { return selected; }, set(v) { selected = v; }, configurable: true });
 Object.defineProperty(window, "mode", { get() { return mode; }, set(v) { mode = v; }, configurable: true });
+window.normalize = normalize;
+window.adaptRuntimeToEditor = adaptRuntimeToEditor;
 window.multiSel = multiSel;
 window.createAnnotation = createAnnotation;
 window.refreshImmediate = () => refreshImmediate();
+window.saveProjectFile = saveProjectFile;
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
 const PLAY_PROGRESS_KEY="dramaEditorPlayProgressV127Lives";
@@ -4153,6 +4238,9 @@ async function saveProjectFile(){
   const idPart=(data.level.id||"drama_level").replace(/[^\w\-]+/g,"_");
   const filename=`${idPart}_v${String(data.level.version||"1.0").replace(/[^\w.\-]+/g,"_")}.editor.json`;
 
+  // Reset projectFileHandle when loading samples, importing, or resetting
+  // This is handled by the caller functions (loadSampleProject, importFile onchange)
+
   try{
     if("showSaveFilePicker" in window){
       if(!projectFileHandle){
@@ -4169,8 +4257,11 @@ async function saveProjectFile(){
     }
   }catch(e){
     if(e?.name==="AbortError")return;
+    // Fallback an toan sang downloadText khi showSaveFilePicker loi
+    projectFileHandle=null;
   }
 
+  // Fallback an toan sang downloadText khi showSaveFilePicker loi
   const blob=new Blob([json],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
@@ -4190,53 +4281,111 @@ $("#exportBtn").onclick=()=>{
 };
 $("#assetRequestBtn").onclick=exportAssetRequest;
 $("#scenePngBtn").onclick=exportScenePng;
-$("#importFile").onchange=e=>{
-  const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{
-    playSession++;clearPlayProgress();
-    const raw=JSON.parse(r.result);
-    if(raw?.schemaVersion==="drama-level-runtime-2.0"){
-      toast("Đây là Dev JSON V2, không phải file Project. Hãy import .editor.json để làm tiếp.");
-      e.target.value="";
-      return;
+function openProjectJsonText(text, filename){
+  try{
+    if(!text || typeof text !== "string") throw new Error("Tệp rỗng hoặc không có nội dung");
+    const cleaned = text.replace(/^\uFEFF/, "").trim();
+    if(!cleaned) throw new Error("Tệp không chứa dữ liệu JSON hợp lệ");
+
+    playSession++;
+    clearPlayProgress();
+    projectFileHandle = null;
+
+    let raw = JSON.parse(cleaned);
+
+    if(raw?.schemaVersion && String(raw.schemaVersion).startsWith("drama-level-runtime")){
+      const adapted = adaptRuntimeToEditor(raw);
+      if(adapted){
+        data = adapted;
+        selected = { type: "level", id: "level" };
+        mode = "edit";
+        lastSnapshot = JSON.stringify(data);
+        persistRaw();
+        refreshImmediate();
+        toast(`Đã nạp và chuyển đổi Dev JSON: ${filename || "runtime.json"}`);
+        return true;
+      } else {
+        throw new Error("Không thể chuyển đổi cấu trúc Runtime JSON");
+      }
     }
-    if(raw?.schemaVersion==="drama-level-runtime-1.0"){
-      raw.level=raw.level||{};
-      raw.level.art={...blankLevelArt(),backgroundAssetId:raw.scene?.backgroundAssetId||"BG01"};
-      raw.characters=(raw.characters||[]).map(c=>({
-        ...c,
-        assetBaseId:c.assets?.base||`${c.id}_BASE`,
-        assetTrayId:c.type==="M"?(c.assets?.tray||`${c.id}_TRAY`):"",
-        reactionEvents:(c.reactionEvents||[]).map(ev=>({
-          ...ev,steps:(ev.steps||[]).map(st=>({id:uid("ST_"),...st}))
-        }))
-      }));
-      raw.clues=(raw.clues||[]).map(cl=>({...cl}));
-    }
+
     if(raw?.ending){
-      raw.level=raw.level||{};
-      raw.level.ending={...blankEnding(),...(raw.level.ending||{}),
-        endingLine:raw.ending.endingLine??raw.level.ending?.endingLine??"",
-        verdictCta:raw.ending.verdictCta??raw.level.ending?.verdictCta??"",
-        imageAssetId:raw.ending.imageAssetId??raw.level.ending?.imageAssetId??"ENDING01",
-        imageSrc:raw.ending.imageSrc??raw.level.ending?.imageSrc??"",
-        rewardCoins:ENDING_REWARD_COINS,normalRewardCoins:ENDING_NORMAL_COINS
+      raw.level = raw.level || {};
+      raw.level.ending = {
+        ...blankEnding(),
+        ...(raw.level.ending || {}),
+        endingLine: raw.ending.endingLine ?? raw.level.ending?.endingLine ?? "",
+        verdictCta: raw.ending.verdictCta ?? raw.level.ending?.verdictCta ?? "",
+        imageAssetId: raw.ending.imageAssetId ?? raw.level.ending?.imageAssetId ?? "ENDING01",
+        imageSrc: raw.ending.imageSrc ?? raw.level.ending?.imageSrc ?? "",
+        rewardCoins: ENDING_REWARD_COINS,
+        normalRewardCoins: ENDING_NORMAL_COINS
       };
     }
-    data=normalize(raw);selected={type:"level",id:"level"};mode="edit";lastSnapshot=JSON.stringify(data);persistRaw();refreshImmediate();toast("Đã nhập JSON"+(data.level.ending?.imageSrc?" · có Ending Image":""));
-  }catch(_){toast("JSON lỗi")}};
+
+    data = normalize(raw);
+    selected = { type: "level", id: "level" };
+    mode = "edit";
+    lastSnapshot = JSON.stringify(data);
+    persistRaw();
+    refreshImmediate();
+    const endingNote = data.level.ending?.imageSrc ? " · có Ending Image" : "";
+    toast(`Đã mở thành công: ${filename || "dự án JSON"}${endingNote}`);
+    return true;
+  }catch(err){
+    console.error("Lỗi khi mở file JSON:", err);
+    toast("Không thể mở file: " + (err?.message || "Định dạng JSON không hợp lệ"));
+    return false;
+  }
+}
+window.openProjectJsonText = openProjectJsonText;
+
+$("#importFile").onchange = e => {
+  const f = e.target.files && e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    openProjectJsonText(r.result, f.name);
+  };
+  r.onerror = () => {
+    console.error("FileReader error:", r.error);
+    toast("Lỗi đọc tệp từ thiết bị");
+  };
   r.readAsText(f);
+  e.target.value = "";
 };
 
+window.addEventListener("dragover", e => {
+  if(e.dataTransfer && e.dataTransfer.types && Array.from(e.dataTransfer.types).includes("Files")){
+    e.preventDefault();
+  }
+});
+window.addEventListener("drop", e => {
+  if(!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+  const f = e.dataTransfer.files[0];
+  if(f && (f.name.toLowerCase().endsWith(".json") || f.type === "application/json")){
+    e.preventDefault();
+    const r = new FileReader();
+    r.onload = () => {
+      openProjectJsonText(r.result, f.name);
+    };
+    r.onerror = () => {
+      console.error("FileReader error on drop:", r.error);
+      toast("Lỗi đọc tệp kéo thả");
+    };
+    r.readAsText(f);
+  }
+});
+
 function loadSampleProject(sampleData,message){
-  playSession++;clearPlayProgress();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
+  projectFileHandle=null;playSession++;clearPlayProgress();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
 }
 $("#checkLevelBtn").onclick=openPreflightCheck;
 $("#closeCheckLevel").onclick=()=>$("#checkOverlay").classList.remove("show");
 $("#checkOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#checkOverlay"))$("#checkOverlay").classList.remove("show")});
 $("#sampleWeddingBtn").onclick=()=>loadSampleProject(sample(),"Đã load Sample Wedding · L001");
 $("#sampleBirthdayBtn").onclick=()=>loadSampleProject(sampleBirthday(),"Đã load Sample Birthday Photo Booth · L003");
-$("#resetBtn").onclick=()=>{if(!confirm("Reset trắng toàn bộ level hiện tại?"))return;playSession++;clearPlayProgress();data=normalize(blank());selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast("Đã reset trắng hoàn toàn")};
+$("#resetBtn").onclick=()=>{if(!confirm("Reset trắng toàn bộ level hiện tại?"))return;projectFileHandle=null;playSession++;clearPlayProgress();data=normalize(blank());selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast("Đã reset trắng hoàn toàn")};
 
 $("#overlay").addEventListener("pointerdown",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("show")});
 $("#endingOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#endingOverlay"))$("#endingOverlay").classList.remove("show")});
