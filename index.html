@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
 <title>SẮP XẾP DRAMA — Live Level Editor V1.36 · Thuần Việt & Vector Chuẩn</title>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=1.37">
 </head>
 <body>
 <div class="app">
@@ -14,19 +14,13 @@
     <div class="brand">
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="v1.36 · Xem Lịch sử cập nhật & Lộ trình">v1.36</button>
+    <button class="version versionBtn" id="changelogBtn" title="v1.37 · Xem Lịch sử cập nhật & Lộ trình">v1.37</button>
   </div>
 
   <div class="navGroup centerNav">
     <div class="modeSwitcher" id="modeSwitcher">
       <button class="modeBtn on" id="editBtn" title="Chế độ biên tập màn chơi">CHỈNH SỬA</button>
       <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">CHƠI THỬ</button>
-    </div>
-
-    <div class="playGroup" id="playGroup" style="display:none">
-      <button class="btn iconBtn good" id="replayBtn" title="Chơi lại kịch bản này">↻ Chơi lại</button>
-      <button class="btn iconBtn" id="shuffleReplayBtn" title="Chơi lại và xáo trộn tên nhân vật">🔀 Đảo tên</button>
-      <span class="pill playPill" id="playNameStatus">Tên: Chỉnh sửa</span>
     </div>
 
     <div class="navSep"></div>
@@ -99,7 +93,18 @@
 
 <main class="center">
   <div class="editor">
-    <div class="leveltop"><div><div class="small">MÀN CHƠI THỬ NGHIỆM</div><b id="liveName">MÀN CHƠI</b></div><div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div></div>
+    <div class="leveltop">
+      <div>
+        <div class="small">MÀN CHƠI THỬ NGHIỆM</div>
+        <b id="liveName">MÀN CHƠI</b>
+      </div>
+      <div class="playGroup" id="playGroup" style="display:none">
+        <button class="btn iconBtn good" id="replayBtn" title="Chơi lại kịch bản này">↻ Chơi lại</button>
+        <button class="btn iconBtn" id="shuffleReplayBtn" title="Chơi lại và xáo trộn tên nhân vật">🔀 Đảo tên</button>
+        <span class="pill playPill" id="playNameStatus">Tên: Chỉnh sửa</span>
+      </div>
+      <div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div>
+    </div>
     <div class="hook"><div id="liveHook" class="dramaHookText"></div></div>
 
     <div class="sceneRow">
@@ -294,8 +299,8 @@
   </div>
 </div>
 
-<script src="data/sample_levels.js"></script>
-<script src="js/app.js"></script>
+<script src="data/sample_levels.js?v=1.37"></script>
+<script src="js/app.js?v=1.37"></script>
 
 </body>
 </html>
