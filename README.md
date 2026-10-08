@@ -57,6 +57,13 @@ Phiên bản **V1.35** mang đến bộ công cụ thiết kế hình học vect
 - Toàn bộ script kiểm thử E2E tự động (`test_*.py`, `inspect_*.py`) và ảnh chụp màn hình kiểm tra (`*.png`) được chuyển vào thư mục riêng `tests_sandbox/`.
 - Cấu hình file `.gitignore` nghiêm ngặt, ngăn chặn 100% file rác và artifacts kiểm thử dính vào Git commits.
 
+### 7. 🧩 Kiến Trúc Module Bóc Tách (Decoupled Modular Architecture)
+- Nhằm tối ưu hóa hiệu năng, giảm tải token cho AI coding assistants và giúp lập trình viên không phải nạp file đơn khối 12MB mỗi khi phát triển tính năng mới:
+  - **`index.html` (~19 KB):** Khung sườn HTML semantic siêu nhẹ, liên kết tài nguyên qua link/script tags (giảm 99.85% dung lượng so với bản 12.3 MB cũ).
+  - **`css/style.css` (~38 KB):** Toàn bộ hệ thống giao diện Studio Dark/Light mode, dock công cụ và modals.
+  - **`data/sample_levels.js` (~12 MB):** Cô lập hoàn toàn dữ liệu tĩnh và hình ảnh base64 của 2 màn chơi mẫu (`sample()` và `sampleBirthday()`).
+  - **`js/app.js` (~196 KB):** Toàn bộ logic tương tác canvas, Figma tools, inspector, solve flow, play mode.
+
 ---
 
 ## 📜 Lịch Sử Phiên Bản Trước
