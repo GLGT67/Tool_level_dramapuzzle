@@ -510,6 +510,9 @@ function normalize(d){
     if(a.arrowXDir===0&&a.arrowYDir===0)a.arrowXDir=1;
     a.locked=!!a.locked;
     a.visibleInPlay=("visibleInPlay" in a)?!!a.visibleInPlay:(a.type==="text"?false:true);
+    a.rotation=((Number(a.rotation)||0)%360+360)%360;
+    a.flipH=!!a.flipH;
+    a.flipV=!!a.flipV;
     a.z=Number(a.z)||20+idx;
   });
 
@@ -1019,6 +1022,15 @@ function renderLive(){
       el.dataset.annotationId = a.id;
       el.style.zIndex = a.z || 20;
       if(a.locked) el.classList.add("locked");
+      const flipXPath = a.flipH ? -1 : 1;
+      const flipYPath = a.flipV ? -1 : 1;
+      const rotPath = Number(a.rotation) || 0;
+      const cxPath = (a.x + (a.w || 100) / 2) / 1080 * 100;
+      const cyPath = (a.y + (a.h || 100) / 2) / 1610 * 100;
+      el.style.transformOrigin = `${cxPath}% ${cyPath}%`;
+      if(rotPath || a.flipH || a.flipV){
+        el.style.transform = `scale(${flipXPath},${flipYPath}) rotate(${rotPath}deg)`;
+      }
 
       const svgD = generateSvgPathD(a);
       const sDash = a.strokeStyle === "dashed" ? 'stroke-dasharray="8 6"' : (a.strokeStyle === "dotted" ? 'stroke-dasharray="3 4"' : '');
@@ -1093,6 +1105,13 @@ function renderLive(){
     el.style.height=(a.h/1610*100)+"%";
     el.style.zIndex=a.z||20;
     if(a.locked)el.classList.add("locked");
+    const flipX = a.flipH ? -1 : 1;
+    const flipY = a.flipV ? -1 : 1;
+    const rot = Number(a.rotation) || 0;
+    el.style.transformOrigin = "center center";
+    if(rot || a.flipH || a.flipV){
+      el.style.transform = `scale(${flipX},${flipY}) rotate(${rot}deg)`;
+    }
 
     const fontPx=Math.max(8,a.fontSize/1080*st.clientWidth);
     const selectedNow=inEdit&&selected.type==="annotation"&&selected.id===a.id;
@@ -2136,6 +2155,29 @@ function imageIns(b,i){
   $("#imgBackward").onclick=()=>{moveSceneLayer("image",i,"backward");save();refreshImmediate()};
 }
 
+function bindAnnotationTransformControls(a){
+  if($("#flipHAnn")) $("#flipHAnn").onclick = () => { a.flipH = !a.flipH; save(); refreshImmediate(); renderInspector(); };
+  if($("#flipVAnn")) $("#flipVAnn").onclick = () => { a.flipV = !a.flipV; save(); refreshImmediate(); renderInspector(); };
+  if($("#anRotReset")) $("#anRotReset").onclick = () => { a.rotation = 0; save(); refreshImmediate(); renderInspector(); };
+  if($("#centerCanvasAnn")) $("#centerCanvasAnn").onclick = () => {
+    a.x = Math.round((1080 - (a.w || 100)) / 2);
+    a.y = Math.round((1610 - (a.h || 100)) / 2);
+    save(); refreshImmediate(); renderInspector(); toast("Đã căn giữa Artboard");
+  };
+  if($("#anRot")){
+    const onAnRot = e => {
+      a.rotation = ((+e.target.value % 360) + 360) % 360;
+      save(); refreshImmediate();
+    };
+    $("#anRot").oninput = onAnRot;
+    $("#anRot").onchange = onAnRot;
+  }
+  if($("#anRot90")) $("#anRot90").onclick = () => {
+    a.rotation = (((a.rotation || 0) + 90) % 360);
+    save(); refreshImmediate(); renderInspector();
+  };
+}
+
 function annotationIns(b,a){
   if(!a)return;
   const isText=a.type==="text";
@@ -2199,6 +2241,17 @@ function annotationIns(b,a){
       <div class="small" style="margin:4px 0;line-height:1.4"><b>Mẹo nắn điểm neo (Bézier):</b> Nhấp giữ kéo điểm neo để dời đỉnh. Kéo tay đòn tròn để uốn cong nét vẽ mềm mại theo ý muốn.</div>
       ` : ''}
 
+      <div class="row" style="margin-top:6px">
+        <button class="btn ${a.flipH?'on':''}" id="flipHAnn" type="button" title="Lật đối xứng ngang (tâm ở giữa)">Flip H</button>
+        <button class="btn ${a.flipV?'on':''}" id="flipVAnn" type="button" title="Lật đối xứng dọc (tâm ở giữa)">Flip V</button>
+        <button class="btn" id="anRotReset" type="button" title="Góc 0°">0°</button>
+        <button class="btn" id="centerCanvasAnn" type="button" title="Căn giữa Artboard">Center Artboard</button>
+      </div>
+      <div class="row" style="margin-top:4px">
+        <label style="flex:1">Rotation (°)<input id="anRot" type="number" min="0" max="360" value="${a.rotation||0}"></label>
+        <button class="btn" id="anRot90" type="button" style="margin-top:18px">+90°</button>
+      </div>
+
       <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng (Lock)</label>
       <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử (Visible in Play)</label>
 
@@ -2214,6 +2267,8 @@ function annotationIns(b,a){
 
       <button class="btn danger" id="anDelete" style="margin-top:8px">Xóa nét vẽ (Delete)</button>
     </div>`;
+
+    bindAnnotationTransformControls(a);
 
     if($("#anStroke")) $("#anStroke").oninput = e => { a.stroke = e.target.value; save(); refreshImmediate(); };
     if($("#anStrokeWidth")) $("#anStrokeWidth").oninput = e => {
@@ -2299,6 +2354,17 @@ function annotationIns(b,a){
     <div class="row"><label>Position X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>Position Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
     <div class="row"><label>Width<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>Height<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
 
+    <div class="row" style="margin-top:6px">
+      <button class="btn ${a.flipH?'on':''}" id="flipHAnn" type="button" title="Lật đối xứng ngang (tâm ở giữa)">Flip H</button>
+      <button class="btn ${a.flipV?'on':''}" id="flipVAnn" type="button" title="Lật đối xứng dọc (tâm ở giữa)">Flip V</button>
+      <button class="btn" id="anRotReset" type="button" title="Góc 0°">0°</button>
+      <button class="btn" id="centerCanvasAnn" type="button" title="Căn giữa Artboard">Center Artboard</button>
+    </div>
+    <div class="row" style="margin-top:4px">
+      <label style="flex:1">Rotation (°)<input id="anRot" type="number" min="0" max="360" value="${a.rotation||0}"></label>
+      <button class="btn" id="anRot90" type="button" style="margin-top:18px">+90°</button>
+    </div>
+
     <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng (Lock)</label>
     <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử (Visible in Play)</label>
 
@@ -2358,6 +2424,8 @@ function annotationIns(b,a){
     const el=$("#"+id);
     if(el){ el.onchange=geom; el.oninput=geom; }
   });
+
+  bindAnnotationTransformControls(a);
 
   $("#anLock").onchange=e=>{a.locked=e.target.checked;save();refreshImmediate()};
   $("#anShowPlay").onchange=e=>{a.visibleInPlay=e.target.checked;save();refreshImmediate()};
@@ -2459,6 +2527,9 @@ function createPathAnnotation(type, points, extra = {}){
     strokeStyle: extra.strokeStyle || "solid",
     locked: false,
     visibleInPlay: true,
+    rotation: Number(extra.rotation || 0),
+    flipH: !!extra.flipH,
+    flipV: !!extra.flipV,
     z: 10 + sceneLayerItems().length
   };
   data.annotations.push(a);
@@ -2865,7 +2936,9 @@ function createAnnotation(type,x,y,w,h,extra={}){
     fill:type==="line"?"transparent":"#f4f1f6",stroke:"#655d69",text:type==="text"?"Note":"",
     textColor:"#514953",fontSize:28,strokeWidth:4,radius:qslot?24:0,strokeStyle:"solid",
     arrowXDir:extra.arrowXDir||1,arrowYDir:extra.arrowYDir||1,
-    locked:false,visibleInPlay:(type==="text"?false:true),z:10+sceneLayerItems().length
+    locked:false,visibleInPlay:(type==="text"?false:true),
+    rotation:Number(extra.rotation||0),flipH:!!extra.flipH,flipV:!!extra.flipV,
+    z:10+sceneLayerItems().length
   };
   data.annotations.push(a);normalizeSceneZData();
   multiSel.clear();multiSel.add("annotation:"+a.id);selected={type:"annotation",id:a.id};
@@ -3809,7 +3882,7 @@ function renderEndingTab(){
   $("#endingPromptPreview").textContent=endingPrompt(e.imageBrief);
   $("#endingPreviewLine").textContent=resolveTokens(e.endingLine||"Ending line...",editNameMap());
   $("#endingPreviewCta").textContent=e.verdictCta||"VERDICT";
-  $("#endingPreviewImage").innerHTML=e.imageSrc?`<img src="${esc(e.imageSrc)}" alt="Ending preview">`:'<div class="endImagePlaceholder">ENDING IMAGE<br>4:3 HORIZONTAL</div>';
+  $("#endingPreviewImage").innerHTML=e.imageSrc?`<img src="${esc(e.imageSrc)}" alt="Ending Image GD gen AI">`:'<div class="endImagePlaceholder">ENDING IMAGE<br>4:3 HORIZONTAL<br><small>GD dán/import ảnh AI</small></div>';
   const wc=wordCount(e.endingLine),lc=$("#endingLineCounter");lc.textContent=e.endingLine?`${wc} từ · khuyên dùng 6–12 từ`:"";lc.classList.toggle("bad",!!e.endingLine&&(wc<6||wc>12));
   const vc=wordCount(e.verdictCta),vEl=$("#verdictCounter");vEl.textContent=e.verdictCta?`${vc} từ · tối đa 3 từ`:"";vEl.classList.toggle("bad",vc>3);
   $("#verdictSuggestions").innerHTML=VERDICT_SUGGESTIONS.map(([en,vi])=>`<button type="button" class="verdictOpt ${e.verdictCta===en?"sel":""}" data-verdict="${esc(en)}"><b>${esc(en)}</b><span>${esc(vi)}</span></button>`).join("");
@@ -3834,28 +3907,40 @@ $("#verdictCustom").oninput=e=>{
 };
 $("#copyEndingPrompt").onclick=async()=>{const txt=endingPrompt(data.level.ending.imageBrief);try{await navigator.clipboard.writeText(txt);toast("Đã copy AI Prompt")}catch(_){const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");ta.remove();toast("Đã copy AI Prompt")}};
 function setEndingImageFile(file){
-  if(!file||!file.type.startsWith("image/"))return;
-  const r=new FileReader();
-  r.onload=()=>{
-    data.level.ending.imageSrc=r.result;
+  if(!file||!file.type.startsWith("image/")){if(file)toast("Vui lòng chọn file ảnh");return}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    // Data URL nằm trong Editor Project JSON; ảnh lớn có thể vượt giới hạn localStorage.
+    data.level.ending.imageSrc=String(reader.result||"");
     const persisted=save();
     renderEndingTab();
-    toast(persisted===false?"Đã gắn Ending Image · nhớ bấm Lưu project":"Đã gắn + lưu Ending Image vào project data");
+    toast(persisted===false?"Đã gắn ảnh · hãy bấm LƯU PROJECT để giữ ảnh":"Đã gắn Ending Image · nhớ LƯU PROJECT");
   };
-  r.onerror=()=>toast("Không đọc được Ending Image");
-  r.readAsDataURL(file);
+  reader.onerror=()=>toast("Không đọc được Ending Image");
+  reader.readAsDataURL(file);
 }
-$("#endingImageFile").onchange=e=>setEndingImageFile(e.target.files?.[0]);
+$("#endingImageFile").onchange=e=>{
+  setEndingImageFile(e.target.files?.[0]);
+  e.target.value="";
+};
 $("#endingImagePaste").addEventListener("paste",e=>{
   const item=[...(e.clipboardData?.items||[])].find(x=>x.type?.startsWith("image/"));
   if(!item)return;
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault();e.stopPropagation();
   setEndingImageFile(item.getAsFile());
 });
-$("#clearEndingImage").onclick=()=>{data.level.ending.imageSrc="";save();renderEndingTab()};
+$("#clearEndingImage").onclick=()=>{data.level.ending.imageSrc="";save();renderEndingTab();toast("Đã xóa Ending Image")};
 async function exportEndingPng(){
-  const e=data.level.ending;if(!e.imageSrc){toast("Chưa có Ending Image");return}const blob=await (await fetch(e.imageSrc)).blob();const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${e.imageAssetId||"ENDING01"}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Đã xuất Ending PNG");
+  const e=data.level.ending;
+  if(!e.imageSrc){toast("Chưa có Ending Image");return}
+  try{
+    const response=await fetch(e.imageSrc);const blob=await response.blob();
+    const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;
+    // File theo đúng định dạng ảnh nguồn (PNG/JPG/WEBP) thay vì đổi extension sai.
+    const ext=blob.type==="image/jpeg"?"jpg":blob.type==="image/webp"?"webp":"png";
+    a.download=`${e.imageAssetId||"ENDING01"}.${ext}`;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);toast("Đã xuất Ending Image");
+  }catch(err){console.error(err);toast("Không xuất được Ending Image")}
 }
 $("#exportEndingPng").onclick=exportEndingPng;
 
@@ -3889,7 +3974,7 @@ function resolvedAssetRows(){
     (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
   });
   const ending=data.level.ending||blankEnding();
-  rows.push({assetId:ending.imageAssetId||"ENDING01",file:`Ending/${ending.imageAssetId||"ENDING01"}.png`,group:"ENDING",character:"",gender:"",age:"",state:"ENDING",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:ending.imageBrief||"",artistNote:"",tone:"",exportMode:"ENDING 4:3",reference:""});
+  rows.push({assetId:ending.imageAssetId||"ENDING01",file:`Ending/${ending.imageAssetId||"ENDING01"}.png`,group:"ENDING",character:"",gender:"",age:"",state:"ENDING",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:ending.imageBrief||"",artistNote:"",tone:"",exportMode:"GD AI · ENDING 4:3",reference:"GD tạo ảnh AI, lưu qua tab ENDING rồi xuất ảnh riêng"});
   return rows;
 }
 function validateAssetData(){
@@ -4218,6 +4303,59 @@ function canvasAsPngBytes(canvas){
     try{resolve(new Uint8Array(await blob.arrayBuffer()))}catch(e){reject(e)}
   },"image/png"));
 }
+function renderVectorPath(ctx, o){
+  try {
+    const svgD = generateSvgPathD(o);
+    if(!svgD) return;
+    const p2d = new Path2D(svgD);
+    if(o.closed && o.fill && o.fill !== "transparent" && o.fill !== "none"){
+      ctx.fillStyle = o.fill;
+      ctx.fill(p2d);
+    }
+    ctx.lineWidth = o.strokeWidth || 3;
+    ctx.strokeStyle = o.stroke || "#2563eb";
+    ctx.globalAlpha = o.strokeOpacity !== undefined ? o.strokeOpacity : 1;
+    if(o.strokeStyle === "dashed") ctx.setLineDash([8, 6]);
+    else if(o.strokeStyle === "dotted") ctx.setLineDash([3, 4]);
+    else ctx.setLineDash([]);
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke(p2d);
+  } catch(e) {
+    console.warn("Lỗi vẽ vector path trên canvas:", e);
+  }
+}
+function renderStarPath(ctx, cx, cy, spikes = 5, outerRadius = 50, innerRadius = 25){
+  let rot = (Math.PI / 2) * 3;
+  let x = cx, y = cy;
+  const step = Math.PI / spikes;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outerRadius);
+  for(let i = 0; i < spikes; i++){
+    x = cx + Math.cos(rot) * outerRadius;
+    y = cy + Math.sin(rot) * outerRadius;
+    ctx.lineTo(x, y);
+    rot += step;
+
+    x = cx + Math.cos(rot) * innerRadius;
+    y = cy + Math.sin(rot) * innerRadius;
+    ctx.lineTo(x, y);
+    rot += step;
+  }
+  ctx.lineTo(cx, cy - outerRadius);
+  ctx.closePath();
+}
+function renderPolygonPath(ctx, cx, cy, sides = 6, radius = 50){
+  ctx.beginPath();
+  for(let i = 0; i < sides; i++){
+    const angle = (i * 2 * Math.PI / sides) - (Math.PI / 2);
+    const x = cx + radius * Math.cos(angle);
+    const y = cy + radius * Math.sin(angle);
+    if(i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+}
 async function buildSceneCanvas(state){
   const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1610;
   const ctx=canvas.getContext("2d");
@@ -4226,10 +4364,27 @@ async function buildSceneCanvas(state){
   for(const layer of layers){
     const o=layer.obj;
     if(layer.type==="image"){
-      const im=await loadCanvasImage(o.src);if(im)ctx.drawImage(im,o.x,o.y,o.w,o.h);
+      const im=await loadCanvasImage(o.src);
+      if(im){
+        ctx.save();
+        const cx = o.x + (o.w || 100) / 2;
+        const cy = o.y + (o.h || 100) / 2;
+        ctx.translate(cx, cy);
+        if(o.rotation) ctx.rotate((o.rotation * Math.PI) / 180);
+        if(o.flipH || o.flipV) ctx.scale(o.flipH ? -1 : 1, o.flipV ? -1 : 1);
+        ctx.drawImage(im, -o.w / 2, -o.h / 2, o.w, o.h);
+        ctx.restore();
+      }
     }else{
       if(!o.visibleInPlay)continue;
-      ctx.save();ctx.lineWidth=o.strokeWidth||4;ctx.strokeStyle=o.stroke||"#655d69";ctx.fillStyle=o.fill||"#f4f1f6";
+      ctx.save();
+      const cx = o.x + (o.w || 100) / 2;
+      const cy = o.y + (o.h || 100) / 2;
+      ctx.translate(cx, cy);
+      if(o.rotation) ctx.rotate((o.rotation * Math.PI) / 180);
+      if(o.flipH || o.flipV) ctx.scale(o.flipH ? -1 : 1, o.flipV ? -1 : 1);
+      ctx.translate(-cx, -cy);
+      ctx.lineWidth=o.strokeWidth||4;ctx.strokeStyle=o.stroke||"#655d69";ctx.fillStyle=o.fill||"#f4f1f6";
       if(o.type==="qslot")drawQslotPng(ctx,o);
       else if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
       else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
@@ -4244,7 +4399,7 @@ async function buildSceneCanvas(state){
         renderPolygonPath(ctx,o.x+o.w/2,o.y+o.h/2,6,o.w/2);ctx.fill();ctx.stroke();
       }else if(o.type==="line"){
         ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.stroke();
-      }else if(o.type==="path"&&Array.isArray(o.points)){
+      }else if((o.type==="path"||["pen","pencil","brush"].includes(o.type))&&Array.isArray(o.points)){
         renderVectorPath(ctx,o);
       }
       if(o.type!=="qslot"&&o.text){
@@ -4821,4 +4976,11 @@ window.replayLastShuffledNames = replayLastShuffledNames;
 window.exportAssetRequest = exportAssetRequest;
 window.makeXlsxSheet = makeXlsxSheet;
 window.getProjectFileHandle = () => projectFileHandle;
+window.renderEndingTab = renderEndingTab;
+window.setEndingImageFile = setEndingImageFile;
+window.exportEndingPng = exportEndingPng;
+window.createAnnotation = createAnnotation;
+window.duplicateAnnotation = duplicateAnnotation;
+window.byAnn = byAnn;
+window.refreshImmediate = refreshImmediate;
 })();

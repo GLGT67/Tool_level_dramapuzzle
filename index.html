@@ -190,30 +190,39 @@
         <div class="endCardWrap">
           <div class="endCard">
             <div class="endTitle">ĐÃ PHÁ ÁN THÀNH CÔNG!</div>
-            <div class="endImage" id="endingPreviewImage"><div class="endImagePlaceholder">ẢNH KẾT CỤC<br>TỈ LỆ 4:3 NGANG</div></div>
+            <div class="endImage" id="endingPreviewImage"><div class="endImagePlaceholder">ENDING IMAGE<br>4:3 HORIZONTAL<br><small>GD dán/import ảnh AI</small></div></div>
             <div class="endLine" id="endingPreviewLine">Câu thoại kết màn...</div>
             <button class="endReward" type="button">
-              <span class="adIcon">📺</span><span class="x2">×2</span>
+              <span class="adIcon">AD</span><span class="x2">×2</span>
               <div class="cta" id="endingPreviewCta">PHÁN QUYẾT</div>
-              <div class="coins">30 🪙</div>
+              <div class="coins">30 XU</div>
             </button>
           </div>
-          <div class="endSkip">BỎ QUA <span class="endSkipCoins">15 🪙</span></div>
+          <div class="endSkip">BỎ QUA <span class="endSkipCoins">15 XU</span></div>
         </div>
       </div>
       <div class="endingFormCol">
         <div class="col">
           <div class="endingGuide"><b>TINH THẦN ẢNH KẾT CỤC</b><br>Không vẽ lại toàn bộ màn chơi. Chọn <b>1 khoảnh khắc đắt giá nhất của tình huống drama</b>. Nhìn 1 giây phải hiểu chuyện gì vừa xảy ra. Ưu tiên 2–4 nhân vật quan trọng, phản ứng rõ ràng, tư thế rõ ràng, khung ảnh ngang <b>4:3</b>.</div>
-          <label>🔵 Tóm tắt bối cảnh Ending<textarea id="endingBrief" placeholder="VD: Người yêu cũ của cô dâu tán tỉnh người yêu cũ của chú rể, trong khi cô dâu và chú rể đứng nhìn sững sờ."></textarea></label>
+          <label>Tóm tắt bối cảnh Ending<textarea id="endingBrief" placeholder="VD: Người yêu cũ của cô dâu tán tỉnh người yêu cũ của chú rể, trong khi cô dâu và chú rể đứng nhìn sững sờ."></textarea></label>
           <div class="small">Mô tả ai đang làm gì + ai phản ứng thế nào. <b>Không gọi tên riêng</b>, chỉ gọi theo vai vế: cô dâu, chú rể, người yêu cũ, thợ chụp ảnh...</div>
 
           <div class="row"><b style="font-size:13px">CÂU LỆNH AI (PROMPT)</b><div class="spacer"></div><button class="btn" id="copyEndingPrompt">Sao chép Prompt AI</button></div>
           <div class="promptBox" id="endingPromptPreview"></div>
 
-          <label>🔵 Ảnh Ending</label>
+          <label>Ending Image</label>
           <div class="endingImageInput" id="endingImagePaste" tabindex="0">
-            <div><b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br><span class="small">hoặc Tải ảnh PNG/JPG · khuyên dùng tỉ lệ 4:3</span><div class="row" style="justify-content:center;margin-top:7px"><label class="btn">Tải ảnh lên<input id="endingImageFile" type="file" accept="image/*" style="display:none"></label><button class="btn" id="exportEndingPng">Xuất ảnh Ending (PNG)</button><button class="btn danger" id="clearEndingImage">Xóa ảnh</button></div></div>
+            <div>
+              <b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br>
+              <span class="small">hoặc Tải ảnh PNG/JPG/WEBP · tỉ lệ 4:3</span>
+              <div class="row" style="justify-content:center;flex-wrap:wrap;margin-top:7px">
+                <label class="btn">Import ảnh<input id="endingImageFile" type="file" accept="image/png,image/jpeg,image/webp" style="display:none"></label>
+                <button class="btn" type="button" id="exportEndingPng">Xuất Ending PNG</button>
+                <button class="btn danger" type="button" id="clearEndingImage">Xóa ảnh</button>
+              </div>
+            </div>
           </div>
+          <div class="small">Ảnh này do GD tạo bằng AI, dán/import vào Tool để kiểm tra popup Ending. LƯU PROJECT sẽ lưu kèm ảnh.</div>
 
           <label>🔵 Câu thoại Ending<input id="endingLineInput" maxlength="100" placeholder="Tiếng Việt thuần · ngắn gọn 6–12 từ · tóm tắt & chốt hạ hài hước"></label>
           <div class="endCounter" id="endingLineCounter"></div>
