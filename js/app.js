@@ -1089,7 +1089,8 @@ function renderLive(){
   document.body.classList.toggle("play",mode==="play");
   $("#editBtn").classList.toggle("on",mode==="edit");
   $("#playBtn").classList.toggle("on",mode==="play");
-  $("#playBtn").textContent=(mode==="edit"&&play)?"CHƠI THỬ · TIẾP TỤC":"CHƠI THỬ";
+  $("#playBtn").textContent="CHƠI THỬ";
+  $("#playBtn").title=(mode==="edit"&&play)?"Tiếp tục phiên chơi thử nghiệm":"Chế độ chơi thử nghiệm";
   const pg=$("#playGroup");if(pg)pg.style.display=mode==="play"?"inline-flex":"none";
   $("#replayBtn").style.display=mode==="play"?"inline-flex":"none";
   $("#shuffleReplayBtn").style.display=mode==="play"?"inline-flex":"none";
