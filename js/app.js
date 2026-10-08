@@ -3563,6 +3563,12 @@ if(cOverlay){
     if(e.target === cOverlay) cOverlay.classList.remove("show");
   });
 }
+const chkOverlay = $("#checkOverlay");
+if(chkOverlay){
+  chkOverlay.addEventListener("pointerdown", e => {
+    if(e.target === chkOverlay) chkOverlay.classList.remove("show");
+  });
+}
 
 initThemeSystem();
 initZoomAndPan();
