@@ -1,7 +1,3 @@
-/* ==========================================================================
-   DRAMA PUZZLE LEVEL EDITOR — CORE APPLICATION LOGIC (V1.35)
-   Decoupled Modular Architecture
-   ========================================================================== */
 
 (()=>{
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -39,7 +35,6 @@ const EMOTION_GROUPS={
   ]
 };
 const EMOTION_INFO=Object.fromEntries(Object.values(EMOTION_GROUPS).flat().map(([emoji,name])=>[emoji,{emoji,name}]));
-// Mở project cũ: emoji ngoài library 47 được quy về biểu cảm gần nhất.
 const LEGACY_EMOTION_REPLACEMENTS={
   "😃":"😀","😄":"😀","😁":"😀","😆":"😂","🤣":"😂","😇":"😊","🙂":"😊","🙃":"😬",
   "😗":"😘","😙":"😘","😚":"😘","😋":"😊","😛":"😜","😝":"😜","🤪":"😜","🥳":"🤩",
@@ -102,7 +97,6 @@ Avoid a messy generic AI look.
 
 No text, no speech bubbles, no UI.
 Keep the background simple and only support the main drama moment.`}
-
 
 const NAME_POOLS={
   MALE:[
@@ -194,7 +188,6 @@ function buildPlayNameMap(randomize){
   return map;
 }
 
-
 function blankLevelArt(){
   return {
     backgroundAssetId:"BG01",
@@ -278,7 +271,6 @@ function syncSceneItemAssetId(item){
   if(!item.assetId||item.assetId===(art.backgroundAssetId||"BG01")||!String(item.assetId).startsWith(prefix))item.assetId=nextSceneAssetId(prefix);
 }
 
-
 function sceneLayerItems(d=data){
   return [
     ...(d.images||[]).map(o=>({type:"image",obj:o})),
@@ -315,11 +307,10 @@ function normalize(d){
   d.level=d.level||blank().level;
   d.level.id=String(d.level.id||"").trim().toUpperCase();
   d.level.version=String(d.level.version||"1.0").trim()||"1.0";
-  delete d.level.moves; // V1.27: 2 mạng là rule global, không còn data theo level.
+  delete d.level.moves;
   d.images=d.images||[];
   d.characters=d.characters||[];
   d.clues=d.clues||[];
-  // V1.29: Scene Evidence metadata đã bỏ khỏi authoring. Giữ một mảng legacy không enumerable để project cũ không làm code cũ lỗi, nhưng Save Project không xuất field này.
   const legacySceneEvidence=Array.isArray(d.sceneEvidence)?d.sceneEvidence:[];
   delete d.sceneEvidence;
   Object.defineProperty(d,"sceneEvidence",{value:[],writable:true,configurable:true,enumerable:false});
@@ -358,11 +349,10 @@ function normalize(d){
     i.aspectRatio=Number(i.aspectRatio)>0?Number(i.aspectRatio):fallback;
   });
 
-  // V1.29: bỏ metadata chỉ phục vụ Solve Graph. Logic thật nằm ở clue parent/resolve, placement trigger và reaction trigger.
   d.characters.forEach(c=>{
     c.answerSet=true;
     c.appearance=c.appearance||[];
-    delete c.sceneTag; // Scene Tag system removed in V1.15
+    delete c.sceneTag;
     c.namePool=c.namePool||"KEEP";
     c.gender=inferGender(c);
     c.age=c.age||"";
@@ -376,7 +366,6 @@ function normalize(d){
     c.assetBaseId=c.assetBaseId||`${c.id}_BASE`;
     c.assetTrayId=c.type==="M"?(c.assetTrayId||`${c.id}_TRAY`):"";
 
-    // Migrate V1.4 reaction data into Reaction Event -> Sequence.
     if(!Array.isArray(c.reactionEvents)){
       c.reactionEvents=[];
 
@@ -429,7 +418,6 @@ function normalize(d){
       });
     }
 
-    // V1.27: START không còn là Reaction. Project cũ được gộp state cuối START vào Initial State.
     const legacyStartEvents=(c.reactionEvents||[]).filter(ev=>ev.triggerType==="START");
     if(legacyStartEvents.length){
       const lastStart=legacyStartEvents[legacyStartEvents.length-1];
@@ -465,15 +453,11 @@ function normalize(d){
     ensureCharacterAssetIds(c);
   });
 
-  // V1.28: type và prefix ID luôn đồng bộ, kể cả khi import project cũ.
   enforceCharacterTypeIdsInDataset(d);
 
-  // V1.24.1: placement-trigger fields chỉ được phép tham chiếu Movable.
-  // Project cũ có Fxx / ID lỗi sẽ được dọn ngay khi normalize để không tạo trigger ẩn trong data.
   const validMovableTriggerIds=new Set(d.characters.filter(c=>c.type==="M").map(c=>c.id));
   d.level.revealWhen=[...new Set((d.level.revealWhen||[]).filter(id=>validMovableTriggerIds.has(id)))];
 
-  // Normalize scene art IDs after all imported data is available.
   d.level.art.sceneItems.forEach(item=>{
     if(item.exportMode==="BAKED_BG")item.assetId=d.level.art.backgroundAssetId;
     else if(!item.assetId){
@@ -483,10 +467,6 @@ function normalize(d){
     }
   });
 
-  // New clue schema:
-  // Root is ACTIVE at START.
-  // Child opens automatically when its direct parent resolves.
-  // preOpen only decides LOCKED placeholder vs fully HIDDEN.
   d.clues.forEach(c=>{
     c.resolveWhen=[...new Set((c.resolveWhen||[]).filter(id=>validMovableTriggerIds.has(id)))];
     delete c.affects;
@@ -499,8 +479,6 @@ function normalize(d){
     }
   });
 
-  // Main Drama Reveal có thể nằm dưới một clue như một reveal item đặc biệt.
-  // Nếu parent cũ không còn tồn tại thì xóa để tránh dangling reference.
   if(d.level.revealParentClueId && !d.clues.some(cl=>cl.id===d.level.revealParentClueId))d.level.revealParentClueId="";
 
   d.annotations.forEach((a,idx)=>{
@@ -642,7 +620,6 @@ function syncCharacterTypeId(c,newType){
     c.answerSet=true;
   }else{
     c.assetTrayId="";
-    // Fixed không có SELF_PLACED. Giữ event nhưng bắt GD chọn lại trigger thay vì tự đoán.
     (c.reactionEvents||[]).forEach(ev=>{
       if(ev.triggerType==="SELF_PLACED"){
         ev.triggerType="CHAR_PLACED";
@@ -790,9 +767,6 @@ function reactionPreview(r,sourceId=""){
   const icon=`${r?.emotion||""}${r?.symbol||""}`.trim();
   const isLeft=["←","↖","↙"].includes(g);
 
-  // Gaze hướng trái: đảo thứ tự để target nằm về phía mũi tên đang chỉ tới.
-  // Ví dụ: nina ← 😘
-  // Gaze hướng phải / hướng khác: 😄 → rose
   if(isLeft && targetLabel){
     return `${targetLabel} ${g}${icon?" "+icon:""}`.trim();
   }
@@ -806,12 +780,9 @@ function reactionPlayPreview(r,sourceId=""){
   const g=gazeDisplay(sourceId,r);
   const icon=`${r?.emotion||""}${r?.symbol||""}`.trim();
   const isLeft=["←","↖","↙"].includes(g);
-  // PLAY mô phỏng player view: không hiện tên Target trong bubble.
-  // Hướng trái đặt mũi tên trước icon; các hướng khác đặt sau icon.
   if(isLeft) return `${g}${icon?" "+icon:""}`.trim();
   return `${icon}${g?" "+g:""}`.trim();
 }
-
 
 function render(){renderLists();renderLive();renderInspector();renderLogic()}
 function refreshImmediate(){
@@ -828,8 +799,6 @@ function refreshImmediate(){
     }
   };
 
-  // The artifact preview sometimes waits until the next click before painting.
-  // Force the same state through microtask + two event-loop paints.
   queueMicrotask(repaint);
   setTimeout(repaint,0);
   setTimeout(repaint,24);
@@ -894,7 +863,6 @@ function createImageLayer(i){
   el.dataset.imgId=i.id;
   const flipX=i.flipH?-1:1, flipY=i.flipV?-1:1, rot=i.rotation||0, op=(i.opacity!==undefined?i.opacity:100)/100;
   
-  // Photoshop CSS Filters
   const filters = [];
   if(i.brightness !== undefined && i.brightness !== 100) filters.push(`brightness(${i.brightness}%)`);
   if(i.contrast !== undefined && i.contrast !== 100) filters.push(`contrast(${i.contrast}%)`);
@@ -1197,8 +1165,6 @@ function playClue(c,d){
     if(!c.parent)return"";
     const ps=play.state[c.parent];
 
-    // A locked child only becomes visible as a lock while its DIRECT parent is open.
-    // Deeper descendants do not leak through a still-locked parent.
     if(!ps?.active||ps.done)return"";
     if(c.preOpen==="HIDDEN")return"";
     return `<div class="cl ${d?"child":""} locked">🔒 █████ ███</div>`;
@@ -1210,9 +1176,6 @@ function playClue(c,d){
   return own+children+reveal;
 }
 
-// ==========================================
-// Clue Tree Drag & Drop and Reordering
-// ==========================================
 function moveClueOrder(id, dir){
   const c = data.clues.find(x => x.id === id);
   if(!c) return;
@@ -1248,7 +1211,6 @@ function reorderClueDrag(srcId, tgtId, position){
   if(position === "after") targetIdx++;
   data.clues.splice(targetIdx, 0, src);
   
-  // Adopt target's parent level
   src.parent = tgt.parent;
   
   save();
@@ -1470,7 +1432,6 @@ function moveImg(e,i,el){
     selected={type:"image",id:i.id};refreshImmediate();return;
   }
 
-  // Alt + Drag: Duplicate image and drag the clone to new position!
   if(e.altKey){
     e.preventDefault();e.stopPropagation();
     const clone = {...deep(i), id: uid("IMG_"), name: (i.name||"Reference")+" copy", z: 10 + sceneLayerItems().length};
@@ -1494,24 +1455,19 @@ function moveImg(e,i,el){
     let curX=sx+q.x-p.x;
     let curY=sy+q.y-p.y;
     
-    // Auto-Wrap Boundary (60% Hidden Threshold)
     if(wrapBoundaryEnabled){
-      // Ngang: nếu khuất 60% sang trái (curX <= -0.6 * i.w) -> chuyển sang mép phải
       if(curX <= -0.6 * i.w){
         curX = 1080 - i.w;
         sx = curX; p.x = q.x;
       } else if(curX >= 1080 - 0.4 * i.w){
-        // Nếu khuất 60% sang phải (curX >= 1080 - 0.4 * i.w) -> chuyển sang mép trái
         curX = 0;
         sx = curX; p.x = q.x;
       }
       
-      // Dọc: nếu khuất 60% lên trên (curY <= -0.6 * i.h) -> chuyển sang mép dưới
       if(curY <= -0.6 * i.h){
         curY = 1610 - i.h;
         sy = curY; p.y = q.y;
       } else if(curY >= 1610 - 0.4 * i.h){
-        // Nếu khuất 60% xuống dưới (curY >= 1610 - 0.4 * i.h) -> chuyển sang mép trên
         curY = 0;
         sy = curY; p.y = q.y;
       }
@@ -1542,7 +1498,6 @@ function resizeImg(e,i,el){
     const q=logical(ev),dw=q.x-p.x,dh=q.y-p.y;
     let nw=Math.max(60,sw+dw),nh=Math.max(60,sh+dh);
     if(ev.shiftKey){
-      // Shift = khóa theo tỷ lệ gốc của ảnh. Chọn trục kéo chi phối để cảm giác resize tự nhiên.
       if(Math.abs(dw)>=Math.abs(dh*ratio))nh=Math.max(60,nw/ratio);
       else nw=Math.max(60,nh*ratio);
     }
@@ -2288,9 +2243,6 @@ function annotationIns(b,a){
   $("#anDelete").onclick=()=>{data.annotations=data.annotations.filter(x=>x!==a);normalizeSceneZData();multiSel.delete("annotation:"+a.id);selected={type:"level",id:"level"};save();refreshImmediate()};
 }
 
-// ==========================================
-// BỘ BA CÔNG CỤ VẼ: BÚT CHÌ, CỌ VẼ, BÚT MỰC CHUẨN ILLUSTRATOR
-// ==========================================
 const drawState = {
   pencil: { color: "#2d3748", size: 2, opacity: 1.0 },
   brush:  { color: "#e11d48", size: 14, opacity: 0.75 },
@@ -2889,7 +2841,6 @@ function clueDescendantIds(rootId){
 function renumberClues(){
   if(!data.clues.length)return;
 
-  // Keep object relationships before changing IDs.
   const oldMap=new Map(data.clues.map(c=>[c.id,c]));
   const parentObj=new Map();
   data.clues.forEach(c=>parentObj.set(c,c.parent?oldMap.get(c.parent)||null:null));
@@ -2907,13 +2858,11 @@ function renumberClues(){
     assign(root,"CL"+String(rootIndex++).padStart(2,"0"));
   });
 
-  // Refresh parent IDs after every clue has its new ID.
   data.clues.forEach(c=>{
     const p=parentObj.get(c);
     c.parent=p?p.id:null;
   });
 
-  // selected clue follows the same object if possible
   if(selected.type==="clue"){
     const selectedObj=[...oldMap.values()].find(c=>c.id===selected.id) || null;
     if(selectedObj)selected.id=selectedObj.id;
@@ -2936,13 +2885,10 @@ function forceEditModeNow(){
   document.body.classList.remove("play");
   $("#editBtn").classList.add("on");
   $("#playBtn").classList.remove("on");
-  // Render ngay để UI chắc chắn đang ở EDIT trước khi xử lý ảnh async.
   renderLive();
 }
 
 function forcePaintReference(){
-  // Một số preview/webview chỉ repaint ảnh data URL sau interaction tiếp theo.
-  // Ép 2 frame + 1 tick repaint để ảnh xuất hiện ngay trong EDIT.
   requestAnimationFrame(()=>{
     renderLive();
     void $("#stage").offsetHeight;
@@ -2962,8 +2908,6 @@ function forcePaintReference(){
 function addImage(f){
   if(!f)return;
 
-  // Cách mới: KHÔNG chờ FileReader rồi mới vẽ.
-  // Tạo blob URL và add layer vào model ngay lập tức để ảnh hiện ngay trong EDIT.
   forceEditModeNow();
 
   const blobUrl = URL.createObjectURL(f);
@@ -2984,7 +2928,6 @@ function addImage(f){
   data.images.push(obj);
   selected={type:"image",id:obj.id};
 
-  // Render đúng layer mới ngay, tránh chờ full rerender.
   multiSel.clear();multiSel.add("image:"+obj.id);
   const st=$("#stage");
   st.appendChild(createImageLayer(obj));
@@ -2992,7 +2935,6 @@ function addImage(f){
   void st.offsetHeight;
   toast("Đã thêm ảnh vào EDIT Canvas");
 
-  // Khi biết kích thước thật thì fit lại, nhưng không đổi mode.
   const probe = new Image();
   probe.onload = ()=>{
     const nw=probe.naturalWidth||800, nh=probe.naturalHeight||1000;
@@ -3018,21 +2960,18 @@ function addImage(f){
   };
   probe.src=blobUrl;
 
-  // Sau đó mới convert sang data URL để Save/Export được.
   const rd=new FileReader();
   rd.onload=()=>{
     obj.src=rd.result;
     delete obj._blob;
     save();
 
-    // Chỉ thay src của đúng ảnh hiện tại, KHÔNG render lại cả app.
     const imgEl=document.querySelector(`.imgLayer[data-img-id="${obj.id}"] img`);
     if(imgEl) imgEl.src=obj.src;
 
     URL.revokeObjectURL(blobUrl);
   };
   rd.onerror=()=>{
-    // Ảnh vẫn đang hiện bằng blob URL; chỉ cảnh báo việc lưu.
     toast("Ảnh đang hiện nhưng chưa lưu được vào project");
   };
   rd.readAsDataURL(f);
@@ -3056,7 +2995,6 @@ $("#imgInput").onchange=e=>{
 };
 
 document.addEventListener("paste",e=>{
-  // Paste trong ENDING là dữ liệu của Ending Image / text field, tuyệt đối không tạo Reference Layer trên scene.
   if(e.target?.closest?.("#endingOverlay") || $("#endingOverlay")?.classList.contains("show"))return;
   if(sceneClipboard?.length&&!isTypingTarget(document.activeElement))return;
   const items=[...(e.clipboardData?.items||[])];
@@ -3206,7 +3144,6 @@ $("#ctx").onclick=e=>{
 
   save();refreshImmediate();$("#ctx").style.display="none";
 };
-
 
 function startDrawTool(e){
   const type=activeTool;if(!["rect","circle","triangle","star","polygon","line","arrow","text"].includes(type))return;
@@ -3470,8 +3407,6 @@ document.addEventListener("keydown",e=>{
   }
 });
 
-
-
 function playProgressSignature(){
   return [
     data.level?.id||"",
@@ -3541,14 +3476,12 @@ function startPlay(){
   mode="play";
   playSession++;
 
-  // Reset zoom & pan to ensure stage is 100% visible and centered
   canvasZoom = 1.0;
   canvasPan = {x: 0, y: 0};
   if(typeof applyZoomPan === 'function'){
     applyZoomPan();
   }
 
-  // If there is an unfinished Play session, simply resume it.
   if(!play){
     freshPlay(editNameMap(),false,0);
   }else{
@@ -3557,9 +3490,6 @@ function startPlay(){
   refreshImmediate();
 }
 function stopPlay(){
-  // Pause Play; do NOT destroy progress.
-  // Incrementing playSession cancels any pending timed reaction callbacks,
-  // while the current visible reaction state itself is kept.
   playSession++;
   savePlayProgress();
   mode="edit";
@@ -3721,7 +3651,6 @@ $("#closeDifficultyTest").onclick=()=>$("#difficultyOverlay").classList.remove("
 $("#analyzeDifficulty").onclick=runDifficultyTest;
 $("#closeLogicFlow").onclick=()=>$("#overlay").classList.remove("show");
 
-
 function wordCount(s){return String(s||"").trim().split(/\s+/).filter(Boolean).length}
 function syncVerdictMeaning(){
   const e=data.level.ending;const found=VERDICT_SUGGESTIONS.find(([en])=>en===e.verdictCta);e.verdictMeaningVi=found?found[1]:(e.verdictMeaningVi||"");
@@ -3826,8 +3755,6 @@ function validateAssetData(){
   return {missing,dups};
 }
 function buildRuntimeData(){
-  // V1.27 DEV JSON: chỉ giữ dữ liệu runtime thật sự cần.
-  // Art Request mô tả asset; Dev JSON chỉ reference Asset ID + logic khi nào dùng asset đó.
   const roundPos=v=>Math.round((Number(v)||0)*1000)/1000;
   const levelNumber=(()=>{const m=String(data.level.id||"").match(/(\d+)/);return m?Number(m[1]):null})();
 
@@ -3839,7 +3766,6 @@ function buildRuntimeData(){
       const sourceSteps=(ev.steps||[]);
       const steps=sourceSteps.map(st=>({assetId:st.assetId,duration:Number(st.duration)||0.6}));
       const last=sourceSteps[sourceSteps.length-1];
-      // Runtime mới: step cuối tự giữ. Nếu authoring cũ đặt hold=false, thêm BASE làm step cuối.
       if(last && !last.hold && steps[steps.length-1]?.assetId!==baseAssetId)steps.push({assetId:baseAssetId});
       return {whenPlaced,steps};
     });
@@ -3961,14 +3887,12 @@ function runPreflightCheck(includeProduction=false){
     clueTokenIds(cl.text||"").forEach(id=>{if(!charIds.has(id))addErr("CLUE_TOKEN",`${cl.id}: token {${id}} không tồn tại.`)});
   });
 
-
   (data.level.revealWhen||[]).forEach(id=>{
     if(!charIds.has(id))addErr("REVEAL_TRIGGER",`Main Reveal trỏ tới ID không tồn tại: ${id}.`);
     else if(!movableIds.has(id))addErr("REVEAL_FIXED",`Main Reveal dùng ${id} là Fixed; điều kiện placement này sẽ không xảy ra.`);
   });
   [data.level.hook,data.level.reveal].forEach(txt=>clueTokenIds(txt||"").forEach(id=>{if(!charIds.has(id))addErr("TOKEN_REF",`Token {${id}} đang được dùng nhưng Character ID không tồn tại.`)}));
 
-  // Player-facing text phải dùng token nếu character có random name pool.
   const randomNamed=sortedCharacters().filter(c=>(c.namePool||"KEEP")!=="KEEP"&&String(c.name||"").trim());
   const textFields=[
     ["Drama Hook",data.level.hook||""],["Drama Reveal",data.level.reveal||""],["Ending Text",data.level.ending?.endingLine||""],
@@ -4271,8 +4195,6 @@ $("#importFile").onchange=e=>{
   r.onload=()=>{try{
     playSession++;clearPlayProgress();
     const raw=JSON.parse(r.result);
-    // Runtime JSON chỉ chứa dữ liệu Dev. Khi import lại Tool, khôi phục phần runtime có thể khôi phục;
-    // dữ liệu Art/authoring đã chủ động bỏ khỏi Dev JSON sẽ không thể tự sinh lại.
     if(raw?.schemaVersion==="drama-level-runtime-2.0"){
       toast("Đây là Dev JSON V2, không phải file Project. Hãy import .editor.json để làm tiếp.");
       e.target.value="";
@@ -4291,7 +4213,6 @@ $("#importFile").onchange=e=>{
       }));
       raw.clues=(raw.clues||[]).map(cl=>({...cl}));
     }
-    // Production/Runtime JSON để ending ở top-level; Editor JSON để ở level.ending. Migrate về một nguồn dữ liệu chung.
     if(raw?.ending){
       raw.level=raw.level||{};
       raw.level.ending={...blankEnding(),...(raw.level.ending||{}),
@@ -4307,7 +4228,6 @@ $("#importFile").onchange=e=>{
   r.readAsText(f);
 };
 
-// SAMPLE: giữ riêng các level mẫu để GD mở nhanh khi train / tham khảo.
 function loadSampleProject(sampleData,message){
   playSession++;clearPlayProgress();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
 }
@@ -4322,12 +4242,10 @@ $("#overlay").addEventListener("pointerdown",e=>{if(e.target===$("#overlay"))$("
 $("#endingOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#endingOverlay"))$("#endingOverlay").classList.remove("show")});
 window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classList.remove("show");$("#endingOverlay").classList.remove("show");$("#checkOverlay").classList.remove("show")}});
 
-
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});
 ["resetBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
 
-// V1.30 Zoom, Pan & Smart Align Engine
 let canvasZoom = 1.0;
 let canvasPan = {x: 0, y: 0};
 let isSpaceDown = false;
@@ -4369,7 +4287,6 @@ function initZoomAndPan(){
   
   const sw=$("#stageWrap") || $("#stage");
   if(sw){
-    // Ctrl + Wheel / Wheel zoom
     sw.addEventListener("wheel", e => {
       if(e.ctrlKey || e.metaKey || isSpaceDown){
         e.preventDefault();
@@ -4379,7 +4296,6 @@ function initZoomAndPan(){
       }
     }, { passive: false });
 
-    // Track mouse position over stage for cursor paste / placement
     sw.addEventListener("pointermove", e => {
       lastMouseStagePos = logical(e);
     });
@@ -4407,7 +4323,6 @@ function initZoomAndPan(){
     });
   }
 
-  // Close top menus on outside click
   document.addEventListener("click", e => {
     if(!e.target.closest(".topMenu")){
       document.querySelectorAll(".topMenu[open]").forEach(m => m.removeAttribute("open"));
@@ -4415,14 +4330,12 @@ function initZoomAndPan(){
   });
 }
 
-// Changelog Modal
 function initChangelogModal(){
   const btn=$("#changelogBtn"), close=$("#closeChangelog"), overlay=$("#changelogOverlay");
   if(btn && overlay) btn.onclick = () => overlay.classList.add("show");
   if(close && overlay) close.onclick = () => overlay.classList.remove("show");
 }
 
-// Smart Align Multi-Selection
 function alignSelectedObjects(dir){
   const items = [];
   multiSel.forEach(k => {
@@ -4456,10 +4369,6 @@ function alignSelectedObjects(dir){
   save(); refreshImmediate(); toast("Đã căn lề các đối tượng");
 }
 
-
-// ==========================================
-// Theme Management & Studio Modal Shortcuts
-// ==========================================
 function initThemeSystem(){
   const saved = localStorage.getItem("dramapuzzle_theme") || "dark";
   applyTheme(saved);
@@ -4482,7 +4391,6 @@ function applyTheme(theme){
   if(btn) btn.title = theme === "dark" ? "Chuyển sang Giao diện Sáng" : "Chuyển sang Giao diện Tối";
 }
 
-// Global Modal Shortcuts: Esc to close & Backdrop click
 window.addEventListener("keydown", e => {
   if (e.key === "Escape") {
     document.querySelectorAll(".overlay.show, .changelogOverlay.show, .checkOverlay.show, .difficultyOverlay.show, .endingOverlay.show").forEach(el => el.classList.remove("show"));
@@ -4507,9 +4415,6 @@ if(chkOverlay){
   });
 }
 
-// ==========================================
-// Drawing Layer Event Handling
-// ==========================================
 function initDrawingLayer(){
   const canvas = $("#drawingCanvas");
   if(!canvas) return;
@@ -4546,7 +4451,6 @@ function initDrawingLayer(){
       ctx.fill();
       ctx.restore();
     } else if(activeTool === "pen"){
-      // 1. Kiểm tra rê chuột gần điểm đầu để khép kín hình dạng (Close Path)
       if(penActivePoints.length >= 3){
         const firstPt = penActivePoints[0];
         const dist = Math.hypot(pt.x - firstPt.x, pt.y - firstPt.y);
@@ -4567,15 +4471,12 @@ function initDrawingLayer(){
         }
       }
 
-      // 2. Chuẩn Adobe Illustrator: Bấm trực tiếp vào điểm neo cuối vừa vẽ (lastPt)
       if(penActivePoints.length > 0){
         const lastPt = penActivePoints[penActivePoints.length - 1];
         const distToLast = Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y);
         if(distToLast <= 16){
           const hasOutgoingHandle = lastPt.cp2 && (lastPt.cp2.x !== lastPt.x || lastPt.cp2.y !== lastPt.y);
           if(hasOutgoingHandle){
-            // Ngắt tay đòn cong phía trước (cp2) -> Corner Point. Giữ cp1 để bảo toàn đoạn cong trước.
-            // Đoạn nối tiếp theo sẽ là đường thẳng góc nhọn, không bị uốn cong 1 vòng.
             lastPt.cp2 = { x: lastPt.x, y: lastPt.y };
             isDraggingPenHandle = false;
             penHoverPoint = null;
@@ -4583,7 +4484,6 @@ function initDrawingLayer(){
             toast("Đã ngắt tay đòn cong · Bắt đầu góc nhọn");
             return;
           } else {
-            // Điểm neo đã ngắt tay đòn: bấm tiếp vào chính điểm này sẽ kết thúc sớm nét vẽ
             if(penActivePoints.length >= 2){
               finishPenPath();
               return;
@@ -4592,7 +4492,6 @@ function initDrawingLayer(){
         }
       }
 
-      // 3. Thêm điểm neo mới với tay đòn ban đầu
       const newPt = {
         x: pt.x,
         y: pt.y,
@@ -4632,11 +4531,9 @@ function initDrawingLayer(){
       const cur = { x: Math.round(l.x), y: Math.round(l.y) };
 
       if(isDraggingPenHandle){
-        // Kéo chuột tạo tay đòn cong Bézier (chuẩn Illustrator)
         const activePt = penActivePoints[penActivePoints.length - 1];
         activePt.cp2 = { x: cur.x, y: cur.y };
         if(e.altKey){
-          // Giữ Alt để ngắt góc tay đòn
         } else {
           activePt.cp1 = { x: Math.round(2 * activePt.x - cur.x), y: Math.round(2 * activePt.y - cur.y) };
         }
@@ -4692,7 +4589,6 @@ initDrawingLayer();
 play=loadPlayProgress();
 render();
 
-// Reactive Getters & Tool APIs for Verification & Testing
 window.data = data;
 Object.defineProperty(window, "selected", { get: () => selected, set: v => { selected = v; } });
 Object.defineProperty(window, "mode", { get: () => mode, set: v => { mode = v; } });
