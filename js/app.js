@@ -2447,9 +2447,22 @@ function startAnchorDrag(e, a, anchorIdx, handleType){
     renderLive();
   };
 
-  const up = () => {
+  const up = ev => {
     window.removeEventListener("pointermove", mv);
     window.removeEventListener("pointerup", up);
+    const moved = Math.hypot(ev.clientX - e.clientX, ev.clientY - e.clientY);
+    if(handleType === "anchor" && moved < 4 && ev.altKey){
+      const hasHandles = (pt.cp1 && (pt.cp1.x !== pt.x || pt.cp1.y !== pt.y)) || (pt.cp2 && (pt.cp2.x !== pt.x || pt.cp2.y !== pt.y));
+      if(hasHandles){
+        pt.cp1 = { x: pt.x, y: pt.y };
+        pt.cp2 = { x: pt.x, y: pt.y };
+        toast("Đã chuyển thành góc nhọn (Corner)");
+      } else {
+        pt.cp1 = { x: pt.x - 30, y: pt.y };
+        pt.cp2 = { x: pt.x + 30, y: pt.y };
+        toast("Đã chuyển thành góc cong (Smooth)");
+      }
+    }
     save();
     refreshImmediate();
   };
@@ -2490,27 +2503,37 @@ function redrawDrawingCanvas(){
 
     const lastPt = penActivePoints[penActivePoints.length - 1];
     let isNearStart = false;
+    let isNearLast = false;
     if(penHoverPoint){
       const firstPt = penActivePoints[0];
       const distToStart = Math.hypot(penHoverPoint.x - firstPt.x, penHoverPoint.y - firstPt.y);
       if(penActivePoints.length >= 3 && distToStart <= 16){
         isNearStart = true;
       }
-
-      ctx.beginPath();
-      ctx.setLineDash([8, 6]);
-      const cp1 = lastPt.cp2 || { x: lastPt.x, y: lastPt.y };
-      if(isNearStart){
-        ctx.bezierCurveTo(cp1.x, cp1.y, firstPt.x, firstPt.y, firstPt.x, firstPt.y);
-      } else {
-        ctx.bezierCurveTo(cp1.x, cp1.y, penHoverPoint.x, penHoverPoint.y, penHoverPoint.x, penHoverPoint.y);
+      const distToLast = Math.hypot(penHoverPoint.x - lastPt.x, penHoverPoint.y - lastPt.y);
+      if(distToLast <= 16){
+        isNearLast = true;
       }
-      ctx.stroke();
-      ctx.setLineDash([]);
+
+      if(!isNearLast){
+        ctx.beginPath();
+        ctx.setLineDash([8, 6]);
+        const cp1 = lastPt.cp2 || { x: lastPt.x, y: lastPt.y };
+        if(isNearStart){
+          ctx.bezierCurveTo(cp1.x, cp1.y, firstPt.x, firstPt.y, firstPt.x, firstPt.y);
+        } else {
+          ctx.bezierCurveTo(cp1.x, cp1.y, penHoverPoint.x, penHoverPoint.y, penHoverPoint.x, penHoverPoint.y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
     }
 
     penActivePoints.forEach((pt, idx) => {
       const isStart = idx === 0;
+      const isLast = idx === penActivePoints.length - 1;
+      const hasOutgoing = pt.cp2 && (pt.cp2.x !== pt.x || pt.cp2.y !== pt.y);
+
       if(pt.cp1 && (pt.cp1.x !== pt.x || pt.cp1.y !== pt.y)){
         ctx.beginPath();
         ctx.setLineDash([4, 3]);
@@ -2547,10 +2570,11 @@ function redrawDrawingCanvas(){
       }
 
       ctx.beginPath();
-      ctx.arc(pt.x, pt.y, isNearStart && isStart ? 8 : 5.5, 0, Math.PI * 2);
-      ctx.fillStyle = isStart ? "#10b981" : "#ffffff";
+      const ptRadius = (isNearStart && isStart) || (isNearLast && isLast) ? 8 : 5.5;
+      ctx.arc(pt.x, pt.y, ptRadius, 0, Math.PI * 2);
+      ctx.fillStyle = isStart ? "#10b981" : (isLast ? "#3b82f6" : "#ffffff");
       ctx.fill();
-      ctx.strokeStyle = "#2563eb";
+      ctx.strokeStyle = isNearLast && isLast ? (hasOutgoing ? "#f59e0b" : "#10b981") : "#2563eb";
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
@@ -2560,6 +2584,16 @@ function redrawDrawingCanvas(){
         ctx.strokeStyle = "#10b981";
         ctx.lineWidth = 2;
         ctx.stroke();
+      }
+
+      if(isNearLast && isLast){
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 11, 0, Math.PI * 2);
+        ctx.strokeStyle = hasOutgoing ? "#f59e0b" : "#10b981";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
       }
     });
 
@@ -4512,7 +4546,7 @@ function initDrawingLayer(){
       ctx.fill();
       ctx.restore();
     } else if(activeTool === "pen"){
-      // Kiểm tra rê chuột gần điểm đầu để khép kín hình dạng (Close Path)
+      // 1. Kiểm tra rê chuột gần điểm đầu để khép kín hình dạng (Close Path)
       if(penActivePoints.length >= 3){
         const firstPt = penActivePoints[0];
         const dist = Math.hypot(pt.x - firstPt.x, pt.y - firstPt.y);
@@ -4533,7 +4567,32 @@ function initDrawingLayer(){
         }
       }
 
-      // Thêm điểm neo mới với tay đòn ban đầu
+      // 2. Chuẩn Adobe Illustrator: Bấm trực tiếp vào điểm neo cuối vừa vẽ (lastPt)
+      if(penActivePoints.length > 0){
+        const lastPt = penActivePoints[penActivePoints.length - 1];
+        const distToLast = Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y);
+        if(distToLast <= 16){
+          const hasOutgoingHandle = lastPt.cp2 && (lastPt.cp2.x !== lastPt.x || lastPt.cp2.y !== lastPt.y);
+          if(hasOutgoingHandle){
+            // Ngắt tay đòn cong phía trước (cp2) -> Corner Point. Giữ cp1 để bảo toàn đoạn cong trước.
+            // Đoạn nối tiếp theo sẽ là đường thẳng góc nhọn, không bị uốn cong 1 vòng.
+            lastPt.cp2 = { x: lastPt.x, y: lastPt.y };
+            isDraggingPenHandle = false;
+            penHoverPoint = null;
+            redrawDrawingCanvas();
+            toast("Đã ngắt tay đòn cong · Bắt đầu góc nhọn");
+            return;
+          } else {
+            // Điểm neo đã ngắt tay đòn: bấm tiếp vào chính điểm này sẽ kết thúc sớm nét vẽ
+            if(penActivePoints.length >= 2){
+              finishPenPath();
+              return;
+            }
+          }
+        }
+      }
+
+      // 3. Thêm điểm neo mới với tay đòn ban đầu
       const newPt = {
         x: pt.x,
         y: pt.y,
@@ -4576,7 +4635,11 @@ function initDrawingLayer(){
         // Kéo chuột tạo tay đòn cong Bézier (chuẩn Illustrator)
         const activePt = penActivePoints[penActivePoints.length - 1];
         activePt.cp2 = { x: cur.x, y: cur.y };
-        activePt.cp1 = { x: Math.round(2 * activePt.x - cur.x), y: Math.round(2 * activePt.y - cur.y) };
+        if(e.altKey){
+          // Giữ Alt để ngắt góc tay đòn
+        } else {
+          activePt.cp1 = { x: Math.round(2 * activePt.x - cur.x), y: Math.round(2 * activePt.y - cur.y) };
+        }
         redrawDrawingCanvas();
       } else {
         const st = $("#stage");
