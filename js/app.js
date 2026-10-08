@@ -2124,8 +2124,19 @@ function moveAnnotation(e,a,el){
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }
 function resizeAnnotation(e,a,el){
-  e.preventDefault();e.stopPropagation();const p=logical(e),sw=a.w,sh=a.h;
-  const mv=ev=>{const q=logical(ev);a.w=Math.max(20,sw+q.x-p.x);a.h=Math.max(20,sh+q.y-p.y);el.style.width=(a.w/1080*100)+"%";el.style.height=(a.h/1610*100)+"%"};
+  if(a.locked)return;
+  e.preventDefault();e.stopPropagation();
+  const p=logical(e),sw=a.w,sh=a.h,ratio=sw/sh||1;
+  const mv=ev=>{
+    const q=logical(ev),dw=q.x-p.x,dh=q.y-p.y;
+    let nw=Math.max(20,sw+dw),nh=Math.max(20,sh+dh);
+    if(ev.shiftKey){
+      if(Math.abs(dw)>=Math.abs(dh*ratio)) nh=Math.max(20, Math.round(nw/ratio));
+      else nw=Math.max(20, Math.round(nh*ratio));
+    }
+    a.w=nw;a.h=nh;
+    el.style.width=(a.w/1080*100)+"%";el.style.height=(a.h/1610*100)+"%";
+  };
   const up=()=>{window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);save();refreshImmediate()};
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }
@@ -2476,37 +2487,129 @@ $("#ctx").onclick=e=>{
 function startDrawTool(e){
   const type=activeTool;if(!["rect","circle","triangle","star","polygon","line","arrow","text"].includes(type))return;
   e.preventDefault();e.stopPropagation();
-  const st=$("#stage"),start=logical(e),rect=st.getBoundingClientRect();
+  const st=$("#stage"),start=logical(e);
   if(type==="text"){
     createAnnotation("text",start.x,start.y,260,70);
     return;
   }
-  const ghost=document.createElement("div");ghost.className="drawGhost";st.appendChild(ghost);
+  const ghost=document.createElement("div");ghost.className=`drawGhost ${type}`;st.appendChild(ghost);
+
+  if(type==="triangle"){
+    ghost.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="rgba(59, 130, 246, 0.16)" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg>`;
+  } else if(type==="star"){
+    ghost.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,2 62,38 100,38 69,60 81,96 50,74 19,96 31,60 0,38 38,38" fill="rgba(59, 130, 246, 0.16)" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg>`;
+  } else if(type==="polygon"){
+    ghost.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="rgba(59, 130, 246, 0.16)" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg>`;
+  } else if(type==="line"){
+    ghost.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><line x1="0" y1="50" x2="100" y2="50" stroke="#3b82f6" stroke-width="3" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></line></svg>`;
+  } else if(type==="circle"){
+    ghost.style.borderRadius="50%";
+    ghost.style.border="2px dashed #3b82f6";
+    ghost.style.background="rgba(59, 130, 246, 0.16)";
+  } else if(type==="rect"){
+    ghost.style.borderRadius="6px";
+    ghost.style.border="2px dashed #3b82f6";
+    ghost.style.background="rgba(59, 130, 246, 0.16)";
+  }
+
   let last={x:start.x,y:start.y};
+
+  function computeGeometry(ev){
+    const curr=logical(ev);
+    const dx=curr.x-start.x, dy=curr.y-start.y;
+    let absX=Math.abs(dx), absY=Math.abs(dy);
+    let x, y, w, h;
+
+    if(ev.shiftKey){
+      if(type==="line"||type==="arrow"){
+        if(absY < absX * 0.45){
+          w = Math.max(30, absX); h = 24;
+          x = dx >= 0 ? start.x : start.x - w;
+          y = start.y - 12;
+        } else if(absX < absY * 0.45){
+          w = 24; h = Math.max(30, absY);
+          x = start.x - 12;
+          y = dy >= 0 ? start.y : start.y - h;
+        } else {
+          const size = Math.max(absX, absY, 30);
+          w = size; h = size;
+          x = dx >= 0 ? start.x : start.x - size;
+          y = dy >= 0 ? start.y : start.y - size;
+        }
+      } else {
+        const size = Math.max(absX, absY);
+        w = size; h = size;
+        x = dx >= 0 ? start.x : start.x - size;
+        y = dy >= 0 ? start.y : start.y - size;
+      }
+    } else {
+      x = Math.min(start.x, curr.x);
+      y = Math.min(start.y, curr.y);
+      w = absX;
+      h = absY;
+    }
+    return { x, y, w, h, dx, dy, absX, absY, curr };
+  }
+
+  function updateArrowGhost(geo){
+    const w = Math.max(20, geo.w), h = Math.max(20, geo.h);
+    let x1 = geo.dx >= 0 ? 6 : w - 6;
+    let x2 = geo.dx >= 0 ? w - 6 : 6;
+    let y1 = geo.dy >= 0 ? 6 : h - 6;
+    let y2 = geo.dy >= 0 ? h - 6 : 6;
+    if(geo.absY < 15){ y1 = h/2; y2 = h/2; }
+    if(geo.absX < 15){ x1 = w/2; x2 = w/2; }
+
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const headLen = Math.min(Math.hypot(x2 - x1, y2 - y1) * 0.45, 20);
+    const halfWidth = headLen * 0.45;
+    const cosA = Math.cos(angle), sinA = Math.sin(angle);
+    const tipX = x2, tipY = y2;
+    const leftX = x2 - headLen * cosA + halfWidth * sinA;
+    const leftY = y2 - headLen * sinA - halfWidth * cosA;
+    const rightX = x2 - headLen * cosA - halfWidth * sinA;
+    const rightY = y2 - headLen * sinA + halfWidth * cosA;
+    const baseX = x2 - headLen * 0.65 * cosA;
+    const baseY = y2 - headLen * 0.65 * sinA;
+    const polyPts = `${tipX.toFixed(1)},${tipY.toFixed(1)} ${leftX.toFixed(1)},${leftY.toFixed(1)} ${baseX.toFixed(1)},${baseY.toFixed(1)} ${rightX.toFixed(1)},${rightY.toFixed(1)}`;
+
+    ghost.innerHTML = `<svg viewBox="0 0 ${w} ${h}" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none">
+      <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${baseX.toFixed(1)}" y2="${baseY.toFixed(1)}" stroke="#3b82f6" stroke-width="3" stroke-dasharray="6 4" stroke-linecap="round"></line>
+      <polygon points="${polyPts}" fill="#3b82f6"></polygon>
+    </svg>`;
+  }
+
   const mv=ev=>{
-    last=logical(ev);const x=Math.min(start.x,last.x),y=Math.min(start.y,last.y),w=Math.abs(last.x-start.x),h=Math.abs(last.y-start.y);
-    ghost.style.left=(x/1080*100)+"%";ghost.style.top=(y/1610*100)+"%";ghost.style.width=(w/1080*100)+"%";ghost.style.height=(h/1610*100)+"%";
+    last=logical(ev);
+    const geo=computeGeometry(ev);
+    ghost.style.left=(geo.x/1080*100)+"%";
+    ghost.style.top=(geo.y/1610*100)+"%";
+    ghost.style.width=(geo.w/1080*100)+"%";
+    ghost.style.height=(geo.h/1610*100)+"%";
+    if(type==="arrow")updateArrowGhost(geo);
   };
-  const up=()=>{
+
+  const up=ev=>{
     window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);ghost.remove();
-    const dx=last.x-start.x, dy=last.y-start.y;
-    const absX=Math.abs(dx), absY=Math.abs(dy);
-    const x=Math.min(start.x,last.x), y=Math.min(start.y,last.y);
-    const w=Math.max(type==="arrow"?(absX<20?40:60):60, absX);
-    const h=Math.max(type==="arrow"?(absY<20?40:30):60, absY);
+    const geo=computeGeometry(ev);
+    const minW = type==="arrow" ? 40 : 20;
+    const minH = type==="arrow" ? 30 : 20;
+    const finalW = Math.max(minW, Math.round(geo.w));
+    const finalH = Math.max(minH, Math.round(geo.h));
+
     let extra={};
     if(type==="arrow"){
       let xdir=1, ydir=1;
-      if(absY<20 && absX>=25){
-        xdir=dx>=0?1:-1; ydir=0;
-      }else if(absX<20 && absY>=25){
-        xdir=0; ydir=dy>=0?1:-1;
+      if(geo.absY<20 && geo.absX>=25){
+        xdir=geo.dx>=0?1:-1; ydir=0;
+      }else if(geo.absX<20 && geo.absY>=25){
+        xdir=0; ydir=geo.dy>=0?1:-1;
       }else{
-        xdir=dx>=0?1:-1; ydir=dy>=0?1:-1;
+        xdir=geo.dx>=0?1:-1; ydir=geo.dy>=0?1:-1;
       }
       extra={arrowXDir:xdir, arrowYDir:ydir};
     }
-    createAnnotation(type,x,y,w,h,extra);
+    createAnnotation(type,Math.round(geo.x),Math.round(geo.y),finalW,finalH,extra);
   };
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }

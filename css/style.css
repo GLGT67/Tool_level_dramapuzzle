@@ -843,9 +843,28 @@ body.spaceDown .stage { cursor: grab !important; }
 .drawGhost {
   position: absolute;
   z-index: 998;
-  border: 2px dashed #3b82f6;
-  background: rgba(59, 130, 246, 0.12);
   pointer-events: none;
+  box-sizing: border-box;
+}
+.drawGhost.rect,
+.drawGhost.circle {
+  border: 2px dashed #3b82f6;
+  background: rgba(59, 130, 246, 0.16);
+}
+.drawGhost.circle {
+  border-radius: 50% !important;
+}
+.drawGhost.rect {
+  border-radius: 6px !important;
+}
+.drawGhost.triangle,
+.drawGhost.star,
+.drawGhost.polygon,
+.drawGhost.line,
+.drawGhost.arrow {
+  border: none !important;
+  background: transparent !important;
+  overflow: visible !important;
 }
 
 .noteObj.triangle,
