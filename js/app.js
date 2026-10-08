@@ -528,7 +528,12 @@ let data=normalize((()=>{try{return JSON.parse(localStorage.getItem("dramaEditor
 let selected={type:"level",id:"level"}, mode="edit", play=null, ctxId=null, ctxType="image", activeTool="select";
 let multiSel=new Set();
 let wrapBoundaryEnabled = localStorage.getItem("dramaEditorWrapBoundary") !== "false";
-window.data=data;window.selected=selected;window.multiSel=multiSel;window.createAnnotation=createAnnotation;window.refreshImmediate=()=>refreshImmediate();
+Object.defineProperty(window, "data", { get() { return data; }, set(v) { data = v; }, configurable: true });
+Object.defineProperty(window, "selected", { get() { return selected; }, set(v) { selected = v; }, configurable: true });
+Object.defineProperty(window, "mode", { get() { return mode; }, set(v) { mode = v; }, configurable: true });
+window.multiSel = multiSel;
+window.createAnnotation = createAnnotation;
+window.refreshImmediate = () => refreshImmediate();
 let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
 const PLAY_PROGRESS_KEY="dramaEditorPlayProgressV127Lives";
