@@ -836,21 +836,39 @@ body.spaceDown .stage { cursor: grab !important; }
   pointer-events: none;
 }
 
-.noteObj.triangle {
+.noteObj.triangle,
+.noteObj.star,
+.noteObj.polygon,
+.noteObj.line {
   background: transparent !important;
   border: 0 !important;
   overflow: visible !important;
 }
-.noteObj.triangle.sel { outline: none !important; }
-.noteObj.triangle.sel svg polygon {
-  stroke: #3b82f6 !important;
-  stroke-width: 4px !important;
-  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.7));
+.noteObj.triangle.sel,
+.noteObj.star.sel,
+.noteObj.polygon.sel,
+.noteObj.line.sel {
+  outline: 1.5px dashed rgba(59, 130, 246, 0.7) !important;
+  outline-offset: 3px;
 }
-.noteObj.triangle.multiSel svg polygon {
-  stroke: #10b981 !important;
-  stroke-width: 4px !important;
-  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.7));
+.noteObj.triangle.multiSel,
+.noteObj.star.multiSel,
+.noteObj.polygon.multiSel,
+.noteObj.line.multiSel {
+  outline: 1.5px dashed rgba(16, 185, 129, 0.7) !important;
+  outline-offset: 3px;
+}
+.noteObj.triangle.sel svg,
+.noteObj.star.sel svg,
+.noteObj.polygon.sel svg,
+.noteObj.line.sel svg {
+  filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.6));
+}
+.noteObj.triangle.multiSel svg,
+.noteObj.star.multiSel svg,
+.noteObj.polygon.multiSel svg,
+.noteObj.line.multiSel svg {
+  filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.6));
 }
 
 .shapeLabel {

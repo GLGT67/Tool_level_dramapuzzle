@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
-<title>SẮP XẾP DRAMA — Live Level Editor V1.35 · Figma Suite & Polish</title>
+<title>SẮP XẾP DRAMA — Live Level Editor V1.36 · Thuần Việt & Vector Chuẩn</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,62 +15,62 @@
       <span class="brandIcon">🎭</span>
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
-    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.35 · FIGMA SUITE & MODAL FIX</button>
+    <button class="version versionBtn" id="changelogBtn" title="Xem Lịch sử cập nhật & Lộ trình">v1.36 · BẢN CẬP NHẬT TIẾNG VIỆT & VECTOR</button>
   </div>
 
   <div class="navGroup centerNav">
     <div class="modeSwitcher" id="modeSwitcher">
-      <button class="modeBtn on" id="editBtn" title="Chế độ biên tập màn chơi">EDIT</button>
-      <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">PLAY</button>
+      <button class="modeBtn on" id="editBtn" title="Chế độ biên tập màn chơi">CHỈNH SỬA</button>
+      <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">CHƠI THỬ</button>
     </div>
 
     <div class="playGroup" id="playGroup" style="display:none">
       <button class="btn iconBtn good" id="replayBtn" title="Chơi lại kịch bản này">↻ Chơi lại</button>
       <button class="btn iconBtn" id="shuffleReplayBtn" title="Chơi lại và xáo trộn tên nhân vật">🔀 Đảo tên</button>
-      <span class="pill playPill" id="playNameStatus">Tên: Edit</span>
+      <span class="pill playPill" id="playNameStatus">Tên: Chỉnh sửa</span>
     </div>
 
     <div class="navSep"></div>
 
     <div class="btnGroup">
-      <button class="btn smBtn" id="logicFlowBtn" title="Kiểm tra sơ đồ suy luận logic (Solve Graph)">FLOW</button>
-      <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">TEST ĐỘ KHÓ</button>
-      <button class="btn smBtn" id="checkLevelBtn" title="Linter kiểm tra lỗi logic & asset">CHECK</button>
+      <button class="btn smBtn" id="logicFlowBtn" title="Kiểm tra sơ đồ suy luận logic">SƠ ĐỒ LOGIC</button>
+      <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">KIỂM TRA ĐỘ KHÓ</button>
+      <button class="btn smBtn" id="checkLevelBtn" title="Kiểm tra lỗi logic & tài nguyên">KIỂM TRA LỖI</button>
     </div>
   </div>
 
   <div class="navGroup rightNav">
     <div class="btnGroup">
-      <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU PROJECT</button>
-      <label class="btn smBtn" title="Mở Level từ file JSON">MỞ PROJECT<input id="importFile" type="file" accept=".json" style="display:none"></label>
+      <button class="btn smBtn" id="saveBtn" title="Lưu màn chơi ra file JSON">LƯU DỰ ÁN</button>
+      <label class="btn smBtn" title="Mở màn chơi từ file JSON">MỞ DỰ ÁN<input id="importFile" type="file" accept=".json" style="display:none"></label>
     </div>
 
     <details class="topMenu" id="productionMenu">
-      <summary class="btn smBtn">PRODUCTION ▾</summary>
+      <summary class="btn smBtn">XUẤT BẢN ▾</summary>
       <div class="topMenuPanel">
-        <button class="btn" id="endingBtn">ENDING</button>
-        <button class="btn" id="scenePngBtn">Scene PNG</button>
-        <button class="btn" id="assetRequestBtn">Asset Request XLSX</button>
-        <button class="btn" id="exportBtn">Dev JSON</button>
+        <button class="btn" id="endingBtn">ĐOẠN KẾT</button>
+        <button class="btn" id="scenePngBtn">Ảnh Khung Cảnh (PNG)</button>
+        <button class="btn" id="assetRequestBtn">Bảng Yêu Cầu Asset (XLSX)</button>
+        <button class="btn" id="exportBtn">Xuất Dữ Liệu Màn (JSON)</button>
       </div>
     </details>
 
     <details class="topMenu" id="sampleMenu">
-      <summary class="btn smBtn">SAMPLE ▾</summary>
+      <summary class="btn smBtn">MẪU CÓ SẴN ▾</summary>
       <div class="topMenuPanel">
-        <button class="btn" id="sampleWeddingBtn">Wedding · L001</button>
-        <button class="btn" id="sampleBirthdayBtn">Birthday Photo Booth · L003</button>
+        <button class="btn" id="sampleWeddingBtn">Mẫu Đám Cưới · L001</button>
+        <button class="btn" id="sampleBirthdayBtn">Mẫu Sinh Nhật · L003</button>
       </div>
     </details>
 
-    <button class="btn iconBtn themeToggle" id="themeToggleBtn" title="Chuyển chế độ Tối / Sáng (Dark / Light Mode)">
+    <button class="btn iconBtn themeToggle" id="themeToggleBtn" title="Chuyển chế độ Tối / Sáng">
       <span id="themeIcon">🌙</span>
     </button>
 
     <details class="topMenu" id="moreMenu">
       <summary class="btn iconBtn smBtn" title="Tùy chọn khác">⋯</summary>
       <div class="topMenuPanel">
-        <button class="btn danger" id="resetBtn">Reset trắng</button>
+        <button class="btn danger" id="resetBtn">Đặt lại dự án trắng</button>
       </div>
     </details>
   </div>
@@ -79,42 +79,42 @@
 <div class="work">
 <aside class="panel left">
   <div class="editOnly">
-    <h3>Level</h3>
-    <div class="card sel" id="levelCard"><b>LEVEL SETTINGS</b><div class="meta">ID · Độ khó dự định · Hook · 2 mạng cố định · Reveal</div></div>
+    <h3>Màn chơi</h3>
+    <div class="card sel" id="levelCard"><b>CÀI ĐẶT MÀN CHƠI</b><div class="meta">Mã ID · Độ khó dự định · Móc câu cốt truyện · 2 mạng cố định · Tiết lộ</div></div>
 
-    <div class="head"><b>🟡 Reference Layers</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
-    <div class="small">Paste Ctrl/Cmd+V. Kéo ảnh để di chuyển, kéo chấm xanh để resize. <b>Giữ Shift khi resize để giữ đúng tỷ lệ ảnh.</b> Chuột phải: Duplicate / đổi layer / lock / xóa.</div>
-    <div class="small" style="margin-top:5px"><b>Chọn cụm:</b> kéo chuột trái trên vùng trống → kéo một object đã chọn để di chuyển cả cụm. <b>Backspace/Delete</b> để xóa. <b>Ctrl/Cmd+Z</b> để Undo.</div>
+    <div class="head"><b>🟡 Lớp ảnh tham khảo</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
+    <div class="small">Dán Ctrl/Cmd+V. Kéo ảnh để di chuyển, kéo chấm xanh để thu phóng. <b>Giữ Shift để giữ nguyên tỉ lệ ảnh.</b> Chuột phải: Nhân bản / đổi lớp / khóa / xóa.</div>
+    <div class="small" style="margin-top:5px"><b>Chọn cụm:</b> kéo chuột trái trên vùng trống → kéo đối tượng đã chọn để di chuyển cả cụm. <b>Backspace/Delete</b> để xóa. <b>Ctrl/Cmd+Z</b> để Hoàn tác.</div>
     <div id="imgList"></div>
 
-    <div class="head"><b>Characters</b><div class="row"><button class="btn" id="addM">+ M</button><button class="btn" id="addF">+ F</button></div></div>
+    <div class="head"><b>Nhân vật</b><div class="row"><button class="btn" id="addM">+ Nam</button><button class="btn" id="addF">+ Nữ</button></div></div>
     <div id="charList"></div>
 
-    <div class="head"><b>Clue Tree</b><button class="btn" id="addClue">🟢 + Root</button></div>
+    <div class="head"><b>Cây manh mối</b><button class="btn" id="addClue">🟢 + Gốc</button></div>
     <div id="clueList"></div>
 
-    <div class="head"><b>Reaction Events</b></div>
+    <div class="head"><b>Sự kiện phản ứng</b></div>
     <div id="reactionList"></div>
   </div>
 </aside>
 
 <main class="center">
   <div class="editor">
-    <div class="leveltop"><div><div class="small">LEVEL SANDBOX</div><b id="liveName">LEVEL</b></div><div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div></div>
+    <div class="leveltop"><div><div class="small">MÀN CHƠI THỬ NGHIỆM</div><b id="liveName">MÀN CHƠI</b></div><div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div></div>
     <div class="hook"><div id="liveHook" class="dramaHookText"></div></div>
 
     <div class="sceneRow">
-      <div class="sceneTools editOnly" id="sceneTools" aria-label="Scene tools">
-        <button class="toolBtn active" data-tool="select" title="Select / chọn cụm">↖</button>
+      <div class="sceneTools editOnly" id="sceneTools" aria-label="Công cụ vẽ">
+        <button class="toolBtn active" data-tool="select" title="Chọn đối tượng / chọn cụm">↖</button>
         <div class="toolSep"></div>
-        <button class="toolBtn" data-tool="rect" title="Hình vuông / chữ nhật">□</button>
-        <button class="toolBtn" data-tool="circle" title="Hình tròn / ellipse">○</button>
-        <button class="toolBtn" data-tool="triangle" title="Tam giác (SVG Precision)">△</button>
-        <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh (Figma Star)">★</button>
-        <button class="toolBtn" data-tool="polygon" title="Lục giác (Figma Hexagon)">⬡</button>
-        <button class="toolBtn" data-tool="line" title="Đoạn thẳng (Figma Line)">―</button>
-        <button class="toolBtn" data-tool="arrow" title="Mũi tên">➜</button>
-        <button class="toolBtn" data-tool="text" title="Text note">T</button>
+        <button class="toolBtn" data-tool="rect" title="Hình chữ nhật / vuông">□</button>
+        <button class="toolBtn" data-tool="circle" title="Hình tròn / bầu dục">○</button>
+        <button class="toolBtn" data-tool="triangle" title="Hình tam giác">△</button>
+        <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh">★</button>
+        <button class="toolBtn" data-tool="polygon" title="Hình lục giác 6 cạnh">⬡</button>
+        <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
+        <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
+        <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
       </div>
       <div class="stageWrap" id="stageWrap">
         <div class="canvasZoomDock">
@@ -123,12 +123,12 @@
           <button class="zoomBtn" id="zoomInBtn" type="button" title="Phóng to (Ctrl +)">+</button>
           <button class="zoomBtn" id="zoomResetBtn" type="button" title="Đặt lại 100%">1:1</button>
         </div>
-        <div id="stage" class="stage"><div class="editmark">1080 × 1610 · EDIT CANVAS</div></div>
+        <div id="stage" class="stage"><div class="editmark">1080 × 1610 · KHUNG BIÊN TẬP</div></div>
       </div>
     </div>
 
     <div class="tray">
-      <div class="ctop"><span>TRAY</span><span id="trayHint">M/F đều hiện ở đây khi Edit</span></div>
+      <div class="ctop"><span>KHAY NHÂN VẬT</span><span id="trayHint">Nam/Nữ đều hiện ở đây khi Chỉnh sửa</span></div>
       <div id="trayRow" class="trayrow"></div>
     </div>
 
@@ -140,71 +140,71 @@
   </div>
 </main>
 
-<aside class="panel right"><h3>Inspector</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Character / Clue / Reaction Event. Ending dùng tab ENDING phía trên.</div></aside>
+<aside class="panel right"><h3>Bảng thuộc tính</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Màn chơi / Ảnh / Nhân vật / Manh mối / Sự kiện phản ứng để chỉnh sửa.</div></aside>
 </div>
 </div>
 
 <div id="ctx" class="ctx">
-<button data-a="copy">Copy</button>
-<button data-a="paste">Paste</button>
-<button data-a="duplicate">Duplicate</button>
-<button data-a="front">Bring to Front</button>
-<button data-a="forward">Bring Forward</button>
-<button data-a="backward">Send Backward</button>
-<button data-a="back">Send to Back</button>
-<button data-a="lock">Lock / Unlock</button>
-<button data-a="delete">Delete</button>
+<button data-a="copy">Sao chép</button>
+<button data-a="paste">Dán</button>
+<button data-a="duplicate">Nhân bản</button>
+<button data-a="front">Lên trên cùng</button>
+<button data-a="forward">Lên một lớp</button>
+<button data-a="backward">Xuống một lớp</button>
+<button data-a="back">Xuống dưới cùng</button>
+<button data-a="lock">Khóa / Mở khóa</button>
+<button data-a="delete">Xóa đối tượng</button>
 </div>
 
 <div id="overlay" class="overlay">
   <div class="logicFlowCard">
-    <div class="gtop"><b>INFORMATION / TRIGGER FLOW</b><span class="small">Tool tự đọc clue · placement · reaction · reveal, không cần metadata phụ</span><div class="spacer"></div><button class="btn" id="closeLogicFlow">Đóng</button></div>
+    <div class="gtop"><b>SƠ ĐỒ SUY LUẬN LOGIC</b><span class="small">Tự động đọc manh mối · vị trí đặt · phản ứng · tiết lộ</span><div class="spacer"></div><button class="btn" id="closeLogicFlow">Đóng</button></div>
     <div class="logicFlowBody" id="logicFlowFull"></div>
   </div>
 </div>
 
 <div id="endingOverlay" class="endingOverlay">
   <div class="endingShell">
-    <div class="gtop"><b>ENDING</b><span class="small">Thiết kế popup kết màn + ảnh recap AI</span><div class="spacer"></div><button class="btn" id="closeEnding">Đóng</button></div>
+    <div class="gtop"><b>KẾT CỤC MÀN CHƠI</b><span class="small">Thiết kế cửa sổ kết màn & ảnh tóm tắt AI</span><div class="spacer"></div><button class="btn" id="closeEnding">Đóng</button></div>
     <div class="endingBody">
       <div class="endingPreviewCol">
         <div class="endCardWrap">
           <div class="endCard">
-            <div class="endTitle">DRAMA SOLVED!</div>
-            <div class="endImage" id="endingPreviewImage"><div class="endImagePlaceholder">ENDING IMAGE<br>4:3 HORIZONTAL</div></div>
-            <div class="endLine" id="endingPreviewLine">Ending line...</div>
+            <div class="endTitle">ĐÃ PHÁ ÁN THÀNH CÔNG!</div>
+            <div class="endImage" id="endingPreviewImage"><div class="endImagePlaceholder">ẢNH KẾT CỤC<br>TỈ LỆ 4:3 NGANG</div></div>
+            <div class="endLine" id="endingPreviewLine">Câu thoại kết màn...</div>
             <button class="endReward" type="button">
               <span class="adIcon">📺</span><span class="x2">×2</span>
-              <div class="cta" id="endingPreviewCta">VERDICT</div>
+              <div class="cta" id="endingPreviewCta">PHÁN QUYẾT</div>
               <div class="coins">30 🪙</div>
             </button>
           </div>
-          <div class="endSkip">LET IT GO <span class="endSkipCoins">15 🪙</span></div>
+          <div class="endSkip">BỎ QUA <span class="endSkipCoins">15 🪙</span></div>
         </div>
       </div>
       <div class="endingFormCol">
         <div class="col">
-          <div class="endingGuide"><b>TINH THẦN ENDING IMAGE</b><br>Không vẽ lại toàn bộ scene gameplay. Chọn <b>1 khoảnh khắc đắt nhất của drama</b>. Nhìn 1 giây phải hiểu chuyện gì vừa xảy ra. Ưu tiên 2–4 nhân vật quan trọng, reaction rõ, pose rõ, ảnh ngang <b>4:3</b>.</div>
-          <label>🔵 Ending Image Brief<textarea id="endingBrief" placeholder="VD: The bride’s ex is flirting with the groom’s ex while the bride and groom stare at them in disbelief."></textarea></label>
-          <div class="small">Mô tả ai đang làm gì + ai phản ứng thế nào. <b>Không gọi tên nhân vật</b>, chỉ gọi theo vai: bride, groom, bride's ex, photographer...</div>
+          <div class="endingGuide"><b>TINH THẦN ẢNH KẾT CỤC</b><br>Không vẽ lại toàn bộ màn chơi. Chọn <b>1 khoảnh khắc đắt giá nhất của tình huống drama</b>. Nhìn 1 giây phải hiểu chuyện gì vừa xảy ra. Ưu tiên 2–4 nhân vật quan trọng, phản ứng rõ ràng, tư thế rõ ràng, khung ảnh ngang <b>4:3</b>.</div>
+          <label>🔵 Tóm tắt bối cảnh ảnh kết cục<textarea id="endingBrief" placeholder="VD: Người yêu cũ của cô dâu tán tỉnh người yêu cũ của chú rể, trong khi cô dâu và chú rể đứng nhìn sững sờ."></textarea></label>
+          <div class="small">Mô tả ai đang làm gì + ai phản ứng thế nào. <b>Không gọi tên riêng</b>, chỉ gọi theo vai vế: cô dâu, chú rể, người yêu cũ, thợ chụp ảnh...</div>
 
-          <div class="row"><b style="font-size:13px">AI PROMPT</b><div class="spacer"></div><button class="btn" id="copyEndingPrompt">Copy AI Prompt</button></div>
+          <div class="row"><b style="font-size:13px">CÂU LỆNH AI (PROMPT)</b><div class="spacer"></div><button class="btn" id="copyEndingPrompt">Sao chép Prompt AI</button></div>
           <div class="promptBox" id="endingPromptPreview"></div>
 
-          <label>🔵 Ending Image</label>
+          <label>🔵 Ảnh kết cục</label>
           <div class="endingImageInput" id="endingImagePaste" tabindex="0">
-            <div><b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br><span class="small">hoặc Import PNG/JPG · khuyên dùng 4:3</span><div class="row" style="justify-content:center;margin-top:7px"><label class="btn">Import ảnh<input id="endingImageFile" type="file" accept="image/*" style="display:none"></label><button class="btn" id="exportEndingPng">Xuất Ending PNG</button><button class="btn danger" id="clearEndingImage">Xóa ảnh</button></div></div>
+            <div><b>Dán ảnh bằng Ctrl/Cmd+V tại đây</b><br><span class="small">hoặc Tải ảnh PNG/JPG · khuyên dùng tỉ lệ 4:3</span><div class="row" style="justify-content:center;margin-top:7px"><label class="btn">Tải ảnh lên<input id="endingImageFile" type="file" accept="image/*" style="display:none"></label><button class="btn" id="exportEndingPng">Xuất ảnh kết cục (PNG)</button><button class="btn danger" id="clearEndingImage">Xóa ảnh</button></div></div>
           </div>
 
-          <label>🔵 Ending Line<input id="endingLineInput" maxlength="100" placeholder="English · 6–12 words · recap + punchline"></label>
+          <label>🔵 Câu thoại kết màn<input id="endingLineInput" maxlength="100" placeholder="Tiếng Việt thuần · ngắn gọn 6–12 từ · tóm tắt & chốt hạ hài hước"></label>
           <div class="endCounter" id="endingLineCounter"></div>
-          <div class="small">1 câu tiếng Anh ngắn, vừa recap vừa có punchline. Có thể dùng token <b>{M01}</b>, <b>{F02}</b> nếu cần đảo tên.</div>
+          <div class="small">1 câu ngắn, vừa tóm tắt drama vừa có punchline gây cười. Có thể dùng token <b>{M01}</b>, <b>{F02}</b> nếu cần đảo tên.</div>
 
-          <div class="head" style="margin-bottom:3px"><b>🔵 PLAYER VERDICT ×2</b><span class="small">2–3 từ tiếng Anh</span></div>
+          <div class="head" style="margin-bottom:3px"><b>🔵 PHÁN QUYẾT NGƯỜI CHƠI (×2 THƯỞNG)</b><span class="small">2–3 từ súc tích</span></div>
           <div class="verdictGrid" id="verdictSuggestions"></div>
-          <label>🔵 Tự nhập / chỉnh Verdict CTA<input id="verdictCustom" maxlength="40" placeholder="VD: CALL THEM OUT"></label>
+          <label>🔵 Tự nhập / chỉnh nút Phán quyết CTA<input id="verdictCustom" maxlength="40" placeholder="VD: VẠCH TRẦN SỰ THẬT"></label>
           <div class="endCounter" id="verdictCounter"></div>
-          <div class="small">Tiếng Việt chỉ để GD hiểu gợi ý. Trên game chỉ hiện tiếng Anh. Dùng từ đơn giản, có cảm xúc, không hứa thêm content/gameplay không tồn tại.</div>
+          <div class="small">Dùng từ đơn giản, gợi cảm xúc, không hứa hẹn tính năng hay nội dung không tồn tại.</div>
         </div>
       </div>
     </div>
@@ -215,14 +215,14 @@
 
 <div id="difficultyOverlay" class="difficultyOverlay">
   <div class="difficultyShell">
-    <div class="gtop"><b>TEST ĐỘ KHÓ</b><span class="small">Full Play trước → GD tự cảm nhận → Tool đối chiếu với mục tiêu</span><div class="spacer"></div><button class="btn" id="closeDifficultyTest">Đóng</button></div>
+    <div class="gtop"><b>KIỂM TRA ĐỘ KHÓ</b><span class="small">Chơi thử trước → Tự cảm nhận → Đối chiếu với mục tiêu</span><div class="spacer"></div><button class="btn" id="closeDifficultyTest">Đóng</button></div>
     <div class="difficultyBody">
-      <div class="difficultyIntro"><b>Không nhìn estimate trước.</b> Hãy Play level từ đầu tới cuối rồi tự đánh giá trước. Sau khi bấm <b>ĐỐI CHIẾU</b>, Tool chỉ so cảm nhận sau Play với mục tiêu ban đầu và giữ 2 câu chẩn đoán để GD review.</div>
+      <div class="difficultyIntro"><b>Không nhìn ước tính trước.</b> Hãy Chơi thử màn chơi từ đầu tới cuối rồi tự đánh giá. Sau khi bấm <b>ĐỐI CHIẾU</b>, hệ thống sẽ so sánh cảm nhận sau khi chơi với mục tiêu ban đầu và đưa ra chẩn đoán để bạn tinh chỉnh.</div>
       <div class="difficultyForm">
-        <div class="difficultyQuestion"><label>1. Sau khi Full Play, GD cảm thấy level này:</label><select id="diffSelf"><option value="">-- Chọn Dễ / Vừa / Khó --</option><option value="EASY">DỄ</option><option value="MEDIUM">VỪA</option><option value="HARD">KHÓ</option></select></div>
-        <div class="difficultyQuestion"><label>2. Trước placement quan trọng/khó nhất, thường còn bao nhiêu khả năng hợp lý?</label><select id="diffAmb"><option value="">-- Chọn --</option><option value="LOW">Ít</option><option value="MEDIUM">Vừa</option><option value="HIGH">Nhiều</option></select></div>
-        <div class="difficultyQuestion"><label>3. Ở các placement quan trọng, thường phải kết hợp bao nhiêu information cùng lúc để chốt?</label><select id="diffCombine"><option value="">-- Chọn --</option><option value="ONE">1 information</option><option value="TWO">2 information</option><option value="THREE_PLUS">3+ information</option></select></div>
-        <div class="difficultyActions"><button class="btn dark" id="analyzeDifficulty" type="button">ĐỐI CHIẾU</button><span class="small">Tool không tự chấm Dễ / Vừa / Khó bằng graph.</span></div>
+        <div class="difficultyQuestion"><label>1. Sau khi Chơi thử toàn bộ, bạn cảm thấy màn chơi này:</label><select id="diffSelf"><option value="">-- Chọn Dễ / Vừa / Khó --</option><option value="EASY">DỄ</option><option value="MEDIUM">VỪA</option><option value="HARD">KHÓ</option></select></div>
+        <div class="difficultyQuestion"><label>2. Trước lượt đặt quan trọng/khó nhất, thường còn bao nhiêu khả năng hợp lý?</label><select id="diffAmb"><option value="">-- Chọn --</option><option value="LOW">Ít</option><option value="MEDIUM">Vừa</option><option value="HIGH">Nhiều</option></select></div>
+        <div class="difficultyQuestion"><label>3. Ở các lượt đặt quan trọng, thường phải kết hợp bao nhiêu nguồn thông tin cùng lúc?</label><select id="diffCombine"><option value="">-- Chọn --</option><option value="ONE">1 nguồn thông tin</option><option value="TWO">2 nguồn thông tin</option><option value="THREE_PLUS">3+ nguồn thông tin</option></select></div>
+        <div class="difficultyActions"><button class="btn dark" id="analyzeDifficulty" type="button">ĐỐI CHIẾU</button><span class="small">Hệ thống hỗ trợ đối chiếu khách quan, không ép khuôn độ khó.</span></div>
       </div>
       <div id="difficultyResult" class="difficultyResult"></div>
     </div>
@@ -231,7 +231,7 @@
 
 <div id="checkOverlay" class="checkOverlay">
   <div class="checkShell">
-    <div class="gtop"><b>CHECK LEVEL</b><span class="small">Bắt lỗi data / reference chắc chắn · không chấm chất lượng design</span><div class="spacer"></div><button class="btn" id="closeCheckLevel">Đóng</button></div>
+    <div class="gtop"><b>KIỂM TRA LỖI MÀN CHƠI</b><span class="small">Quét lỗi dữ liệu & tài nguyên tham chiếu · không chấm thẩm mỹ thiết kế</span><div class="spacer"></div><button class="btn" id="closeCheckLevel">Đóng</button></div>
     <div class="checkBody" id="checkLevelBody"></div>
   </div>
 </div>
@@ -240,11 +240,19 @@
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
-    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & ROADMAP</b><span class="version">v1.35 · FIGMA SUITE & MODAL FIX</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
+    <div class="gtop"><b>LỊCH SỬ CẬP NHẬT & LỘ TRÌNH</b><span class="version">v1.36 · THUẦN VIỆT & VECTOR CHUẨN</span><div class="spacer"></div><button class="btn" id="closeChangelog">Đóng</button></div>
     <div class="changelogBody">
       <div class="clTimeline">
         <div class="clItem latest">
-          <div class="clHeader"><b>V1.35 · BORDER WRAP 60% & STUDIO UI OVERHAUL</b><span class="clTag current">MỚI NHẤT</span></div>
+          <div class="clHeader"><b>V1.36 · VIỆT HÓA TOÀN DIỆN & SỬA TRIỆT ĐỂ VIỀN VECTOR</b><span class="clTag current">MỚI NHẤT</span></div>
+          <ul class="clList">
+            <li><b>🇻🇳 Thuần hóa tiếng Việt 100%:</b> Loại bỏ triệt để toàn bộ từ ngữ tiếng Anh và các dạng phụ đề tiếng Anh trong ngoặc (Solid, Dashed, Stroke Width, FIGMA...) trên toàn bộ menu, thanh công cụ, bảng thuộc tính Inspector và các cửa sổ tính năng.</li>
+            <li><b>✏️ Sửa lỗi Độ dày viền & Kiểu nét viền (Stroke Width & Style):</b> Bổ sung đầy đủ sự kiện lắng nghe onchange/oninput cho kiểu viền (nét liền, nét đứt, nét chấm bi) và thanh trượt bo góc. Gỡ bỏ hoàn toàn CSS ghi đè cứng làm mất nét viền người dùng tùy chỉnh khi chọn hình.</li>
+            <li><b>🎯 Hỗ trợ xuất Canvas WYSIWYG:</b> Bổ sung cơ chế vẽ nét đứt (setLineDash) và bo tròn góc (roundRect) vào luồng xuất ảnh canvas export PNG để đảm bảo tính đồng nhất tuyệt đối giữa màn hình vẽ và ảnh xuất ra.</li>
+          </ul>
+        </div>
+        <div class="clItem">
+          <div class="clHeader"><b>V1.35 · BORDER WRAP 60% & STUDIO UI OVERHAUL</b><span class="clTag">STABLE</span></div>
           <ul class="clList">
             <li><b>🔄 Cuộn viền Artboard tự động (Wrap 60%):</b> Khi di chuyển ảnh ra ngoài biên sàn diễn quá 60% (cả chiều ngang và chiều dọc), ảnh sẽ tự động chuyển sang phía đối diện của Artboard để không bao giờ bị khuất biến mất. Tích hợp nút bật/tắt trực tiếp trong thanh Inspector.</li>
             <li><b>💎 Đại trùng tu UI/UX chuẩn Studio:</b> Loại bỏ toàn bộ các emoji thừa gây rối mắt trên tiêu đề, danh sách, nhãn input và thanh công cụ; chuẩn hóa hệ thống phase dot chuyên nghiệp; giữ lại nút đổi màu theme gọn gàng.</li>

@@ -834,7 +834,7 @@ refreshImmediate.seq=0;
 function renderLists(){
   $("#levelCard").classList.toggle("sel",selected.type==="level");
 
-  $("#imgList").innerHTML=data.images.map(i=>`<div class="card ${selected.type==="image"&&selected.id===i.id?"sel":""}" data-s="image:${i.id}"><b>${esc(i.name)}</b><div class="meta">z:${i.z}${i.locked?" · LOCKED":""}</div></div>`).join("");
+  $("#imgList").innerHTML=data.images.map(i=>`<div class="card ${selected.type==="image"&&selected.id===i.id?"sel":""}" data-s="image:${i.id}"><b>${esc(i.name)}</b><div class="meta">z:${i.z}${i.locked?" · ĐÃ KHÓA":""}</div></div>`).join("");
 
   $("#charList").innerHTML=sortedCharacters().map(c=>`<div class="card ${selected.type==="char"&&selected.id===c.id?"sel":""}" data-s="char:${c.id}">
     <b><span class="pill ${c.type.toLowerCase()}">${c.type}</span> ${c.id} · ${esc(c.name)}</b>
@@ -847,9 +847,9 @@ function renderLists(){
   const rx=[];
   sortedCharacters().forEach(c=>(c.reactionEvents||[]).forEach((ev,i)=>rx.push({char:c,event:ev,index:i})));
   $("#reactionList").innerHTML=rx.length?rx.map(x=>`<div class="card ${selected.type==="reaction"&&selected.charId===x.char.id&&selected.eventId===x.event.id?"sel":""}" data-rx="${x.char.id}|${x.event.id}">
-    <b>${x.char.id} · EVENT ${x.index+1} · ${x.event.steps.length} step</b>
-    <div class="meta">WHEN: ${esc(triggerLabel(x.char,x.event))}</div>
-    <div class="rxSeq">${esc(sequencePreview(x.event,x.char.id))}</div></div>`).join(""):'<div class="small">Chưa có Reaction Event.</div>';
+    <b>${x.char.id} · SỰ KIỆN ${x.index+1} · ${x.event.steps.length} bước</b>
+    <div class="meta">KHI: ${esc(triggerLabel(x.char,x.event))}</div>
+    <div class="rxSeq">${esc(sequencePreview(x.event,x.char.id))}</div></div>`).join(""):'<div class="small">Chưa có sự kiện phản ứng.</div>';
 
   $$('[data-s]').forEach(el=>el.onclick=()=>{
     const [t,id]=el.dataset.s.split(":");
@@ -952,23 +952,26 @@ function renderLive(){
     const fontPx=Math.max(8,a.fontSize/1080*st.clientWidth);
     const selectedNow=inEdit&&selected.type==="annotation"&&selected.id===a.id;
 
+    const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="8 6"':(a.strokeStyle==="dotted"?'stroke-dasharray="3 4"':'');
+
     if(a.type==="rect"||a.type==="circle"){
-      el.style.background=a.fill;el.style.borderColor=a.stroke;
-      if(a.type==="rect"&&a.radius){el.style.borderRadius=(a.radius||0)+"px";}
-      if(a.strokeStyle){el.style.borderStyle=a.strokeStyle;}
-      if(a.strokeWidth){el.style.borderWidth=(a.strokeWidth||3)+"px";}
+      el.style.backgroundColor=a.fill||"#f4f1f6";
+      el.style.borderColor=a.stroke||"#655d69";
+      if(a.type==="rect"){
+        el.style.borderRadius=(Math.max(0,a.radius||0))+"px";
+      }else{
+        el.style.borderRadius="50%";
+      }
+      el.style.borderStyle=a.strokeStyle||"solid";
+      el.style.borderWidth=(Math.max(1,a.strokeWidth||3))+"px";
       el.innerHTML=`<div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="triangle"){
-      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
       el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="star"){
-      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
       el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,2 62,38 100,38 69,60 81,96 50,74 19,96 31,60 0,38 38,38" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="polygon"){
-      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
       el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,3 93,26 93,74 50,97 7,74 7,26" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="line"){
-      const sDash=a.strokeStyle==="dashed"?'stroke-dasharray="6,4"':(a.strokeStyle==="dotted"?'stroke-dasharray="2,3"':'');
       el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><line x1="0" y1="50" x2="100" y2="50" stroke="${a.stroke}" stroke-width="${a.strokeWidth||4}" ${sDash} stroke-linecap="round" vector-effect="non-scaling-stroke"></line></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="arrow"){
       const w=Math.max(20, a.w||60), h=Math.max(20, a.h||40);
@@ -1003,9 +1006,9 @@ function renderLive(){
       const baseX = x2 - headLen * 0.65 * cosA;
       const baseY = y2 - headLen * 0.65 * sinA;
       const polyPts = `${tipX.toFixed(1)},${tipY.toFixed(1)} ${leftX.toFixed(1)},${leftY.toFixed(1)} ${baseX.toFixed(1)},${baseY.toFixed(1)} ${rightX.toFixed(1)},${rightY.toFixed(1)}`;
-      const strokeColor = selectedNow ? (multiSel.size > 1 ? "#10b981" : "#3b82f6") : (a.stroke || "#655d69");
+      const strokeColor = a.stroke || "#655d69";
       el.innerHTML=`<svg viewBox="0 0 ${w} ${h}" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none">
-        <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${baseX.toFixed(1)}" y2="${baseY.toFixed(1)}" stroke="${strokeColor}" stroke-width="${strokeW}" stroke-linecap="round"></line>
+        <line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${baseX.toFixed(1)}" y2="${baseY.toFixed(1)}" stroke="${strokeColor}" stroke-width="${strokeW}" ${sDash} stroke-linecap="round"></line>
         <polygon points="${polyPts}" fill="${strokeColor}"></polygon>
       </svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor};${!a.text?'display:none;':''}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="text"){
@@ -1033,7 +1036,7 @@ function renderLive(){
         if(a.locked)return;
         if(a.type==="text"){
           e.stopPropagation();
-          const val=prompt("Text note",a.text||"");
+          const val=prompt("Nội dung ghi chú chữ:",a.text||"");
           if(val!==null){a.text=val;save();refreshImmediate()}
         }else{
           e.stopPropagation();
@@ -1082,11 +1085,11 @@ function renderLive(){
 
   renderClues();
   renderTray();
-  $("#progress").textContent=mode==="play"?(play?.failed?"💔 HẾT MẠNG · CHƠI LẠI":`${Object.keys(play?.placed||{}).length}/${data.characters.filter(c=>c.type==="M").length} đúng`):"EDIT MODE";
+  $("#progress").textContent=mode==="play"?(play?.failed?"💔 HẾT MẠNG · CHƠI LẠI":`${Object.keys(play?.placed||{}).length}/${data.characters.filter(c=>c.type==="M").length} đúng`):"CHẾ ĐỘ BIÊN TẬP";
   document.body.classList.toggle("play",mode==="play");
   $("#editBtn").classList.toggle("on",mode==="edit");
   $("#playBtn").classList.toggle("on",mode==="play");
-  $("#playBtn").textContent=(mode==="edit"&&play)?"PLAY · TIẾP TỤC":"PLAY";
+  $("#playBtn").textContent=(mode==="edit"&&play)?"CHƠI THỬ · TIẾP TỤC":"CHƠI THỬ";
   const pg=$("#playGroup");if(pg)pg.style.display=mode==="play"?"inline-flex":"none";
   $("#replayBtn").style.display=mode==="play"?"inline-flex":"none";
   $("#shuffleReplayBtn").style.display=mode==="play"?"inline-flex":"none";
@@ -1462,15 +1465,15 @@ function renderInspector(){
   if(selected.type==="image")return wrapWithAlign(el=>imageIns(el,byImg(selected.id)));
   if(selected.type==="annotation")return wrapWithAlign(el=>annotationIns(el,byAnn(selected.id)));
   if(selected.type==="reaction")return wrapWithAlign(el=>reactionIns(el,selected.charId,selected.eventId));
-  b.innerHTML="Chọn item.";
+  b.innerHTML="Chọn một đối tượng trên màn để xem thuộc tính.";
 }
 
 function levelIns(b){
   const art=data.level.art;
   b.innerHTML=`<div class="group col">
     <div class="row">
-      <label style="flex:1">Level ID<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
-      <label style="flex:1">🟢 Độ khó GD dự định
+      <label style="flex:1">Mã màn chơi (ID)<input id="lid" value="${esc(data.level.id||"")}" placeholder="VD: L001"></label>
+      <label style="flex:1">🟢 Độ khó dự định
         <select id="ldiffTarget">
           <option value="">-- Chọn --</option>
           <option value="EASY" ${data.level.difficultyTarget==="EASY"?"selected":""}>DỄ</option>
@@ -1479,43 +1482,43 @@ function levelIns(b){
         </select>
       </label>
     </div>
-    <div class="small">Chọn độ khó dự định ngay từ đầu để GD thiết kế theo. TEST ĐỘ KHÓ chỉ là bước kiểm tra lại sau Full Play và không tự đổi mục tiêu này.</div>
-    <label>🟢 Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
-    <div class="tokenPreview"><b>Hook preview:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
-    <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả Character vào một slot hợp lệ nhưng sai người; thả hụt ngoài slot không mất mạng. Đây là rule chung, GD không chỉnh theo từng level.</div>
-    <label>🟡 Main Reveal<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
-    <div class="tokenPreview"><b>Reveal preview:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
-    <label>🟡 Main Reveal khi</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
-    <div class="small">Chỉ chọn <b>Movable (Mxx)</b>, vì Fixed đã có sẵn trên scene và không có placement event.</div>
-    <label>🟡 Main Reveal nằm dưới Clue
-      <select id="lrparent"><option value="">— Không có parent —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
+    <div class="small">Chọn độ khó dự định ngay từ đầu. Bước TEST ĐỘ KHÓ dùng để kiểm chứng sau khi chơi thử.</div>
+    <label>🟢 Móc câu cốt truyện (Hook)<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
+    <div class="tokenPreview"><b>Xem trước Hook:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
+    <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả sai vị trí nhân vật; thả trượt ra ngoài không mất mạng.</div>
+    <label>🟡 Tiết lộ cốt truyện (Reveal)<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
+    <div class="tokenPreview"><b>Xem trước Reveal:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
+    <label>🟡 Tiết lộ khi đặt đúng</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
+    <div class="small">Chỉ áp dụng với nhân vật <b>Di chuyển (Mxx)</b>.</div>
+    <label>🟡 Tiết lộ nằm dưới Manh mối
+      <select id="lrparent"><option value="">— Không có nhánh cha —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
     </label>
-    <div class="small">Nếu Reveal là một nhánh/con của clue, chọn parent ở đây. UI Reveal (✓, sáng hơn, chữ lớn/màu khác, không gạch) là rule chung của game.</div>
-    <label>🟡 Core Truth / Notes<textarea id="lt">${esc(data.level.truth)}</textarea></label>
-    <div class="small">Player-facing text có thể dùng token như <b>{M01}</b>; khi random tên, token tự đổi theo Character ID.</div>
+    <div class="small">Nếu Tiết lộ là một nhánh con của manh mối, chọn nhánh cha ở đây.</div>
+    <label>🟡 Chân tướng cốt lõi / Ghi chú<textarea id="lt">${esc(data.level.truth)}</textarea></label>
+    <div class="small">Nội dung có thể dùng token như <b>{M01}</b> để tự đổi theo tên nhân vật ngẫu nhiên.</div>
   </div>
 
-  <details class="group prodDetails"><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
-    <div class="row"><label style="width:120px">Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Item</button></div>
-    <label>🔵 Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
+  <details class="group prodDetails"><summary>XUẤT BẢN · THÔNG TIN BACKGROUND & ART</summary><div class="prodDetailsBody col">
+    <div class="row"><label style="width:120px">Phiên bản<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Thêm mục</button></div>
+    <label>🔵 Mã Asset nền chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
     <label>🔵 Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
     <label>🔵 Tone màu<input id="bgTone" value="${esc(art.tone)}" placeholder="VD: ấm, pastel, cưới ngoài trời..."></label>
-    <label>Chỉ dẫn Reference<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
-    <label>🔵 Note riêng cho Artist<textarea id="bgArtist">${esc(art.artistNote)}</textarea></label>
-    <div class="small">Reference Layers trên canvas + Scene PNG sẽ đi cùng Asset Request để Artist nhìn đúng bố cục.</div>
+    <label>Chỉ dẫn ảnh tham khảo<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
+    <label>🔵 Ghi chú riêng cho Artist<textarea id="bgArtist">${esc(art.artistNote)}</textarea></label>
+    <div class="small">Các lớp ảnh tham khảo và ảnh sơ đồ khung cảnh (PNG) sẽ gửi kèm Yêu cầu Asset cho Họa sĩ.</div>
     <div id="sceneArtList">${(art.sceneItems||[]).map((it,i)=>`<div class="sceneArtItem" data-art-item="${it.id}">
-      <div class="row" style="justify-content:space-between"><b>ITEM ${i+1}</b><span class="assetId">${esc(it.assetId||"")}</span></div>
+      <div class="row" style="justify-content:space-between"><b>MỤC ${i+1}</b><span class="assetId">${esc(it.assetId||"")}</span></div>
       <label>🔵 Tên / phần cần vẽ<input data-art-name="${it.id}" value="${esc(it.name)}" placeholder="VD: bàn tiệc / bục cưới / giỏ hoa"></label>
-      <label>🔵 Mô tả<textarea data-art-desc="${it.id}">${esc(it.description)}</textarea></label>
-      <label>🔵 Cách xuất<select data-art-mode="${it.id}">
+      <label>🔵 Mô tả chi tiết<textarea data-art-desc="${it.id}">${esc(it.description)}</textarea></label>
+      <label>🔵 Quy cách xuất ảnh<select data-art-mode="${it.id}">
         <option value="BAKED_BG" ${it.exportMode==="BAKED_BG"?"selected":""}>Dính vào BG01</option>
-        <option value="SEPARATE" ${it.exportMode==="SEPARATE"?"selected":""}>PNG riêng / Object</option>
-        <option value="FOREGROUND" ${it.exportMode==="FOREGROUND"?"selected":""}>Foreground PNG riêng</option>
+        <option value="SEPARATE" ${it.exportMode==="SEPARATE"?"selected":""}>PNG riêng / Vật thể</option>
+        <option value="FOREGROUND" ${it.exportMode==="FOREGROUND"?"selected":""}>PNG tiền cảnh riêng</option>
       </select></label>
-      <label>🔵 Asset ID<input data-art-asset="${it.id}" value="${esc(it.assetId||"")}" ${it.exportMode==="BAKED_BG"?"readonly":""}></label>
-      <label>🔵 Note Artist<input data-art-note="${it.id}" value="${esc(it.artistNote||"")}"></label>
-      <button class="btn danger" data-art-delete="${it.id}">Xóa item</button>
-    </div>`).join("")||'<div class="small">Chưa có item background/prop.</div>'}</div>
+      <label>🔵 Mã Asset ID<input data-art-asset="${it.id}" value="${esc(it.assetId||"")}" ${it.exportMode==="BAKED_BG"?"readonly":""}></label>
+      <label>🔵 Ghi chú Artist<input data-art-note="${it.id}" value="${esc(it.artistNote||"")}"></label>
+      <button class="btn danger" data-art-delete="${it.id}">Xóa mục</button>
+    </div>`).join("")||'<div class="small">Chưa có mục background/đạo cụ nào.</div>'}</div>
   </div></details>`;
 
   $("#lid").oninput=e=>{data.level.id=e.target.value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"");e.target.value=data.level.id;save();$("#liveName").textContent=data.level.id||"LEVEL"};
@@ -1575,43 +1578,43 @@ function charIns(b,c){
 
   b.innerHTML=`<div class="group col">
     <label>Mã (ID)<input id="ci" value="${c.id}"></label>
-    <label>🟢 Tên tạm trong Edit<input id="cn" value="${esc(c.name)}"></label>
-    <label>🟡 Kho tên khi Random
-      <select id="cpool"><option value="KEEP">Giữ nguyên tên này</option><option value="MALE">Kho tên Nam</option><option value="FEMALE">Kho tên Nữ</option><option value="NEUTRAL">Kho tên Neutral</option></select>
+    <label>🟢 Tên tạm trong Chỉnh sửa<input id="cn" value="${esc(c.name)}"></label>
+    <label>🟡 Kho tên khi Xáo trộn
+      <select id="cpool"><option value="KEEP">Giữ nguyên tên này</option><option value="MALE">Kho tên Nam</option><option value="FEMALE">Kho tên Nữ</option><option value="NEUTRAL">Kho tên Trung tính</option></select>
     </label>
-    <label>🟢 Vai trò / note nội bộ<input id="cr" value="${esc(c.role)}"></label>
+    <label>🟢 Vai trò / Ghi chú nội bộ<input id="cr" value="${esc(c.role)}"></label>
     <div class="row">
-<label style="flex:1">Loại<select id="ct"><option value="M">Movable</option><option value="F">Fixed</option></select></label>
-<button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn">⇄ Lật mặt (Flip)</button>
+<label style="flex:1">Loại nhân vật<select id="ct"><option value="M">Di chuyển (M)</option><option value="F">Cố định (F)</option></select></label>
+<button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn đối xứng">⇄ Lật hướng nhìn</button>
 </div>
     <label>🟢 Ngoại hình / đặc điểm nhận diện<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
-    <label>🟢 Biểu cảm ban đầu (START${c.type==="M"?" / Tray":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
-    <div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Target nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
-    <div class="small"><b>AUTO</b> tự tính hướng từ vị trí Character tới Target. Initial State là information player thấy ngay từ START.</div>
-    ${c.type==="M"?`<div class="small">Movable luôn có cả trên Scene và Tray trong Edit. <b>Vị trí trên Scene chính là đáp án.</b></div>`:""}
+    <label>🟢 Biểu cảm ban đầu (Bắt đầu${c.type==="M"?" / Khay":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
+    <div class="row"><label style="flex:1">🟢 Hướng mắt ban đầu<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"Tự động — theo Mục tiêu":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Mục tiêu nhìn<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
+    <div class="small"><b>Tự động</b> tự tính hướng từ vị trí nhân vật tới Mục tiêu.</div>
+    ${c.type==="M"?`<div class="small">Nhân vật di chuyển luôn có trên Khay và Khung vẽ. <b>Vị trí trên Khung vẽ chính là đáp án.</b></div>`:""}
   </div>
 
-  <div class="group"><div class="head" style="margin:0 0 4px"><b>RELATED · AUTO</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Chỉ để soi nhanh; Tool tự đọc dữ liệu đã có, GD không phải khai thêm.</div><div class="relSection"><small>Clue nhắc Character này</small>${incomingHtml}</div><div class="relSection"><small>Khi placement ${esc(c.id)} tham gia trigger</small>${outgoingHtml}</div></div>
+  <div class="group"><div class="head" style="margin:0 0 4px"><b>LIÊN HỆ TỰ ĐỘNG</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Hệ thống tự tổng hợp liên kết, không cần cấu hình thêm.</div><div class="relSection"><small>Manh mối nhắc nhân vật này</small>${incomingHtml}</div><div class="relSection"><small>Khi đặt ${esc(c.id)} tham gia kích hoạt</small>${outgoingHtml}</div></div>
 
-  <details class="group prodDetails"><summary>PRODUCTION · CHARACTER ART</summary><div class="prodDetailsBody col">
+  <details class="group prodDetails"><summary>XUẤT BẢN · ART NHÂN VẬT</summary><div class="prodDetailsBody col">
     <div class="row"><label style="flex:1">Giới tính<select id="cgender"><option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label><label style="flex:1">Độ tuổi<input id="cage" value="${esc(c.age||"")}" placeholder="VD: 8 tuổi / 20-25 / trung niên"></label></div>
-    <label>Base Asset ID<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>
-    ${c.type==="M"?`<label>Tray Asset ID<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label>`:""}
-    <label>Note riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
-    <div class="assetBox">${visualRows||'<span class="assetMuted">Chưa có asset state.</span>'}</div>
+    <label>Mã Asset cơ bản<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>
+    ${c.type==="M"?`<label>Mã Asset trên khay<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label>`:""}
+    <label>Ghi chú riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
+    <div class="assetBox">${visualRows||'<span class="assetMuted">Chưa có trạng thái asset.</span>'}</div>
   </div></details>
 
-  <div class="group"><div class="head" style="margin:0 0 6px"><b>Reaction Events</b><button class="btn" id="addEvent">+ Reaction</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>EVENT ${i+1} · ${ev.steps.length} step</b><div class="meta">WHEN: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có reaction.</div>'}</div></div>
-  <button class="btn danger" id="cd">Xóa character</button>`;
+  <div class="group"><div class="head" style="margin:0 0 6px"><b>Sự kiện phản ứng</b><button class="btn" id="addEvent">+ Thêm phản ứng</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>SỰ KIỆN ${i+1} · ${ev.steps.length} bước</b><div class="meta">KHI: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có phản ứng.</div>'}</div></div>
+  <button class="btn danger" id="cd">Xóa nhân vật</button>`;
 
   $("#ct").value=c.type;$("#cpool").value=c.namePool||"KEEP";$("#cgender").value=c.gender||"UNSPECIFIED";
-  $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast("Movable chỉ dùng mã Mxx, Fixed chỉ dùng mã Fxx");e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
+  $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast("Nhân vật di chuyển dùng mã Mxx, Cố định dùng mã Fxx");e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng lặp");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
   $("#cn").oninput=e=>{c.name=e.target.value;save();$$(`[data-char-name="${c.id}"]`).forEach(n=>n.textContent=e.target.value)};$("#cn").onchange=()=>{renderLists();renderClues();renderLive()};
   $("#cpool").onchange=e=>{c.namePool=e.target.value;if(c.gender==="UNSPECIFIED")c.gender=inferGender({...c,gender:""});save();renderInspector()};
   $("#cr").oninput=e=>{c.role=e.target.value;save()};$("#cr").onchange=()=>renderLists();
   if($("#cflipH"))$("#cflipH").onclick=()=>{c.flipH=!c.flipH;save();refreshImmediate();renderInspector()};
-$("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Movable":"Fixed"}${result.triggerReview?` · ${result.triggerReview} Reaction cần chọn lại trigger`:""}`)};
+$("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Di chuyển":"Cố định"}${result.triggerReview?` · ${result.triggerReview} Phản ứng cần chọn lại điều kiện`:""}`)};
   $("#ca").oninput=e=>{c.appearance=e.target.value.split("\n").map(x=>x.trim()).filter(Boolean);save()};$("#ca").onchange=()=>renderLive();
   $("#cgender").onchange=e=>{c.gender=e.target.value;save()};$("#cage").oninput=e=>{c.age=e.target.value;save()};
   $("#cbaseasset").onchange=e=>{c.assetBaseId=e.target.value.trim().toUpperCase();save();renderInspector()};if($("#ctrayasset"))$("#ctrayasset").onchange=e=>{c.assetTrayId=e.target.value.trim().toUpperCase();save();renderInspector()};
@@ -1632,40 +1635,40 @@ function clueIns(b,c){
     .join("");
 
   b.innerHTML=`<div class="group col">
-    <label>Mã clue
+    <label>Mã manh mối
       <input value="${c.id}" readonly title="Mã tự đổi theo cấu trúc cha/con">
     </label>
-    <div class="small">Mã clue tự cập nhật theo cây. Root = CL01, CL02…; child = CL01.1, CL01.2…</div>
+    <div class="small">Mã manh mối tự cập nhật theo cây. Gốc = CL01, CL02…; con = CL01.1, CL01.2…</div>
 
-    <label>🟡 Clue mẹ
+    <label>🟡 Manh mối cha / gốc
       <select id="qp">
-        <option value="">-- Root / không có mẹ --</option>
+        <option value="">-- Gốc / không có cha --</option>
         ${parentOptions}
       </select>
     </label>
 
     ${isRoot
-      ? `<div class="small"><b>🟢 Root clue:</b> có sẵn ngay từ START.</div>`
+      ? `<div class="small"><b>🟢 Manh mối gốc:</b> có sẵn ngay từ đầu màn chơi.</div>`
       : `<label>🟡 Trước khi mở<select id="qpre"><option value="LOCKED">Khóa — hiện ô khóa</option><option value="HIDDEN">Ẩn — không hiện gì</option></select></label>`
     }
 
-    <label>🟢 Nội dung<textarea id="qt">${esc(c.text)}</textarea></label>
+    <label>🟢 Nội dung manh mối<textarea id="qt">${esc(c.text)}</textarea></label>
 
     <div class="row">
       <select id="tokenChar" style="flex:1">${opts("",true)}</select>
-      <button class="btn" id="insertToken" style="white-space:nowrap">🟢 + Tên Character</button>
+      <button class="btn" id="insertToken" style="white-space:nowrap">🟢 + Tên nhân vật</button>
     </div>
-    <button class="btn" id="tokenizeNames">Nhận diện tên tạm → token</button>
-    <div class="small">Data lưu dạng <b>{M01}</b>; preview/player sẽ tự đổi thành tên hiện tại.</div>
-    <div class="tokenPreview"><b>Preview:</b> <span id="cluePreview">${esc(resolveTokens(c.text,editNameMap()))}</span></div>
+    <button class="btn" id="tokenizeNames">Chuyển tên nhân vật → token</button>
+    <div class="small">Dữ liệu lưu dạng <b>{M01}</b>; màn chơi sẽ tự đổi thành tên nhân vật tương ứng.</div>
+    <div class="tokenPreview"><b>Xem trước:</b> <span id="cluePreview">${esc(resolveTokens(c.text,editNameMap()))}</span></div>
 
-    <label>🟢 Clue hoàn tất khi (AND)</label>
+    <label>🟢 Manh mối hoàn tất khi (VÀ)</label>
     <div id="qrw" class="checks">${placementTriggerChecks(c.resolveWhen)}</div>
-    <div class="small">Chỉ chọn <b>Movable (Mxx)</b>. Field này chỉ dùng để <b>tick/mờ clue</b> và mở clue con; không dùng để nói clue đang solve ai.</div>
+    <div class="small">Chỉ chọn <b>Di chuyển (Mxx)</b>. Mục này dùng để gạch hoàn tất manh mối và mở nhánh con.</div>
 
-    <div class="small">Clue con tự mở khi <b>clue mẹ hoàn tất</b>. FLOW tự đọc Parent + “Clue hoàn tất khi”, không cần khai thêm metadata.</div>
-    <button class="btn" id="qchild">+ Clue con</button>
-    <button class="btn danger" id="qd">Xóa clue</button>
+    <div class="small">Manh mối con tự mở khi <b>manh mối cha hoàn tất</b>.</div>
+    <button class="btn" id="qchild">+ Manh mối con</button>
+    <button class="btn danger" id="qd">Xóa manh mối</button>
   </div>`;
 
   $("#qp").value=c.parent||"";
@@ -1708,26 +1711,26 @@ function reactionIns(b,charId,eventId){
   const movableFilter=x=>x.type==="M";
 
   b.innerHTML=`<div class="group col">
-    <div><b style="font-size:12px">${c.id} · REACTION EVENT ${idx+1}</b></div>
+    <div><b style="font-size:12px">${c.id} · SỰ KIỆN PHẢN ỨNG ${idx+1}</b></div>
 
-    <label>Trigger (WHEN)
+    <label>Điều kiện kích hoạt (Khi)
       <select id="evTrigger">
-        ${c.type==="M"?'<option value="SELF_PLACED">Bản thân được đặt đúng</option>':""}
-        <option value="CHAR_PLACED">Một Character khác được đặt đúng</option>
-        <option value="ALL_PLACED">Nhiều Character đã được đặt đúng</option>
+        ${c.type==="M"?'<option value="SELF_PLACED">Bản thân được đặt đúng vị trí</option>':""}
+        <option value="CHAR_PLACED">Một Nhân vật khác được đặt đúng vị trí</option>
+        <option value="ALL_PLACED">Nhiều Nhân vật đã được đặt đúng vị trí</option>
       </select>
     </label>
 
     <div id="triggerConfig"></div>
 
-    <div class="small"><b>Reaction mới cắt sequence cũ</b> của cùng Character và chạy ngay.</div>
+    <div class="small"><b>Phản ứng mới sẽ cắt chuỗi cũ</b> của cùng nhân vật và chạy ngay lập tức.</div>
 
-    <div class="head" style="margin-top:8px"><b>🟢 Sequence</b><button class="btn" id="addStep">+ Step</button></div>
+    <div class="head" style="margin-top:8px"><b>🟢 Chuỗi phản ứng</b><button class="btn" id="addStep">+ Thêm bước</button></div>
     <div id="stepList"></div>
 
-    <div class="row"><button class="btn" id="evUp">↑ Event</button><button class="btn" id="evDown">↓ Event</button></div>
-    <button class="btn danger" id="evDelete">Xóa Reaction Event</button>
-    <button class="btn" id="backChar">← Về Character</button>
+    <div class="row"><button class="btn" id="evUp">↑ Lên</button><button class="btn" id="evDown">↓ Xuống</button></div>
+    <button class="btn danger" id="evDelete">Xóa sự kiện phản ứng</button>
+    <button class="btn" id="backChar">← Quay lại Nhân vật</button>
   </div>`;
 
   $("#evTrigger").value=ev.triggerType;
@@ -1735,20 +1738,20 @@ function reactionIns(b,charId,eventId){
   const renderTriggerConfig=()=>{
     const box=$("#triggerConfig");
     if(ev.triggerType==="CHAR_PLACED"){
-      box.innerHTML=`<label>🟢 Character gây trigger<select id="evOne">${opts(ev.triggerChars?.[0]||"",true,movableFilter)}</select></label>`;
+      box.innerHTML=`<label>🟢 Nhân vật gây kích hoạt<select id="evOne">${opts(ev.triggerChars?.[0]||"",true,movableFilter)}</select></label>`;
       $("#evOne").onchange=e=>{ev.triggerChars=e.target.value?[e.target.value]:[];save();renderLists();renderLogic()};
     }else if(ev.triggerType==="ALL_PLACED"){
-      box.innerHTML=`<label>🟢 Các Character phải đã đặt đúng</label><div id="evMany" class="checks">${checks(ev.triggerChars||[],movableFilter)}</div>`;
+      box.innerHTML=`<label>🟢 Các Nhân vật phải đã đặt đúng vị trí</label><div id="evMany" class="checks">${checks(ev.triggerChars||[],movableFilter)}</div>`;
       bindChecks($("#evMany"),a=>{ev.triggerChars=a;save();renderLists();renderLogic()});
     }else{
-      box.innerHTML=`<div class="small">Trigger chính là ${c.id} được đặt đúng.</div>`;
+      box.innerHTML=`<div class="small">Điều kiện kích hoạt chính là ${c.id} được đặt đúng vị trí.</div>`;
     }
   };
 
   const renderSteps=()=>{
     $("#stepList").innerHTML=ev.steps.map((st,i)=>`<div class="stateCard" style="cursor:default;margin-bottom:7px">
-      <div class="row" style="justify-content:space-between"><b>STEP ${i+1}</b></div><div class="meta">${reactionPreview(st,c.id)} · ${esc(gazeClockText(c.id,st))}</div>
-      <label>🔵 Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
+      <div class="row" style="justify-content:space-between"><b>BƯỚC ${i+1}</b></div><div class="meta">${reactionPreview(st,c.id)} · ${esc(gazeClockText(c.id,st))}</div>
+      <label>🔵 Mã Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
 
       <div class="row">
         <label style="flex:1">🟢 Biểu cảm<select data-step-emotion="${st.id}">${emojiOptions(st.emotion)}</select></label>
@@ -1756,11 +1759,11 @@ function reactionIns(b,charId,eventId){
       </div>
 
       <div class="row">
-        <label style="flex:1">🟢 Hướng mắt<select data-step-gaze="${st.id}">${GAZES.map(g=>`<option value="${g}" ${g===st.gaze?"selected":""}>${g==="AUTO"?"AUTO — theo Target":g==="NONE"?"NONE":g+" giờ"}</option>`).join("")}</select></label>
-        <label style="flex:1">🟢 Target nhìn<select data-step-target="${st.id}">${opts(st.target,true)}</select></label>
+        <label style="flex:1">🟢 Hướng mắt<select data-step-gaze="${st.id}">${GAZES.map(g=>`<option value="${g}" ${g===st.gaze?"selected":""}>${g==="AUTO"?"Tự động — theo Mục tiêu":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label>
+        <label style="flex:1">🟢 Mục tiêu nhìn<select data-step-target="${st.id}">${opts(st.target,true)}</select></label>
       </div>
 
-      <div class="small"><b>AUTO</b> tự đo vị trí Source → Target và quy về hướng đồng hồ. Có thể chọn 1–12 giờ để override thủ công. Asset Request sẽ ghi hướng đồng hồ đã resolve.</div>
+      <div class="small"><b>Tự động</b> tự đo vị trí từ nhân vật tới mục tiêu và quy về hướng đồng hồ (1–12 giờ).</div>
 
       <div class="row">
         <label style="flex:1">🟢 Thời gian (giây)<input data-step-duration="${st.id}" type="number" min="0.1" step="0.1" value="${st.duration}"></label>
@@ -1770,7 +1773,7 @@ function reactionIns(b,charId,eventId){
       <div class="row">
         <button class="btn" data-step-up="${st.id}">↑</button>
         <button class="btn" data-step-down="${st.id}">↓</button>
-        <button class="btn danger" data-step-delete="${st.id}">Xóa step</button>
+        <button class="btn danger" data-step-delete="${st.id}">Xóa bước</button>
       </div>
     </div>`).join("");
 
@@ -1786,7 +1789,7 @@ function reactionIns(b,charId,eventId){
       q("data-step-up").onclick=()=>{if(i>0){[ev.steps[i-1],ev.steps[i]]=[ev.steps[i],ev.steps[i-1]];save();renderInspector();renderLists()}};
       q("data-step-down").onclick=()=>{if(i<ev.steps.length-1){[ev.steps[i+1],ev.steps[i]]=[ev.steps[i],ev.steps[i+1]];save();renderInspector();renderLists()}};
       q("data-step-delete").onclick=()=>{
-        if(ev.steps.length<=1){toast("Reaction Event phải có ít nhất 1 Step");return}
+        if(ev.steps.length<=1){toast("Sự kiện phản ứng phải có ít nhất 1 bước");return}
         ev.steps=ev.steps.filter(x=>x!==st);save();renderInspector();renderLists();
       };
     });
@@ -1811,21 +1814,21 @@ function reactionIns(b,charId,eventId){
 function imageIns(b,i){
   if(!i)return;
   b.innerHTML=`<div class="group col">
-    <div><b>🟡 REFERENCE LAYER</b></div>
-    <label>🟡 Tên layer<input id="in" value="${esc(i.name)}"></label>
-    <div class="row"><label>🟡 X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
-    <div class="row"><label>🟡 W<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 H<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
+    <div><b>🟡 LỚP ẢNH THAM KHẢO</b></div>
+    <label>🟡 Tên lớp ảnh<input id="in" value="${esc(i.name)}"></label>
+    <div class="row"><label>🟡 Tọa độ X<input id="ix" type="number" value="${Math.round(i.x)}"></label><label>🟡 Tọa độ Y<input id="iy" type="number" value="${Math.round(i.y)}"></label></div>
+    <div class="row"><label>🟡 Chiều rộng<input id="iw" type="number" value="${Math.round(i.w)}"></label><label>🟡 Chiều cao<input id="ih" type="number" value="${Math.round(i.h)}"></label></div>
     
-    <div class="head" style="margin-top:6px"><b>TRANSFORM & CÔNG CỤ</b></div>
+    <div class="head" style="margin-top:6px"><b>BIẾN ĐỔI & CÔNG CỤ</b></div>
     <div class="row">
-      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật đối xứng ngang (tâm ở giữa)">⇄ Flip H</button>
-      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật đối xứng dọc (tâm ở giữa)">⇅ Flip V</button>
+      <button class="btn ${i.flipH?'on':''}" id="flipHImg" type="button" title="Lật đối xứng ngang (tâm ở giữa)">⇄ Lật ngang</button>
+      <button class="btn ${i.flipV?'on':''}" id="flipVImg" type="button" title="Lật đối xứng dọc (tâm ở giữa)">⇅ Lật dọc</button>
       <button class="btn" id="rotResetImg" type="button" title="Góc 0°">0°</button>
-      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình Canvas">Căn giữa</button>
+      <button class="btn" id="centerCanvasImg" type="button" title="Căn giữa màn hình">Căn giữa</button>
     </div>
     <div class="row" style="margin-top:6px">
       <button class="btn ${wrapBoundaryEnabled?'on':''}" id="toggleWrapBtn" type="button" style="width:100%" title="Tự động chuyển ảnh sang phía đối diện khi bị kéo khuất quá 60% biên Artboard">
-        Cuộn viền Artboard (Wrap 60%): ${wrapBoundaryEnabled ? 'BẬT' : 'TẮT'}
+        Tự cuộn viền màn chơi (60%): ${wrapBoundaryEnabled ? 'BẬT' : 'TẮT'}
       </button>
     </div>
     <div class="row" style="margin-top:4px">
@@ -1833,66 +1836,66 @@ function imageIns(b,i){
       <button class="btn" id="rot90Img" type="button" style="margin-top:18px">+90°</button>
     </div>
     
-    <label style="margin-top:4px">Độ mờ Opacity: <b id="iopText">${i.opacity!==undefined?i.opacity:100}%</b>
+    <label style="margin-top:4px">Độ mờ đục: <b id="iopText">${i.opacity!==undefined?i.opacity:100}%</b>
       <input id="iop" type="range" min="10" max="100" value="${i.opacity!==undefined?i.opacity:100}">
     </label>
 
-    <div class="head" style="margin-top:6px"><b>HIỆU ỨNG & BỘ LỌC (FILTERS)</b></div>
+    <div class="head" style="margin-top:6px"><b>HIỆU ỨNG & BỘ LỌC</b></div>
     <div class="row">
-      <label style="flex:1">Hòa trộn (Blend)
+      <label style="flex:1">Hòa trộn màu
         <select id="iblend">
-          <option value="normal" ${(!i.blendMode||i.blendMode==='normal')?'selected':''}>Normal</option>
-          <option value="multiply" ${i.blendMode==='multiply'?'selected':''}>Multiply (Nhân tối)</option>
-          <option value="screen" ${i.blendMode==='screen'?'selected':''}>Screen (Làm sáng)</option>
-          <option value="overlay" ${i.blendMode==='overlay'?'selected':''}>Overlay (Phủ)</option>
-          <option value="darken" ${i.blendMode==='darken'?'selected':''}>Darken</option>
-          <option value="lighten" ${i.blendMode==='lighten'?'selected':''}>Lighten</option>
-          <option value="color-dodge" ${i.blendMode==='color-dodge'?'selected':''}>Color Dodge</option>
-          <option value="difference" ${i.blendMode==='difference'?'selected':''}>Difference (Đảo tương phản)</option>
+          <option value="normal" ${(!i.blendMode||i.blendMode==='normal')?'selected':''}>Bình thường</option>
+          <option value="multiply" ${i.blendMode==='multiply'?'selected':''}>Nhân tối</option>
+          <option value="screen" ${i.blendMode==='screen'?'selected':''}>Làm sáng</option>
+          <option value="overlay" ${i.blendMode==='overlay'?'selected':''}>Phủ lớp</option>
+          <option value="darken" ${i.blendMode==='darken'?'selected':''}>Làm tối</option>
+          <option value="lighten" ${i.blendMode==='lighten'?'selected':''}>Làm sáng nét</option>
+          <option value="color-dodge" ${i.blendMode==='color-dodge'?'selected':''}>Tăng sáng màu</option>
+          <option value="difference" ${i.blendMode==='difference'?'selected':''}>Đảo tương phản</option>
         </select>
       </label>
-      <label style="flex:1">Bóng đổ (Shadow)
+      <label style="flex:1">Bóng đổ
         <select id="ishadow">
           <option value="none" ${(!i.shadow||i.shadow==='none')?'selected':''}>Không bóng</option>
-          <option value="soft" ${i.shadow==='soft'?'selected':''}>Bóng đổ mềm</option>
-          <option value="hard" ${i.shadow==='hard'?'selected':''}>Bóng khối sắc</option>
-          <option value="glow" ${i.shadow==='glow'?'selected':''}>Neon Glow</option>
+          <option value="soft" ${i.shadow==='soft'?'selected':''}>Bóng mềm</option>
+          <option value="hard" ${i.shadow==='hard'?'selected':''}>Bóng sắc nét</option>
+          <option value="glow" ${i.shadow==='glow'?'selected':''}>Phát sáng dạ quang</option>
         </select>
       </label>
     </div>
 
-    <label style="margin-top:4px">Bo góc Radius: <b id="iradText">${i.radius||0}px</b>
+    <label style="margin-top:4px">Bo góc viền: <b id="iradText">${i.radius||0}px</b>
       <input id="irad" type="range" min="0" max="60" value="${i.radius||0}">
     </label>
 
-    <label style="margin-top:4px">Độ sáng (Brightness): <b id="ibrightText">${i.brightness!==undefined?i.brightness:100}%</b>
+    <label style="margin-top:4px">Độ sáng: <b id="ibrightText">${i.brightness!==undefined?i.brightness:100}%</b>
       <input id="ibright" type="range" min="50" max="150" value="${i.brightness!==undefined?i.brightness:100}">
     </label>
 
-    <label style="margin-top:4px">Tương phản (Contrast): <b id="icontrastText">${i.contrast!==undefined?i.contrast:100}%</b>
+    <label style="margin-top:4px">Độ tương phản: <b id="icontrastText">${i.contrast!==undefined?i.contrast:100}%</b>
       <input id="icontrast" type="range" min="50" max="150" value="${i.contrast!==undefined?i.contrast:100}">
     </label>
 
-    <label style="margin-top:4px">Bão hòa màu (Saturation): <b id="isatText">${i.saturate!==undefined?i.saturate:100}%</b>
+    <label style="margin-top:4px">Độ bão hòa màu: <b id="isatText">${i.saturate!==undefined?i.saturate:100}%</b>
       <input id="isat" type="range" min="0" max="200" value="${i.saturate!==undefined?i.saturate:100}">
     </label>
 
-    <label style="margin-top:4px">Làm mờ (Blur): <b id="iblurText">${i.blur||0}px</b>
+    <label style="margin-top:4px">Độ làm mờ: <b id="iblurText">${i.blur||0}px</b>
       <input id="iblur" type="range" min="0" max="15" value="${i.blur||0}">
     </label>
 
     <div class="row" style="margin-top:6px">
       <button class="btn smBtn ${i.grayscale===100?'on':''}" id="filterBwBtn" type="button">Đen trắng</button>
-      <button class="btn smBtn ${i.sepia===100?'on':''}" id="filterSepiaBtn" type="button">Sepia</button>
-      <button class="btn smBtn ${i.invert===100?'on':''}" id="filterInvertBtn" type="button">Invert</button>
-      <button class="btn smBtn danger" id="resetFiltersBtn" type="button">Reset</button>
+      <button class="btn smBtn ${i.sepia===100?'on':''}" id="filterSepiaBtn" type="button">Cổ điển (Sepia)</button>
+      <button class="btn smBtn ${i.invert===100?'on':''}" id="filterInvertBtn" type="button">Đảo màu</button>
+      <button class="btn smBtn danger" id="resetFiltersBtn" type="button">Đặt lại bộ lọc</button>
     </div>
 
     <div class="head" style="margin-top:8px"><b>Thao tác lớp</b></div>
-    <label class="row"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Lock</label>
-    <div class="row"><button class="btn" id="dupImg" type="button">Duplicate</button><button class="btn" id="imgFront" type="button">Front</button><button class="btn" id="imgBack" type="button">Back</button></div>
-    <div class="row"><button class="btn" id="imgForward" type="button">Forward</button><button class="btn" id="imgBackward" type="button">Backward</button></div>
-    <div class="small">Ảnh và shape/text dùng chung thứ tự layer.</div>
+    <label class="row"><input id="il" type="checkbox" style="width:auto" ${i.locked?"checked":""}> Khóa vị trí</label>
+    <div class="row"><button class="btn" id="dupImg" type="button">Nhân bản</button><button class="btn" id="imgFront" type="button">Lên trên cùng</button><button class="btn" id="imgBack" type="button">Xuống dưới cùng</button></div>
+    <div class="row"><button class="btn" id="imgForward" type="button">Lên một lớp</button><button class="btn" id="imgBackward" type="button">Xuống một lớp</button></div>
+    <div class="small">Ảnh và hình vẽ dùng chung thứ tự lớp hiển thị.</div>
   </div>`;
   const up=()=>{
     i.name=$("#in").value;i.x=+$("#ix").value;i.y=+$("#iy").value;i.w=Math.max(20,+$("#iw").value);i.h=Math.max(20,+$("#ih").value);i.locked=$("#il").checked;
@@ -1917,7 +1920,7 @@ function imageIns(b,i){
   if($("#centerCanvasImg"))$("#centerCanvasImg").onclick=()=>{
     i.x=Math.round((1080 - i.w) / 2);
     i.y=Math.round((1610 - i.h) / 2);
-    save();refreshImmediate();renderInspector();toast("Đã căn giữa Canvas 1080x1610");
+    save();refreshImmediate();renderInspector();toast("Đã căn giữa màn hình");
   };
   if($("#flipHImg"))$("#flipHImg").onclick=()=>{i.flipH=!i.flipH;save();refreshImmediate();renderInspector()};
   if($("#flipVImg"))$("#flipVImg").onclick=()=>{i.flipV=!i.flipV;save();refreshImmediate();renderInspector()};
@@ -1938,7 +1941,7 @@ function imageIns(b,i){
   if($("#resetFiltersBtn"))$("#resetFiltersBtn").onclick=()=>{
     i.brightness=100;i.contrast=100;i.saturate=100;i.blur=0;i.grayscale=0;i.sepia=0;i.invert=0;
     i.blendMode='normal';i.shadow='none';i.radius=0;
-    save();refreshImmediate();renderInspector();toast("Đã reset bộ lọc ảnh");
+    save();refreshImmediate();renderInspector();toast("Đã đặt lại bộ lọc ảnh");
   };
 
   $("#dupImg").onclick=()=>duplicateImage(i);
@@ -1952,36 +1955,52 @@ function annotationIns(b,a){
   if(!a)return;
   const isText=a.type==="text";
   const isArrow=a.type==="arrow";
-  const typeName={rect:"RECTANGLE (FIGMA)",circle:"CIRCLE (FIGMA)",triangle:"TRIANGLE (FIGMA)",star:"STAR 5-POINT (FIGMA)",polygon:"POLYGON 6-SIDE (FIGMA)",line:"LINE VECTOR (FIGMA)",arrow:"ARROW",text:"TEXT NOTE"}[a.type]||a.type.toUpperCase();
+  const typeName={
+    rect:"HÌNH CHỮ NHẬT",
+    circle:"HÌNH TRÒN",
+    triangle:"HÌNH TAM GIÁC",
+    star:"NGÔI SAO 5 CÁNH",
+    polygon:"HÌNH LỤC GIÁC",
+    line:"ĐOẠN THẲNG VECTOR",
+    arrow:"MŨI TÊN CHỈ DẪN",
+    text:"GHI CHÚ CHỮ"
+  }[a.type]||a.type.toUpperCase();
 
   b.innerHTML=`<div class="group col">
     <div><b style="font-size:11px">🟡 ${typeName}</b></div>
 
     ${isText
-      ? `<label>🟡 Nội dung<textarea id="anText">${esc(a.text)}</textarea></label>`
+      ? `<label>🟡 Nội dung ghi chú<textarea id="anText">${esc(a.text)}</textarea></label>`
       : `<label>Chữ trong hình (tùy chọn)<textarea id="anText" placeholder="Để trống nếu không cần chữ">${esc(a.text||"")}</textarea></label>`
     }
-    <label>🟡 Font size<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>
+    <label>🟡 Cỡ chữ<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>
 
     ${isText
       ? `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.stroke}"></label>`
       : `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.textColor}"></label>`
     }
 
-    ${!isText&&!isArrow?`<label>🟡 Fill<input id="anFill" type="color" value="${a.fill}"></label>`:""}
-    ${!isText?`<label>🟡 ${isArrow?"Màu mũi tên":"Stroke"}<input id="anStroke" type="color" value="${a.stroke}"></label>
+    ${!isText&&!isArrow?`<label>🟡 Màu nền<input id="anFill" type="color" value="${a.fill}"></label>`:""}
+    ${!isText?`<label>🟡 ${isArrow?"Màu mũi tên":"Màu viền"}<input id="anStroke" type="color" value="${a.stroke}"></label>
     ${!isText&&!isArrow?`
-      <label>Độ dày viền (Stroke Width)<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||3}"></label>
-      <label>Kiểu viền (Stroke Style)
+      <label>Độ dày viền<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||3}"></label>
+      <label>Kiểu nét viền
         <select id="anStrokeStyle">
-          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền (Solid)</option>
-          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt (Dashed)</option>
-          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Chấm bi (Dotted)</option>
+          <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền</option>
+          <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt</option>
+          <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi</option>
         </select>
       </label>
-      ${a.type==='rect'?`<label>Bo góc (Corner Radius: <span id="anRadiusVal">${a.radius||0}px</span>)<input id="anRadius" type="range" min="0" max="60" value="${a.radius||0}"></label>`:''}
+      ${a.type==='rect'?`<label>Bo góc viền: <span id="anRadiusVal">${a.radius||0}px</span><input id="anRadius" type="range" min="0" max="60" value="${a.radius||0}"></label>`:''}
     `:''}`:""}
-    ${isArrow?`<label>🟡 Độ dày<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth}"></label>
+    ${isArrow?`<label>🟡 Độ dày mũi tên<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||4}"></label>
+    <label>Kiểu nét mũi tên
+      <select id="anStrokeStyle">
+        <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền</option>
+        <option value="dashed" ${a.strokeStyle==='dashed'?'selected':''}>Nét đứt</option>
+        <option value="dotted" ${a.strokeStyle==='dotted'?'selected':''}>Nét chấm bi</option>
+      </select>
+    </label>
     <label>Hướng mũi tên</label>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;">
       <button class="btn ${a.arrowXDir===1&&a.arrowYDir===0?'active':''}" id="dirR" type="button" title="Sang phải">➡ Phải</button>
@@ -1995,24 +2014,24 @@ function annotationIns(b,a){
     </div>
     <button class="btn" id="anFlipArrow" type="button" style="margin-bottom:8px">⇄ Đảo ngược hướng (180°)</button>`:""}
 
-    <div class="row"><label>🟡 X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
-    <div class="row"><label>🟡 W<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 H<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
+    <div class="row"><label>🟡 Tọa độ X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Tọa độ Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
+    <div class="row"><label>🟡 Chiều rộng<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 Chiều cao<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
 
-    <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Lock</label>
-    <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện trong Play</label>
+    <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng</label>
+    <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử</label>
 
     <div class="row">
-      <button class="btn" id="anDup">Duplicate</button>
-      <button class="btn" id="anFront">Front</button>
-      <button class="btn" id="anBack">Back</button>
+      <button class="btn" id="anDup">Nhân bản</button>
+      <button class="btn" id="anFront">Lên trên cùng</button>
+      <button class="btn" id="anBack">Xuống dưới cùng</button>
     </div>
     <div class="row">
-      <button class="btn" id="anForward">Forward</button>
-      <button class="btn" id="anBackward">Backward</button>
+      <button class="btn" id="anForward">Lên một lớp</button>
+      <button class="btn" id="anBackward">Xuống một lớp</button>
     </div>
 
-    <div class="small">Shape / arrow có thể cho hiện trong Play. Text note riêng cũng có tùy chọn hiện hoặc ẩn trong Play. Double click shape để gõ chữ trực tiếp.</div>
-    <button class="btn danger" id="anDelete">Xóa</button>
+    <div class="small">Hình vẽ / mũi tên có thể cho hiện trong Chơi thử. Ghi chú chữ cũng có tùy chọn hiện hoặc ẩn khi Chơi thử. Nhấp đúp vào hình để nhập chữ trực tiếp.</div>
+    <button class="btn danger" id="anDelete">Xóa hình</button>
   </div>`;
 
   $("#anText").oninput=e=>{
@@ -2032,7 +2051,9 @@ function annotationIns(b,a){
   };
   if($("#anFill"))$("#anFill").oninput=e=>{a.fill=e.target.value;save();refreshImmediate()};
   if($("#anStroke"))$("#anStroke").oninput=e=>{a.stroke=e.target.value;save();refreshImmediate()};
-  if($("#anStrokeWidth"))$("#anStrokeWidth").oninput=e=>{a.strokeWidth=Math.max(1,+e.target.value||4);save();refreshImmediate()};
+  if($("#anStrokeWidth"))$("#anStrokeWidth").oninput=e=>{a.strokeWidth=Math.max(1,+e.target.value||1);save();refreshImmediate()};
+  if($("#anStrokeStyle"))$("#anStrokeStyle").onchange=e=>{a.strokeStyle=e.target.value;save();refreshImmediate()};
+  if($("#anRadius"))$("#anRadius").oninput=e=>{a.radius=Math.max(0,+e.target.value||0);if($("#anRadiusVal"))$("#anRadiusVal").textContent=a.radius+"px";save();refreshImmediate()};
   if(isArrow){
     const setDir=(xd,yd)=>{a.arrowXDir=xd;a.arrowYDir=yd;save();refreshImmediate();renderInspector()};
     if($("#dirR"))$("#dirR").onclick=()=>setDir(1,0);
@@ -2856,7 +2877,7 @@ function buildFlowHtml(){
   const rx=[];sortedCharacters().forEach(c=>(c.reactionEvents||[]).forEach((ev,i)=>rx.push(`<div class="flowCard"><span class="flowTag">REACTION</span><b>${esc(triggerLabel(c,ev))} → ${esc(c.id)} R${i+1}</b><div class="meta">${esc(sequencePreview(ev,c.id))}</div></div>`)));
   const reveal=(String(data.level.reveal||"").trim()||(data.level.revealWhen||[]).length)?`<div class="flowCard"><span class="flowTag">REVEAL</span><b>${esc(flowPlacedLabel(data.level.revealWhen||[]))} → Main Reveal</b><div class="meta">${esc(resolveTokens(data.level.reveal||"(chưa nhập nội dung)",editNameMap()))}</div>${data.level.revealParentClueId?`<div class="small">Nằm dưới ${esc(data.level.revealParentClueId)}</div>`:""}</div>`:'<div class="small">Level này chưa dùng Main Reveal riêng.</div>';
   const movable=sortedCharacters(c=>c.type==="M").map(c=>c.id);
-  return `<div class="flowSection"><h4>START · Information có sẵn</h4><div class="flowGrid">${rootHtml}</div><div class="small" style="margin-top:7px">Initial expression / gaze và visual trên Scene cũng có sẵn từ START; FLOW không bắt GD khai metadata “giúp solve ai”.</div></div><div class="flowSection"><h4>Clue mở theo Parent</h4><div class="flowGrid">${childHtml}</div></div><div class="flowSection"><h4>Reaction Trigger</h4><div class="flowGrid">${rx.join("")||'<div class="small">Không có Reaction Event.</div>'}</div></div><div class="flowSection"><h4>Main Reveal</h4><div class="flowGrid">${reveal}</div></div><div class="flowSection"><h4>Completion</h4><div class="flowCard"><span class="flowTag start">WIN</span><b>Tất cả Movable đúng</b><div class="meta">${esc(movable.join(" + ")||"Chưa có Movable")}</div></div></div><div class="sgGraphHint"><b>FLOW chỉ thể hiện state/trigger mà Tool biết chắc.</b> Nó không kết luận player đã đủ evidence hay level khó/dễ. Dùng Play + Proof / Swap / Remove để kiểm suy luận.</div>`;
+  return `<div class="flowSection"><h4>KHỞI ĐẦU · Thông tin có sẵn</h4><div class="flowGrid">${rootHtml}</div><div class="small" style="margin-top:7px">Initial expression / gaze và visual trên Scene cũng có sẵn từ START; FLOW không bắt GD khai metadata “giúp solve ai”.</div></div><div class="flowSection"><h4>Clue mở theo Parent</h4><div class="flowGrid">${childHtml}</div></div><div class="flowSection"><h4>Reaction Trigger</h4><div class="flowGrid">${rx.join("")||'<div class="small">Không có Reaction Event.</div>'}</div></div><div class="flowSection"><h4>Main Reveal</h4><div class="flowGrid">${reveal}</div></div><div class="flowSection"><h4>Completion</h4><div class="flowCard"><span class="flowTag start">WIN</span><b>Tất cả Movable đúng</b><div class="meta">${esc(movable.join(" + ")||"Chưa có Movable")}</div></div></div><div class="sgGraphHint"><b>FLOW chỉ thể hiện state/trigger mà Tool biết chắc.</b> Nó không kết luận player đã đủ evidence hay level khó/dễ. Dùng Play + Proof / Swap / Remove để kiểm suy luận.</div>`;
 }
 function renderLogic(){const el=$("#logicFlowFull");if(el)el.innerHTML=buildFlowHtml()}
 function openLogicFlow(){renderLogic();$("#overlay").classList.add("show")}
@@ -3148,12 +3169,12 @@ function runPreflightCheck(includeProduction=false){
 function checkItemHtml(item,kind){return `<div class="checkItem ${kind}"><b>${esc(item.code)}</b> · ${esc(item.text)}</div>`}
 function renderPreflightCheck(result){
   const e=result.errors||[],w=result.warnings||[],production=!!result.production;
-  const status=e.length?"CÒN LỖI":w.length?"PASS · CÓ WARNING":"PASS";
+  const status=e.length?"CÒN LỖI":w.length?"ĐẠT · CÓ CẢNH BÁO":"ĐẠT TIÊU CHUẨN";
   const statusClass=e.length?"err":w.length?"warn":"ok";
-  $("#checkLevelBody").innerHTML=`<div class="checkSummary"><span class="checkChip ${statusClass}">${production?"PRODUCTION CHECK":"DESIGN CHECK"} · ${status}</span><span class="checkChip err">${e.length} lỗi</span><span class="checkChip warn">${w.length} warning</span></div>
+  $("#checkLevelBody").innerHTML=`<div class="checkSummary"><span class="checkChip ${statusClass}">${production?"KIỂM TRA XUẤT BẢN":"KIỂM TRA THIẾT KẾ"} · ${status}</span><span class="checkChip err">${e.length} lỗi</span><span class="checkChip warn">${w.length} cảnh báo</span></div>
   <div class="checkSection"><h4>Lỗi Tool biết chắc</h4>${e.length?e.map(x=>checkItemHtml(x,"err")).join(""):'<div class="checkEmpty">✓ Không có lỗi blocking.</div>'}</div>
-  <div class="checkSection"><h4>Warning để GD review</h4>${w.length?w.map(x=>checkItemHtml(x,"warn")).join(""):'<div class="checkEmpty">✓ Không có warning.</div>'}</div>
-  <div class="checkFoot">CHECK chỉ bắt lỗi data/reference mà Tool biết chắc. <b>PASS không có nghĩa level đã hay, đủ evidence hay đúng độ khó.</b>${production?" Production Check mới kiểm thêm Asset / Ending / handoff.":""}</div>`;
+  <div class="checkSection"><h4>Cảnh báo để GD cân nhắc</h4>${w.length?w.map(x=>checkItemHtml(x,"warn")).join(""):'<div class="checkEmpty">✓ Không có warning.</div>'}</div>
+  <div class="checkFoot">KIỂM TRA chỉ bắt lỗi dữ liệu/liên kết mà Tool biết chắc. <b>ĐẠT không có nghĩa màn chơi đã cuốn hút, đủ evidence hay đúng độ khó.</b>${production?" Kiểm tra xuất bản sẽ rà soát thêm Asset / Đoạn kết / bàn giao kỹ thuật.":""}</div>`;
 }
 function openPreflightCheck(){const r=runPreflightCheck(false);renderPreflightCheck(r);$("#checkOverlay").classList.add("show");return r}
 function validateEndingData(){
@@ -3255,24 +3276,87 @@ async function exportScenePng(){
     if(layer.type==="image"){
       const im=await loadCanvasImage(o.src);if(im)ctx.drawImage(im,o.x,o.y,o.w,o.h);
     }else{
-      ctx.save();ctx.lineWidth=o.strokeWidth||4;ctx.strokeStyle=o.stroke||"#655d69";ctx.fillStyle=o.fill||"#f4f1f6";
-      if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
-      else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
-      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.lineTo(o.x,o.y+o.h);ctx.closePath();ctx.fillStyle=o.fill;ctx.fill();if(o.stroke){ctx.strokeStyle=o.stroke;ctx.lineWidth=o.strokeWidth||3;ctx.lineJoin="round";ctx.stroke();}ctx.stroke()}
-      else if(o.type==="arrow"){
+      ctx.save();
+      const sWidth = o.strokeWidth !== undefined ? o.strokeWidth : 2;
+      ctx.lineWidth = sWidth;
+      ctx.strokeStyle = o.stroke || "#655d69";
+      ctx.fillStyle = o.fill || "#f4f1f6";
+      if(o.strokeStyle === "dashed") ctx.setLineDash([8, 6]);
+      else if(o.strokeStyle === "dotted") ctx.setLineDash([3, 4]);
+      else ctx.setLineDash([]);
+
+      if(o.type==="rect"){
+        const rad = o.radius !== undefined ? o.radius : 8;
+        ctx.beginPath();
+        if(ctx.roundRect) ctx.roundRect(o.x, o.y, o.w, o.h, rad);
+        else ctx.rect(o.x, o.y, o.w, o.h);
+        ctx.fill();
+        if(sWidth > 0) ctx.stroke();
+      }else if(o.type==="circle"){
+        ctx.beginPath();
+        ctx.ellipse(o.x+o.w/2, o.y+o.h/2, Math.max(1, o.w/2), Math.max(1, o.h/2), 0, 0, Math.PI*2);
+        ctx.fill();
+        if(sWidth > 0) ctx.stroke();
+      }else if(o.type==="triangle"){
+        ctx.beginPath();
+        ctx.moveTo(o.x + o.w * 0.5, o.y + o.h * 0.05);
+        ctx.lineTo(o.x + o.w * 0.95, o.y + o.h * 0.95);
+        ctx.lineTo(o.x + o.w * 0.05, o.y + o.h * 0.95);
+        ctx.closePath();
+        ctx.lineJoin = "round";
+        ctx.fill();
+        if(sWidth > 0) ctx.stroke();
+      }else if(o.type==="star"){
+        const starPts = [[50,5],[62,35],[95,38],[70,60],[78,95],[50,77],[22,95],[30,60],[5,38],[38,35]];
+        ctx.beginPath();
+        starPts.forEach(([px, py], idx) => {
+          const cx = o.x + (px / 100) * o.w;
+          const cy = o.y + (py / 100) * o.h;
+          if(idx === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+        });
+        ctx.closePath();
+        ctx.lineJoin = "round";
+        ctx.fill();
+        if(sWidth > 0) ctx.stroke();
+      }else if(o.type==="polygon"){
+        const polyPts = [[25,5],[75,5],[95,50],[75,95],[25,95],[5,50]];
+        ctx.beginPath();
+        polyPts.forEach(([px, py], idx) => {
+          const cx = o.x + (px / 100) * o.w;
+          const cy = o.y + (py / 100) * o.h;
+          if(idx === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+        });
+        ctx.closePath();
+        ctx.lineJoin = "round";
+        ctx.fill();
+        if(sWidth > 0) ctx.stroke();
+      }else if(o.type==="line"){
+        ctx.beginPath();
+        ctx.moveTo(o.x + o.w * 0.05, o.y + o.h * 0.5);
+        ctx.lineTo(o.x + o.w * 0.95, o.y + o.h * 0.5);
+        if(sWidth > 0) ctx.stroke();
+      }else if(o.type==="arrow"){
         const pad=8;
         const x1=o.arrowXDir===0?o.x+o.w/2:(o.arrowXDir===1?o.x+pad:o.x+o.w-pad);
         const x2=o.arrowXDir===0?o.x+o.w/2:(o.arrowXDir===1?o.x+o.w-pad:o.x+pad);
         const y1=o.arrowYDir===0?o.y+o.h/2:(o.arrowYDir===1?o.y+pad:o.y+o.h-pad);
         const y2=o.arrowYDir===0?o.y+o.h/2:(o.arrowYDir===1?o.y+o.h-pad:o.y+pad);
-        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
+        if(sWidth > 0) ctx.stroke();
         const a=Math.atan2(y2-y1,x2-x1);
+        ctx.setLineDash([]);
         ctx.beginPath();ctx.moveTo(x2,y2);
-        ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));
-        ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));
+        const arrowHeadLen = Math.max(16, (sWidth || 3) * 4);
+        ctx.lineTo(x2-arrowHeadLen*Math.cos(a-.45),y2-arrowHeadLen*Math.sin(a-.45));
+        ctx.lineTo(x2-arrowHeadLen*Math.cos(a+.45),y2-arrowHeadLen*Math.sin(a+.45));
         ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill();
       }
-      if(o.text){ctx.fillStyle=o.textColor||"#514953";ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15)}
+
+      if(o.text){
+        ctx.setLineDash([]);
+        ctx.fillStyle=o.textColor||"#514953";ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";
+        canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15);
+      }
       ctx.restore();
     }
   }
@@ -3281,7 +3365,7 @@ async function exportScenePng(){
     ctx.fillStyle="#342f3a";ctx.font="900 24px Arial";ctx.textAlign="center";ctx.fillText(c.id,c.x,c.y+8);ctx.font="700 20px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
     ctx.restore();
   });
-  canvas.toBlob(blob=>{if(!blob){toast("Không xuất được Scene PNG");return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${safeBaseName(data.level.id||"DRAMA_LEVEL")}_SCENE_LAYOUT.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Đã xuất Scene PNG")},"image/png");
+  canvas.toBlob(blob=>{if(!blob){toast("Không xuất được ảnh khung cảnh (PNG)");return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${safeBaseName(data.level.id||"DRAMA_LEVEL")}_SO_DO_KHUNG_CANH.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Đã xuất ảnh sơ đồ khung cảnh (PNG)")},"image/png");
 }
 
 async function saveProjectFile(){
@@ -3325,7 +3409,7 @@ $("#exportBtn").onclick=()=>{
   const idPart=data.level.id||"drama_level";
   const ver=String(data.level.version||"1.0").replace(/[^A-Za-z0-9._-]+/g,"_");
   downloadText(JSON.stringify(buildRuntimeData(),null,2),`${idPart}_v${ver}.level.json`,"application/json");
-  toast(check.warnings.length?`Đã xuất Dev JSON · ${check.warnings.length} warning`:`Đã xuất Dev JSON · CHECK PASS`);
+  toast(check.warnings.length?`Đã xuất Dev JSON · ${check.warnings.length} cảnh báo`:`Đã xuất Dev JSON · KIỂM TRA ĐẠT`);
 };
 $("#assetRequestBtn").onclick=exportAssetRequest;
 $("#scenePngBtn").onclick=exportScenePng;
