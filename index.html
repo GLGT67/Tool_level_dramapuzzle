@@ -42,7 +42,7 @@
       <summary class="btn smBtn">PRODUCTION ▾</summary>
       <div class="topMenuPanel">
         <button class="btn" id="endingBtn">ENDING</button>
-        <button class="btn" id="scenePngBtn">Scene PNG</button>
+        <button class="btn" id="scenePngBtn">Scene PNG · START + SOLVED (ZIP)</button>
         <button class="btn" id="assetRequestBtn">Asset Request XLSX</button>
         <button class="btn" id="exportBtn">Dev JSON</button>
       </div>
@@ -63,6 +63,7 @@
     <details class="topMenu" id="moreMenu">
       <summary class="btn iconBtn smBtn" title="Tùy chọn khác">⋯</summary>
       <div class="topMenuPanel">
+        <button class="btn" id="saveAsBtn">LƯU THÀNH FILE MỚI</button>
         <button class="btn danger" id="resetBtn">Reset trắng</button>
       </div>
     </details>
@@ -99,8 +100,14 @@
         <b id="liveName">LEVEL</b>
       </div>
       <div class="playGroup" id="playGroup" style="display:none">
-        <button class="btn iconBtn good" id="replayBtn" title="Chơi lại kịch bản này">↻ Replay</button>
-        <button class="btn iconBtn" id="shuffleReplayBtn" title="Chơi lại và xáo trộn tên nhân vật">🔀 Shuffle Names</button>
+        <details class="topMenu" id="replayMenu">
+          <summary class="btn iconBtn good" id="replayBtn" title="Chơi lại">↻ Replay ▾</summary>
+          <div class="topMenuPanel" style="min-width:230px">
+            <button class="btn" id="replayOriginalBtn">↻ Chơi lại · Tên gốc</button>
+            <button class="btn" id="replayLastShuffledBtn">↻ Chơi lại · Tên đã đảo</button>
+            <button class="btn" id="shuffleReplayBtn">Chơi lại + Đảo tên mới</button>
+          </div>
+        </details>
         <span class="pill playPill" id="playNameStatus">Tên: Edit</span>
       </div>
       <div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div>
@@ -118,6 +125,7 @@
         <button class="toolBtn" data-tool="polygon" title="Hình lục giác 6 cạnh">⬡</button>
         <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
         <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
+        <button class="toolBtn" data-tool="qslot" id="toolQslot" title="Ô trống dấu hỏi (Question Slot)">?</button>
         <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
         <div class="toolSep"></div>
         <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>

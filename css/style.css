@@ -915,6 +915,44 @@ body.play .drawingCanvas.hidePlay {
 .noteObj.sel .noteResize { display: block; }
 .noteObj.rect { border: 2px solid #655d69; background: #f4f1f6; }
 .noteObj.circle { border: 2px solid #655d69; background: #f4f1f6; border-radius: 50%; }
+.noteObj.qslot {
+  background: transparent;
+  border: 0;
+  overflow: visible;
+}
+.noteObj.qslot .qslotWrap {
+  position: absolute;
+  inset: 0;
+  border-radius: 24%;
+  background: #d9d2e7;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.noteObj.qslot .qslotDash {
+  position: absolute;
+  inset: 8%;
+  border-radius: 20%;
+  border: 6px dashed #f7f5fb;
+  box-sizing: border-box;
+}
+.noteObj.qslot .qslotQs {
+  position: absolute;
+  inset: 18% 14% 16%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8%;
+  font-weight: 900;
+  color: #837892;
+  line-height: 1;
+}
+.noteObj.qslot .qslotQs .big {
+  font-size: 1em;
+}
+.noteObj.qslot .qslotQs .small {
+  font-size: 0.58em;
+  transform: translateY(16%);
+}
+
 .noteObj.text { min-width: 70px; min-height: 28px; background: transparent; border: 0; }
 .noteText {
   width: 100%;

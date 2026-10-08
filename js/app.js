@@ -164,17 +164,20 @@ function tokenizeKnownNames(str){
   });
   return out;
 }
-function pickUniqueName(pool,used){
+function pickUniqueName(pool,used,avoid=""){
   const candidates=(NAME_POOLS[pool]||[]).filter(n=>!used.has(n));
   if(!candidates.length)return null;
-  return candidates[Math.floor(Math.random()*candidates.length)];
+  const different=candidates.filter(n=>n!==avoid);
+  const poolToPick=different.length?different:candidates;
+  return poolToPick[Math.floor(Math.random()*poolToPick.length)];
 }
-function buildPlayNameMap(randomize){
+function buildPlayNameMap(randomize,avoidMap=null){
   const map={},used=new Set();
   sortedCharacters().forEach(c=>{
     let name=c.name||c.id;
-    if(randomize&&c.namePool&&c.namePool!=="KEEP"){
-      const picked=pickUniqueName(c.namePool,used);
+    if(randomize){
+      const pool=(c.namePool&&c.namePool!=="KEEP")?c.namePool:inferGender(c);
+      const picked=pickUniqueName(pool,used,avoidMap?.[c.id]||"");
       if(picked)name=picked;
     }
     if(used.has(name)){
@@ -230,6 +233,16 @@ function inferGender(c){
   if(c.namePool==="FEMALE")return "FEMALE";
   return "UNSPECIFIED";
 }
+function reactionSettledStep(ev){
+  return (ev?.steps||[]).find(st=>st.id===ev.settleStepId)||null;
+}
+function reactionSettledState(source,ev){
+  return reactionSettledStep(ev)||initialStateRecord(source);
+}
+function runtimeInitialAssetId(c){
+  return c.type==="M"?(c.assetTrayId||`${c.id}_TRAY`):(c.assetBaseId||`${c.id}_BASE`);
+}
+
 function nextReactionAssetId(c){
   let max=0;
   (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>{
@@ -436,6 +449,7 @@ function normalize(d){
       ev.triggerType=ev.triggerType||"SELF_PLACED";
       if(ev.triggerType==="START")ev.triggerType=c.type==="M"?"SELF_PLACED":"CHAR_PLACED";
       ev.triggerChars=ev.triggerChars||[];
+      ev.settleStepId=ev.settleStepId||ev.steps[ev.steps.length-1]?.id||"INITIAL";
       delete ev.role;
       delete ev.affects;
       delete ev.helps;delete ev.solveRoute;delete ev.routeConfirmed;delete ev.requiresSolved;
@@ -484,7 +498,8 @@ function normalize(d){
   d.annotations.forEach((a,idx)=>{
     a.type=a.type||"rect";
     a.x=Number(a.x)||100;a.y=Number(a.y)||100;
-    a.w=Math.max(30,Number(a.w)||180);a.h=Math.max(24,Number(a.h)||100);
+    const qslot=a.type==="qslot";
+    a.w=Math.max(qslot?70:30,Number(a.w)||(qslot?108:180));a.h=Math.max(qslot?70:24,Number(a.h)||(qslot?108:100));
     a.fill=a.fill||"#f4f1f6";a.stroke=a.stroke||"#655d69";
     a.text=a.text??(a.type==="text"?"Note":"");
     a.fontSize=Number(a.fontSize)||28;
@@ -1095,6 +1110,9 @@ function renderLive(){
       el.style.borderStyle=a.strokeStyle||"solid";
       el.style.borderWidth=(Math.max(1,a.strokeWidth||3))+"px";
       el.innerHTML=`<div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
+    }else if(a.type==="qslot"){
+      const qFont=Math.max(11,Math.round(Math.min(a.w,a.h)/1080*st.clientWidth*.42));
+      el.innerHTML=`<div class="qslotWrap"></div><div class="qslotDash"></div><div class="qslotQs" style="font-size:${qFont}px"><span class="small">?</span><span class="big">?</span><span class="small">?</span></div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="triangle"){
       el.innerHTML=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none"><polygon points="50,4 96,96 4,96" fill="${a.fill}" stroke="${a.stroke}" stroke-width="${a.strokeWidth||3}" ${sDash} stroke-linejoin="round" vector-effect="non-scaling-stroke"></polygon></svg><div class="shapeLabel" ${selectedNow&&!a.locked?'contenteditable="true"':''} style="font-size:${fontPx}px;color:${a.textColor}">${esc(a.text||"")}</div>${inEdit?'<div class="noteResize"></div>':''}`;
     }else if(a.type==="star"){
@@ -1876,6 +1894,11 @@ function reactionIns(b,charId,eventId){
     <div class="head" style="margin-top:8px"><b>🟢 Reaction Sequence</b><button class="btn" id="addStep">+ Thêm bước</button></div>
     <div id="stepList"></div>
 
+    <label>Giữ lại sau khi chạy hết Reaction
+      <select id="evSettleStep"></select>
+    </label>
+    <div class="small">Chạy đủ các Step theo thời gian, rồi chuyển về biểu cảm ban đầu hoặc Step đã chọn. Giữ trạng thái này đến Reaction tiếp theo.</div>
+
     <div class="row"><button class="btn" id="evUp">↑ Lên</button><button class="btn" id="evDown">↓ Xuống</button></div>
     <button class="btn danger" id="evDelete">Xóa Reaction Event</button>
     <button class="btn" id="backChar">← Quay lại Character</button>
@@ -1897,6 +1920,13 @@ function reactionIns(b,charId,eventId){
   };
 
   const renderSteps=()=>{
+    const keep=$("#evSettleStep");
+    if(keep){
+      keep.innerHTML=`<option value="INITIAL">Biểu cảm ban đầu · ${esc(c.baseExpression||"bình thường")}</option>`+
+        ev.steps.map((st,i)=>`<option value="${esc(st.id)}">Step ${i+1} · ${esc(reactionPreview(st,c.id)||"∅")}</option>`).join("");
+      keep.value=ev.settleStepId||"INITIAL";
+      keep.onchange=e=>{ev.settleStepId=e.target.value;save();renderLists();renderLogic()};
+    }
     $("#stepList").innerHTML=ev.steps.map((st,i)=>`<div class="stateCard" style="cursor:default;margin-bottom:7px">
       <div class="row" style="justify-content:space-between"><b>BƯỚC ${i+1}</b></div><div class="meta">${reactionPreview(st,c.id)} · ${esc(gazeClockText(c.id,st))}</div>
       <label>🔵 Mã Asset ID<input data-step-asset="${st.id}" value="${esc(st.assetId||"")}"></label>
@@ -1938,7 +1968,9 @@ function reactionIns(b,charId,eventId){
       q("data-step-down").onclick=()=>{if(i<ev.steps.length-1){[ev.steps[i+1],ev.steps[i]]=[ev.steps[i],ev.steps[i+1]];save();renderInspector();renderLists()}};
       q("data-step-delete").onclick=()=>{
         if(ev.steps.length<=1){toast("Sự kiện phản ứng phải có ít nhất 1 bước");return}
-        ev.steps=ev.steps.filter(x=>x!==st);save();renderInspector();renderLists();
+        ev.steps=ev.steps.filter(x=>x!==st);
+        if(ev.settleStepId===st.id){ev.settleStepId="INITIAL";toast("Step giữ lại đã bị xóa · chuyển về biểu cảm ban đầu")}
+        save();renderInspector();renderLists();
       };
     });
   };
@@ -1952,7 +1984,12 @@ function reactionIns(b,charId,eventId){
     else if(ev.triggerType==="CHAR_PLACED")ev.triggerChars=(ev.triggerChars||[]).slice(0,1);
     save();renderTriggerConfig();renderLists();renderLogic();
   };
-  $("#addStep").onclick=()=>{ev.steps.push(blankReactionStep());ensureCharacterAssetIds(c);save();renderInspector();renderLists()};
+  $("#addStep").onclick=()=>{
+    const wasLast=ev.settleStepId===ev.steps[ev.steps.length-1]?.id;
+    const step=blankReactionStep();ev.steps.push(step);
+    if(wasLast)ev.settleStepId=step.id;
+    ensureCharacterAssetIds(c);save();renderInspector();renderLists()
+  };
   $("#evUp").onclick=()=>{if(idx>0){[c.reactionEvents[idx-1],c.reactionEvents[idx]]=[c.reactionEvents[idx],c.reactionEvents[idx-1]];save();refreshImmediate()}};
   $("#evDown").onclick=()=>{if(idx<c.reactionEvents.length-1){[c.reactionEvents[idx+1],c.reactionEvents[idx]]=[c.reactionEvents[idx],c.reactionEvents[idx+1]];save();refreshImmediate()}};
   $("#evDelete").onclick=()=>{c.reactionEvents=c.reactionEvents.filter(x=>x!==ev);selected={type:"char",id:c.id};save();refreshImmediate()};
@@ -2103,6 +2140,7 @@ function annotationIns(b,a){
   if(!a)return;
   const isText=a.type==="text";
   const isArrow=a.type==="arrow";
+  const isQslot=a.type==="qslot";
   const typeName={
     rect:"HÌNH CHỮ NHẬT",
     circle:"HÌNH TRÒN",
@@ -2211,21 +2249,21 @@ function annotationIns(b,a){
   }
 
   b.innerHTML=`<div class="group col">
-    <div><b style="font-size:11px">🟡 ${typeName} · VECTOR SHAPE</b></div>
+    <div><b style="font-size:11px">${typeName} · VECTOR SHAPE</b></div>
 
-    ${isText
-      ? `<label>🟡 Nội dung ghi chú<textarea id="anText">${esc(a.text)}</textarea></label>`
+    ${isQslot?`<div class="small">Icon slot dấu hỏi cố định để đánh dấu chỗ trống / chỗ chờ trên scene.</div>`:(isText
+      ? `<label>Nội dung ghi chú<textarea id="anText">${esc(a.text)}</textarea></label>`
       : `<label>Chữ trong hình (tùy chọn)<textarea id="anText" placeholder="Để trống nếu không cần chữ">${esc(a.text||"")}</textarea></label>`
-    }
-    <label>🟡 Cỡ chữ<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>
+    )}
+    ${!isQslot?`<label>Cỡ chữ<input id="anFont" type="number" min="8" max="160" value="${a.fontSize}"></label>`:""}
 
-    ${isText
-      ? `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.stroke}"></label>`
-      : `<label>🟡 Màu chữ<input id="anTextColor" type="color" value="${a.textColor}"></label>`
-    }
+    ${isQslot?"":(isText
+      ? `<label>Màu chữ<input id="anTextColor" type="color" value="${a.stroke}"></label>`
+      : `<label>Màu chữ<input id="anTextColor" type="color" value="${a.textColor}"></label>`
+    )}
 
-    ${!isText&&!isArrow?`<label>🟡 Màu nền<input id="anFill" type="color" value="${a.fill}"></label>`:""}
-    ${!isText?`<label>🟡 ${isArrow?"Màu mũi tên":"Màu viền"}<input id="anStroke" type="color" value="${a.stroke}"></label>
+    ${!isText&&!isArrow&&!isQslot?`<label>Màu nền<input id="anFill" type="color" value="${a.fill}"></label>`:""}
+    ${!isText&&!isQslot?`<label>${isArrow?"Màu mũi tên":"Màu viền"}<input id="anStroke" type="color" value="${a.stroke}"></label>
     ${!isText&&!isArrow?`
       <label>Độ dày viền<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||3}"></label>
       <label>Kiểu nét viền
@@ -2237,7 +2275,7 @@ function annotationIns(b,a){
       </label>
       ${a.type==='rect'?`<label>Bo góc viền: <span id="anRadiusVal">${a.radius||0}px</span><input id="anRadius" type="range" min="0" max="60" value="${a.radius||0}"></label>`:''}
     `:''}`:""}
-    ${isArrow?`<label>🟡 Độ dày mũi tên<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||4}"></label>
+    ${isArrow?`<label>Độ dày mũi tên<input id="anStrokeWidth" type="number" min="1" max="20" value="${a.strokeWidth||4}"></label>
     <label>Kiểu nét mũi tên
       <select id="anStrokeStyle">
         <option value="solid" ${(a.strokeStyle||'solid')==='solid'?'selected':''}>Nét liền (Solid)</option>
@@ -2258,8 +2296,8 @@ function annotationIns(b,a){
     </div>
     <button class="btn" id="anFlipArrow" type="button" style="margin-bottom:8px">⇄ Flip Arrow (180°)</button>`:""}
 
-    <div class="row"><label>🟡 Position X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>🟡 Position Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
-    <div class="row"><label>🟡 Width<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>🟡 Height<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
+    <div class="row"><label>Position X<input id="anX" type="number" value="${Math.round(a.x)}"></label><label>Position Y<input id="anY" type="number" value="${Math.round(a.y)}"></label></div>
+    <div class="row"><label>Width<input id="anW" type="number" value="${Math.round(a.w)}"></label><label>Height<input id="anH" type="number" value="${Math.round(a.h)}"></label></div>
 
     <label class="row"><input id="anLock" type="checkbox" style="width:auto" ${a.locked?"checked":""}> Khóa đối tượng (Lock)</label>
     <label class="row"><input id="anShowPlay" type="checkbox" style="width:auto" ${a.visibleInPlay?"checked":""}> Hiện khi Chơi thử (Visible in Play)</label>
@@ -2278,7 +2316,7 @@ function annotationIns(b,a){
     <button class="btn danger" id="anDelete">Xóa hình (Delete)</button>
   </div>`;
 
-  $("#anText").oninput=e=>{
+  if($("#anText")) $("#anText").oninput=e=>{
     a.text=e.target.value;save();
     const n=document.querySelector(`[data-annotation-id="${a.id}"] ${isText?".noteText":".shapeLabel"}`);
     if(n){
@@ -2288,8 +2326,8 @@ function annotationIns(b,a){
       }
     }
   };
-  $("#anFont").oninput=e=>{a.fontSize=Math.max(8,+e.target.value||28);save();refreshImmediate()};
-  $("#anTextColor").oninput=e=>{
+  if($("#anFont")) $("#anFont").oninput=e=>{a.fontSize=Math.max(8,+e.target.value||28);save();refreshImmediate()};
+  if($("#anTextColor")) $("#anTextColor").oninput=e=>{
     if(isText)a.stroke=e.target.value;else a.textColor=e.target.value;
     save();refreshImmediate();
   };
@@ -2316,7 +2354,10 @@ function annotationIns(b,a){
     a.w=Math.max(20,+$("#anW").value);a.h=Math.max(20,+$("#anH").value);
     save();refreshImmediate();
   };
-  ["anX","anY","anW","anH"].forEach(id=>$("#"+id).onchange=geom);
+  ["anX","anY","anW","anH"].forEach(id=>{
+    const el=$("#"+id);
+    if(el){ el.onchange=geom; el.oninput=geom; }
+  });
 
   $("#anLock").onchange=e=>{a.locked=e.target.checked;save();refreshImmediate()};
   $("#anShowPlay").onchange=e=>{a.visibleInPlay=e.target.checked;save();refreshImmediate()};
@@ -2816,11 +2857,13 @@ function setTool(tool){
 $$(".toolBtn").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 
 function createAnnotation(type,x,y,w,h,extra={}){
+  const qslot=type==="qslot";
   const a={
     id:uid("AN_"),type,x,y,
-    w:Math.max(type==="text"?120:(type==="line"?60:40),w),h:Math.max(type==="text"?40:(type==="line"?10:40),h),
+    w:Math.max(type==="text"?120:(qslot?70:(type==="line"?60:40)),w),
+    h:Math.max(type==="text"?40:(qslot?70:(type==="line"?10:40)),h),
     fill:type==="line"?"transparent":"#f4f1f6",stroke:"#655d69",text:type==="text"?"Note":"",
-    textColor:"#514953",fontSize:28,strokeWidth:4,radius:0,strokeStyle:"solid",
+    textColor:"#514953",fontSize:28,strokeWidth:4,radius:qslot?24:0,strokeStyle:"solid",
     arrowXDir:extra.arrowXDir||1,arrowYDir:extra.arrowYDir||1,
     locked:false,visibleInPlay:(type==="text"?false:true),z:10+sceneLayerItems().length
   };
@@ -3231,9 +3274,13 @@ $("#ctx").onclick=e=>{
 };
 
 function startDrawTool(e){
-  const type=activeTool;if(!["rect","circle","triangle","star","polygon","line","arrow","text"].includes(type))return;
+  const type=activeTool;if(!["rect","circle","triangle","star","polygon","line","arrow","qslot","text"].includes(type))return;
   e.preventDefault();e.stopPropagation();
   const st=$("#stage"),start=logical(e);
+  if(type==="qslot"){
+    createAnnotation("qslot",Math.max(0,Math.round(start.x-54)),Math.max(0,Math.round(start.y-54)),108,108);
+    return;
+  }
   if(type==="text"){
     createAnnotation("text",start.x,start.y,260,70);
     return;
@@ -3537,7 +3584,7 @@ function clearPlayProgress(){
   play=null;
   try{localStorage.removeItem(PLAY_PROGRESS_KEY)}catch(_){}
 }
-function freshPlay(nameMap,namesRandomized=false,nameGeneration=0){
+function freshPlay(nameMap,namesRandomized=false,nameGeneration=0,lastShuffledNameMap=null,lastShuffledGeneration=0){
   playSession++;
   play={
     lives:2,
@@ -3550,11 +3597,40 @@ function freshPlay(nameMap,namesRandomized=false,nameGeneration=0){
     reveal:false,
     nameMap:{...(nameMap||editNameMap())},
     namesRandomized:!!namesRandomized,
-    nameGeneration:Number(nameGeneration)||0
+    nameGeneration:Number(nameGeneration)||0,
+    lastShuffledNameMap:lastShuffledNameMap?{...lastShuffledNameMap}:null,
+    lastShuffledGeneration:Number(lastShuffledGeneration)||0
   };
   data.clues.forEach(c=>play.state[c.id]={active:!c.parent,done:false});
   evalRun(null,true);
   savePlayProgress();
+}
+
+function closeReplayMenu(){$("#replayMenu")?.removeAttribute("open")}
+function replayOriginalNames(){
+  const last=play?.lastShuffledNameMap||null;
+  const lastGeneration=Number(play?.lastShuffledGeneration)||0;
+  mode="play";
+  freshPlay(editNameMap(),false,0,last,lastGeneration);
+  closeReplayMenu();refreshImmediate();
+  toast("Chơi lại từ đầu · tên gốc");
+}
+function replayLastShuffledNames(){
+  const last=play?.lastShuffledNameMap;
+  if(!last){toast("Chưa có bộ tên đã đảo");return}
+  const gen=Number(play?.lastShuffledGeneration)||1;
+  mode="play";
+  freshPlay(last,true,gen,last,gen);
+  closeReplayMenu();refreshImmediate();
+  toast("Chơi lại từ đầu · bộ tên đã đảo gần nhất");
+}
+function replayShuffleNames(){
+  const gen=(Number(play?.lastShuffledGeneration)||0)+1;
+  const names=buildPlayNameMap(true,play?.lastShuffledNameMap||null);
+  mode="play";
+  freshPlay(names,true,gen,names,gen);
+  closeReplayMenu();refreshImmediate();
+  toast("Chơi lại từ đầu · đã đảo tên mới");
 }
 
 function startPlay(){
@@ -3580,26 +3656,11 @@ function stopPlay(){
   mode="edit";
   refreshImmediate();
 }
-function replaySameNames(){
-  const sameMap=play?.nameMap?{...play.nameMap}:editNameMap();
-  const randomized=!!play?.namesRandomized;
-  const generation=Number(play?.nameGeneration)||0;
-  mode="play";
-  freshPlay(sameMap,randomized,generation);
-  refreshImmediate();
-  toast("Chơi lại từ đầu · giữ nguyên tên");
-}
-function replayShuffleNames(){
-  const nextGeneration=(Number(play?.nameGeneration)||0)+1;
-  mode="play";
-  freshPlay(buildPlayNameMap(true),true,nextGeneration);
-  refreshImmediate();
-  toast("Chơi lại từ đầu · đã đảo tên");
-}
 $("#playBtn").onclick=startPlay;
 $("#editBtn").onclick=stopPlay;
-$("#replayBtn").onclick=replaySameNames;
-$("#shuffleReplayBtn").onclick=replayShuffleNames;
+if($("#replayOriginalBtn")) $("#replayOriginalBtn").onclick=replayOriginalNames;
+if($("#replayLastShuffledBtn")) $("#replayLastShuffledBtn").onclick=replayLastShuffledNames;
+if($("#shuffleReplayBtn")) $("#shuffleReplayBtn").onclick=replayShuffleNames;
 
 function dragPlay(e,c,t){
   if(play?.failed){toast("Hết mạng · bấm Chơi lại");return}
@@ -3846,13 +3907,14 @@ function buildRuntimeData(){
   const chars=sortedCharacters().map(c=>{
     ensureCharacterAssetIds(c);
     const baseAssetId=runtimeBaseAssetId(c);
+    const initialAssetId=runtimeInitialAssetId(c);
     const events=(c.reactionEvents||[]).map(ev=>{
       const whenPlaced=runtimeWhenPlaced(c,ev);
       const sourceSteps=(ev.steps||[]);
       const steps=sourceSteps.map(st=>({assetId:st.assetId,duration:Number(st.duration)||0.6}));
       const last=sourceSteps[sourceSteps.length-1];
       if(last && !last.hold && steps[steps.length-1]?.assetId!==baseAssetId)steps.push({assetId:baseAssetId});
-      return {whenPlaced,steps};
+      return {whenPlaced,steps,endAssetId:reactionSettledStep(ev)?.assetId||initialAssetId};
     });
     return {
       id:c.id,
@@ -3861,6 +3923,7 @@ function buildRuntimeData(){
       ...((c.namePool||"KEEP")==="KEEP"?{fixedName:c.name||c.id}:{}),
       ...(c.type==="M"?{correctPosition:{x:roundPos(c.x),y:roundPos(c.y)}}:{position:{x:roundPos(c.x),y:roundPos(c.y)}}),
       assets:{
+        initial:initialAssetId,
         base:baseAssetId,
         ...(c.type==="M"?{tray:c.assetTrayId}:{})
       },
@@ -3889,7 +3952,7 @@ function buildRuntimeData(){
   };
 
   return {
-    schemaVersion:"drama-level-runtime-2.2",
+    schemaVersion:"drama-level-runtime-2.3",
     level,
     scene:{
       backgroundAssetId:art.backgroundAssetId||"BG01",
@@ -4071,206 +4134,194 @@ function exportAssetRequest(){
   const base=safeBaseName(data.level.id||"DRAMA_LEVEL"),sceneFile=`${base}_SCENE_LAYOUT.png`;
   const endingFile=`${data.level.ending?.imageAssetId||"ENDING01"}.png`;
   const sceneRows=[
-    ["SCENE LAYOUT + ENDING IMAGE"],
-    ["GD: Dán cả 2 ảnh vào tab này trước khi gửi Asset Request cho Artist: (1) Scene Layout PNG và (2) Ending Image PNG."],
+    ["SCENE — START + SOLVED"],
+    ["GD xuất Scene PNG (ZIP) ở Tool và DÁN 2 ẢNH vào tab này trước khi gửi Asset Request cho Art."],
     [""],
     ["Level ID",data.level.id||""],
     ["Version",data.level.version||"1.0"],
     ["Folder asset",data.level.id||""],
-    ["SCENE LAYOUT — File cần dán",sceneFile],
-    ["Kích thước chuẩn","1080 × 1610"],
-    ["Ghi chú","Ảnh Scene Layout để Artist nhìn đúng bố cục, vị trí nhân vật, object, foreground và các note trên scene."],
+    ["Kích thước", "1080 × 1610 / ảnh"],
+    ["START", "Chỉ Fixed + background/ảnh/shape được bật Hiện trong Play, gồm cả slot ? nếu có."],
+    ["SOLVED", "Tất cả Fixed + Movable đúng chỗ; chỉ thể hiện bố cục, reaction cuối có thể phụ thuộc thứ tự chơi."],
+    [""], [""], [""], [""], [""],
+    ["", "DÁN ẢNH SCENE START VÀO DƯỚI NÀY", "DÁN ẢNH SCENE SOLVED VÀO DƯỚI NÀY"],
     [""],
-    ["DÁN ẢNH SCENE LAYOUT PNG VÀO KHU VỰC BÊN DƯỚI"],
-    [""],
-    [""],
-    [""],
-    ["ENDING IMAGE"],
-    ["GD: Dán ảnh ending đã gen/import trong tab ENDING vào đây để Artist/Dev nhìn đúng hình recap cuối màn."],
-    ["ENDING — File cần dán",endingFile],
-    ["Tỷ lệ chuẩn","4:3 ngang"],
-    ["Ghi chú","Ảnh recap drama cuối màn. Đây là ảnh dùng trong popup DRAMA SOLVED!, không phải ảnh Scene Layout."],
-    [""],
-    ["DÁN ENDING IMAGE PNG VÀO KHU VỰC BÊN DƯỚI"]
+    ...Array.from({length:33},()=>["", "", ""])
   ];
   const files={
     "[Content_Types].xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`,
     "_rels/.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
-    "xl/workbook.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ASSET REQUEST" sheetId="1" r:id="rId1"/><sheet name="SCENE + ENDING" sheetId="2" r:id="rId2"/></sheets></workbook>`,
+    "xl/workbook.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ASSET REQUEST" sheetId="1" r:id="rId1"/><sheet name="SCENE START + SOLVED" sheetId="2" r:id="rId2"/></sheets></workbook>`,
     "xl/_rels/workbook.xml.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
     "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
     "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,12,34,34,22,18,34]),
-    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,84],["A1:B1","A2:B2","A11:B11","A15:B15","A16:B16","A21:B21"])
+    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9"],[15])
   };
   const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${base}_ASSET_REQUEST.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast("Đã xuất Asset Request XLSX · tab 2 có Scene Layout + Ending Image");
+  toast("Đã xuất Asset Request · nhớ gửi 2 Scene PNG");
 }
 function loadCanvasImage(src){return new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>resolve(null);im.src=src})}
 function canvasText(ctx,text,x,y,maxWidth,lineHeight){
   const words=String(text||"").split(/\s+/);let line="",yy=y;
   words.forEach(w=>{const t=line?line+" "+w:w;if(ctx.measureText(t).width>maxWidth&&line){ctx.fillText(line,x,yy);line=w;yy+=lineHeight}else line=t});if(line)ctx.fillText(line,x,yy);return yy;
 }
-async function exportScenePng(){
-  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1610;const ctx=canvas.getContext("2d");ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
+function zipStore(files){
+  const enc=new TextEncoder(),locals=[],centrals=[];let offset=0;
+  Object.entries(files).forEach(([name,content])=>{
+    const n=enc.encode(name),d=typeof content==="string"?enc.encode(content):content,crc=crc32(d);
+    const local=concatBytes([u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(d.length),u32(d.length),u16(n.length),u16(0),n,d]);
+    locals.push(local);
+    const central=concatBytes([u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(d.length),u32(d.length),u16(n.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),n]);
+    centrals.push(central);offset+=local.length;
+  });
+  const centralSize=centrals.reduce((a,b)=>a+b.length,0),count=centrals.length;
+  return concatBytes([...locals,...centrals,u32(0x06054b50),u16(0),u16(0),u16(count),u16(count),u32(centralSize),u32(offset),u16(0)]);
+}
+function canvasRoundedPath(ctx,x,y,w,h,r){
+  const radius=Math.max(0,Math.min(r,w/2,h/2));
+  ctx.beginPath();ctx.moveTo(x+radius,y);ctx.lineTo(x+w-radius,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+radius);ctx.lineTo(x+w,y+h-radius);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);ctx.lineTo(x+radius,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-radius);ctx.lineTo(x,y+radius);
+  ctx.quadraticCurveTo(x,y,x+radius,y);ctx.closePath();
+}
+function drawQslotPng(ctx,o){
+  const {x,y,w,h}=o;
+  ctx.save();
+  canvasRoundedPath(ctx,x,y,w,h,Math.min(w,h)*.24);
+  ctx.fillStyle="#d9d2e7";ctx.fill();
+  const pad=Math.min(w,h)*.08;
+  canvasRoundedPath(ctx,x+pad,y+pad,w-2*pad,h-2*pad,Math.min(w,h)*.18);
+  ctx.setLineDash([Math.max(4,Math.min(w,h)*.115),Math.max(3,Math.min(w,h)*.058)]);
+  ctx.lineWidth=Math.max(2,Math.min(w,h)*.055);
+  ctx.strokeStyle="#f7f5fb";ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#837892";ctx.textAlign="center";ctx.textBaseline="middle";
+  const sz=Math.min(w,h);
+  ctx.font=`900 ${Math.max(12,sz*.42)}px Arial`;ctx.fillText("?",x+w*.5,y+h*.53);
+  ctx.font=`900 ${Math.max(8,sz*.25)}px Arial`;
+  ctx.fillText("?",x+w*.27,y+h*.60);ctx.fillText("?",x+w*.73,y+h*.60);
+  ctx.restore();
+}
+function drawSceneCharPng(ctx,c){
+  ctx.save();
+  ctx.beginPath();ctx.fillStyle="#fff";ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";
+  ctx.lineWidth=6;ctx.arc(c.x,c.y,30,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle="#342f3a";ctx.font="900 21px Arial";ctx.textAlign="center";
+  ctx.fillText(c.id,c.x,c.y+7);
+  ctx.font="700 19px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
+  ctx.restore();
+}
+function canvasAsPngBytes(canvas){
+  return new Promise((resolve,reject)=>canvas.toBlob(async blob=>{
+    if(!blob)return reject(Error("Không thể tạo PNG"));
+    try{resolve(new Uint8Array(await blob.arrayBuffer()))}catch(e){reject(e)}
+  },"image/png"));
+}
+async function buildSceneCanvas(state){
+  const canvas=document.createElement("canvas");canvas.width=1080;canvas.height=1610;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff";ctx.fillRect(0,0,canvas.width,canvas.height);
   const layers=sceneLayerItems().sort((a,b)=>(Number(a.obj.z)||0)-(Number(b.obj.z)||0));
   for(const layer of layers){
     const o=layer.obj;
     if(layer.type==="image"){
       const im=await loadCanvasImage(o.src);if(im)ctx.drawImage(im,o.x,o.y,o.w,o.h);
     }else{
-      ctx.save();
-      const sWidth = o.strokeWidth !== undefined ? o.strokeWidth : 2;
-      ctx.lineWidth = sWidth;
-      ctx.strokeStyle = o.stroke || "#655d69";
-      ctx.fillStyle = o.fill || "#f4f1f6";
-      if(o.strokeStyle === "dashed") ctx.setLineDash([8, 6]);
-      else if(o.strokeStyle === "dotted") ctx.setLineDash([3, 4]);
-      else ctx.setLineDash([]);
-
-      if(["pen", "pencil", "brush"].includes(o.type)){
-        const svgD = generateSvgPathD(o);
-        if(svgD){
-          const p2d = new Path2D(svgD);
-          if(o.closed && o.fill && o.fill !== "transparent" && o.fill !== "none"){
-            ctx.fillStyle = o.fill;
-            ctx.fill(p2d);
-          }
-          if(sWidth > 0){
-            ctx.globalAlpha = o.strokeOpacity !== undefined ? o.strokeOpacity : 1;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
-            ctx.stroke(p2d);
-          }
-        }
-      }else if(o.type==="rect"){
-        const rad = o.radius !== undefined ? o.radius : 8;
-        ctx.beginPath();
-        if(ctx.roundRect) ctx.roundRect(o.x, o.y, o.w, o.h, rad);
-        else ctx.rect(o.x, o.y, o.w, o.h);
-        ctx.fill();
-        if(sWidth > 0) ctx.stroke();
-      }else if(o.type==="circle"){
-        ctx.beginPath();
-        ctx.ellipse(o.x+o.w/2, o.y+o.h/2, Math.max(1, o.w/2), Math.max(1, o.h/2), 0, 0, Math.PI*2);
-        ctx.fill();
-        if(sWidth > 0) ctx.stroke();
-      }else if(o.type==="triangle"){
-        ctx.beginPath();
-        ctx.moveTo(o.x + o.w * 0.5, o.y + o.h * 0.05);
-        ctx.lineTo(o.x + o.w * 0.95, o.y + o.h * 0.95);
-        ctx.lineTo(o.x + o.w * 0.05, o.y + o.h * 0.95);
-        ctx.closePath();
-        ctx.lineJoin = "round";
-        ctx.fill();
-        if(sWidth > 0) ctx.stroke();
+      if(!o.visibleInPlay)continue;
+      ctx.save();ctx.lineWidth=o.strokeWidth||4;ctx.strokeStyle=o.stroke||"#655d69";ctx.fillStyle=o.fill||"#f4f1f6";
+      if(o.type==="qslot")drawQslotPng(ctx,o);
+      else if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
+      else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
+      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}
+      else if(o.type==="arrow"){
+        const x1=o.x+(o.arrowXDir===1?0:o.w),x2=o.x+(o.arrowXDir===1?o.w:0),y1=o.y+(o.arrowYDir===1?0:o.h),y2=o.y+(o.arrowYDir===1?o.h:0);
+        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);
+        ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-22*Math.cos(a-.45),y2-22*Math.sin(a-.45));ctx.lineTo(x2-22*Math.cos(a+.45),y2-22*Math.sin(a+.45));ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill();
       }else if(o.type==="star"){
-        const starPts = [[50,5],[62,35],[95,38],[70,60],[78,95],[50,77],[22,95],[30,60],[5,38],[38,35]];
-        ctx.beginPath();
-        starPts.forEach(([px, py], idx) => {
-          const cx = o.x + (px / 100) * o.w;
-          const cy = o.y + (py / 100) * o.h;
-          if(idx === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
-        });
-        ctx.closePath();
-        ctx.lineJoin = "round";
-        ctx.fill();
-        if(sWidth > 0) ctx.stroke();
+        renderStarPath(ctx,o.x+o.w/2,o.y+o.h/2,5,o.w/2,o.w/4);ctx.fill();ctx.stroke();
       }else if(o.type==="polygon"){
-        const polyPts = [[25,5],[75,5],[95,50],[75,95],[25,95],[5,50]];
-        ctx.beginPath();
-        polyPts.forEach(([px, py], idx) => {
-          const cx = o.x + (px / 100) * o.w;
-          const cy = o.y + (py / 100) * o.h;
-          if(idx === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
-        });
-        ctx.closePath();
-        ctx.lineJoin = "round";
-        ctx.fill();
-        if(sWidth > 0) ctx.stroke();
+        renderPolygonPath(ctx,o.x+o.w/2,o.y+o.h/2,6,o.w/2);ctx.fill();ctx.stroke();
       }else if(o.type==="line"){
-        ctx.beginPath();
-        ctx.moveTo(o.x + o.w * 0.05, o.y + o.h * 0.5);
-        ctx.lineTo(o.x + o.w * 0.95, o.y + o.h * 0.5);
-        if(sWidth > 0) ctx.stroke();
-      }else if(o.type==="arrow"){
-        const pad=8;
-        const x1=o.arrowXDir===0?o.x+o.w/2:(o.arrowXDir===1?o.x+pad:o.x+o.w-pad);
-        const x2=o.arrowXDir===0?o.x+o.w/2:(o.arrowXDir===1?o.x+o.w-pad:o.x+pad);
-        const y1=o.arrowYDir===0?o.y+o.h/2:(o.arrowYDir===1?o.y+pad:o.y+o.h-pad);
-        const y2=o.arrowYDir===0?o.y+o.h/2:(o.arrowYDir===1?o.y+o.h-pad:o.y+pad);
-        ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
-        if(sWidth > 0) ctx.stroke();
-        const a=Math.atan2(y2-y1,x2-x1);
-        ctx.setLineDash([]);
-        ctx.beginPath();ctx.moveTo(x2,y2);
-        const arrowHeadLen = Math.max(16, (sWidth || 3) * 4);
-        ctx.lineTo(x2-arrowHeadLen*Math.cos(a-.45),y2-arrowHeadLen*Math.sin(a-.45));
-        ctx.lineTo(x2-arrowHeadLen*Math.cos(a+.45),y2-arrowHeadLen*Math.sin(a+.45));
-        ctx.closePath();ctx.fillStyle=o.stroke||"#655d69";ctx.fill();
+        ctx.beginPath();ctx.moveTo(o.x,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.stroke();
+      }else if(o.type==="path"&&Array.isArray(o.points)){
+        renderVectorPath(ctx,o);
       }
-
-      if(o.text){
-        ctx.setLineDash([]);
-        ctx.fillStyle=o.textColor||"#514953";ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";
+      if(o.type!=="qslot"&&o.text){
+        ctx.fillStyle=o.type==="text"?(o.stroke||"#514953"):(o.textColor||"#514953");
+        ctx.font=`700 ${o.fontSize||28}px Arial`;ctx.textAlign="center";
         canvasText(ctx,o.text,o.x+o.w/2,o.y+Math.max(28,(o.fontSize||28)),Math.max(40,o.w-12),(o.fontSize||28)*1.15);
       }
       ctx.restore();
     }
   }
-  if(data.drawing?.strokes?.length || data.drawing?.dataUrl){
-    const dCanvas = $("#drawingCanvas");
-    if(dCanvas) ctx.drawImage(dCanvas, 0, 0);
-  }
-  sortedCharacters().forEach(c=>{
-    ctx.save();ctx.beginPath();ctx.fillStyle="#fff";ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";ctx.lineWidth=6;ctx.arc(c.x,c.y,30,0,Math.PI*2);ctx.fill();ctx.stroke();
-    ctx.fillStyle="#342f3a";ctx.font="900 24px Arial";ctx.textAlign="center";ctx.fillText(c.id,c.x,c.y+8);ctx.font="700 20px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
-    ctx.restore();
-  });
-  canvas.toBlob(blob=>{if(!blob){toast("Không xuất được ảnh khung cảnh (PNG)");return}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${safeBaseName(data.level.id||"DRAMA_LEVEL")}_SO_DO_KHUNG_CANH.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast("Đã xuất ảnh sơ đồ khung cảnh (PNG)")},"image/png");
+  sortedCharacters().filter(c=>state==="SOLVED"||c.type==="F").forEach(c=>drawSceneCharPng(ctx,c));
+  return canvas;
+}
+async function exportScenePng(){
+  try{
+    const base=safeBaseName(data.level.id||"DRAMA_LEVEL");
+    const startCanvas=await buildSceneCanvas("START");
+    const solvedCanvas=await buildSceneCanvas("SOLVED");
+    const files={
+      [`${base}_SCENE_START.png`]:await canvasAsPngBytes(startCanvas),
+      [`${base}_SCENE_SOLVED.png`]:await canvasAsPngBytes(solvedCanvas)
+    };
+    const blob=new Blob([zipStore(files)],{type:"application/zip"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+    a.download=`${base}_SCENE_START_SOLVED.zip`;a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast("Đã xuất ZIP · Scene START + SOLVED");
+  }catch(e){console.error(e);toast("Không xuất được Scene PNG · kiểm tra ảnh/layer")}
 }
 
-async function saveProjectFile(){
+
+function projectSaveIdentity(){
+  return `${String(data.level.id||"").trim()}|${String(data.level.version||"1.0").trim()}`;
+}
+function detachProjectFile(){projectFileHandle=null;lastSavedProjectIdentity=null;}
+let lastSavedProjectIdentity=null;
+async function saveProjectFile(forceNew=false){
   save();
   savePlayProgress();
-  const editorData=deep(data);editorData.editorSchemaVersion="1.29";
+  const editorData=deep(data);editorData.editorSchemaVersion="1.31";
   const json=JSON.stringify(editorData,null,2);
   const idPart=(data.level.id||"drama_level").replace(/[^\w\-]+/g,"_");
   const filename=`${idPart}_v${String(data.level.version||"1.0").replace(/[^\w.\-]+/g,"_")}.editor.json`;
+  const identity=projectSaveIdentity();
+  if(lastSavedProjectIdentity!==identity)detachProjectFile();
 
-  // Reset projectFileHandle when loading samples, importing, or resetting
-  // This is handled by the caller functions (loadSampleProject, importFile onchange)
-
-  try{
-    if("showSaveFilePicker" in window){
-      if(!projectFileHandle){
-        projectFileHandle=await window.showSaveFilePicker({
-          suggestedName:filename,
-          types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
-        });
-      }
-      const writable=await projectFileHandle.createWritable();
+  if("showSaveFilePicker" in window){
+    try{
+      const handle=(!forceNew&&projectFileHandle)?projectFileHandle:await window.showSaveFilePicker({
+        suggestedName:filename,
+        types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
+      });
+      const writable=await handle.createWritable();
       await writable.write(json);
       await writable.close();
-      toast("Đã lưu project");
+      projectFileHandle=handle;
+      lastSavedProjectIdentity=identity;
+      toast(forceNew?"Đã lưu thành file mới":"Đã lưu Project");
       return;
+    }catch(e){
+      if(e?.name==="AbortError")return;
+      console.warn("Save Project failed; downloading JSON instead",e);
     }
-  }catch(e){
-    if(e?.name==="AbortError")return;
-    // Fallback an toan sang downloadText khi showSaveFilePicker loi
-    projectFileHandle=null;
   }
 
-  // Fallback an toan sang downloadText khi showSaveFilePicker loi
   const blob=new Blob([json],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download=filename;
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  toast("Đã lưu project thành JSON");
+  detachProjectFile();
+  toast("Đã tải Project JSON mới");
 }
-$("#saveBtn").onclick=saveProjectFile;
+
+$("#saveBtn").onclick=()=>saveProjectFile(false);
+$("#saveAsBtn").onclick=()=>saveProjectFile(true);
 $("#exportBtn").onclick=()=>{
   const check=runPreflightCheck(true);
   if(check.errors.length){renderPreflightCheck(check);$("#checkOverlay").classList.add("show");toast(`CHECK LEVEL: còn ${check.errors.length} lỗi phải sửa`);return}
@@ -4393,7 +4444,7 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classLi
 
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});
-["resetBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
+["resetBtn","saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
 
 let canvasZoom = 1.0;
 let canvasPan = {x: 0, y: 0};
@@ -4741,6 +4792,7 @@ render();
 window.data = data;
 Object.defineProperty(window, "selected", { get: () => selected, set: v => { selected = v; } });
 Object.defineProperty(window, "mode", { get: () => mode, set: v => { mode = v; } });
+Object.defineProperty(window, "play", { get: () => play, set: v => { play = v; } });
 Object.defineProperty(window, "activeTool", { get: () => activeTool, set: v => { setTool(v); } });
 window.multiSel = multiSel;
 window.drawState = drawState;
@@ -4756,4 +4808,17 @@ window.createPathAnnotation = createPathAnnotation;
 window.save = save;
 window.render = render;
 window.renderLive = renderLive;
+window.renderInspector = renderInspector;
+window.buildSceneCanvas = buildSceneCanvas;
+window.zipStore = zipStore;
+window.reactionSettledStep = reactionSettledStep;
+window.buildRuntimeData = buildRuntimeData;
+window.detachProjectFile = detachProjectFile;
+window.saveProjectFile = saveProjectFile;
+window.replayShuffleNames = replayShuffleNames;
+window.replayOriginalNames = replayOriginalNames;
+window.replayLastShuffledNames = replayLastShuffledNames;
+window.exportAssetRequest = exportAssetRequest;
+window.makeXlsxSheet = makeXlsxSheet;
+window.getProjectFileHandle = () => projectFileHandle;
 })();
