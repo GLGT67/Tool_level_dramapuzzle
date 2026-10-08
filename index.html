@@ -119,6 +119,10 @@
         <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
         <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
         <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
+        <div class="toolSep"></div>
+        <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
+        <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
       </div>
       <div class="stageWrap" id="stageWrap">
         <div class="canvasZoomDock">
@@ -127,7 +131,10 @@
           <button class="zoomBtn" id="zoomInBtn" type="button" title="Phóng to (Ctrl +)">+</button>
           <button class="zoomBtn" id="zoomResetBtn" type="button" title="Đặt lại 100%">1:1</button>
         </div>
-        <div id="stage" class="stage"><div class="editmark">1080 × 1610 · KHUNG BIÊN TẬP</div></div>
+        <div id="stage" class="stage">
+          <canvas id="drawingCanvas" class="drawingCanvas" width="1080" height="1610"></canvas>
+          <div class="editmark">1080 × 1610 · KHUNG BIÊN TẬP</div>
+        </div>
       </div>
     </div>
 

@@ -570,6 +570,29 @@ textarea {
 body.panning .stage { cursor: grabbing !important; }
 body.spaceDown .stage { cursor: grab !important; }
 
+/* Lớp vẽ tự do Canvas (Pencil, Brush, Pen) */
+.drawingCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 12;
+  pointer-events: none;
+  touch-action: none;
+}
+.drawingCanvas.activeDrawing {
+  pointer-events: auto;
+  cursor: crosshair;
+}
+body.play .drawingCanvas.hidePlay {
+  display: none !important;
+}
+.toolBtn svg {
+  display: block;
+  pointer-events: none;
+}
+
 .canvasZoomDock {
   position: absolute;
   left: 50%;

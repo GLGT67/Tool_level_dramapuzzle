@@ -209,7 +209,7 @@ function blankSceneArtItem(){
   return {id:uid("ART_"),name:"",description:"",exportMode:"BAKED_BG",assetId:"BG01",artistNote:""};
 }
 function blank(){
-  return {level:{id:"",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[]};
+  return {level:{id:"",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[],drawing:{visibleInPlay:true,strokes:[],dataUrl:""}};
 }
 function blankSceneEvidence(){
   return {id:"",text:"",affects:[]};
@@ -1090,6 +1090,7 @@ function renderLive(){
 
   renderClues();
   renderTray();
+  redrawDrawingCanvas();
   $("#progress").textContent=mode==="play"?(play?.failed?"💔 HẾT MẠNG · CHƠI LẠI":`${Object.keys(play?.placed||{}).length}/${data.characters.filter(c=>c.type==="M").length} đúng`):"CHẾ ĐỘ BIÊN TẬP";
   document.body.classList.toggle("play",mode==="play");
   $("#editBtn").classList.toggle("on",mode==="edit");
@@ -1466,6 +1467,7 @@ function renderInspector(){
   }
   const wrapWithAlign = fn => { fn(b); if(alignHtml) b.insertAdjacentHTML("afterbegin", alignHtml); };
   if(selected.type==="level")return wrapWithAlign(levelIns);
+  if(selected.type==="drawing")return wrapWithAlign(el=>drawingIns(el));
   if(selected.type==="char")return wrapWithAlign(el=>charIns(el,byChar(selected.id)));
   if(selected.type==="clue")return wrapWithAlign(el=>clueIns(el,byClue(selected.id)));
   if(selected.type==="image")return wrapWithAlign(el=>imageIns(el,byImg(selected.id)));
@@ -2090,10 +2092,271 @@ function annotationIns(b,a){
   $("#anDelete").onclick=()=>{data.annotations=data.annotations.filter(x=>x!==a);normalizeSceneZData();multiSel.delete("annotation:"+a.id);selected={type:"level",id:"level"};save();refreshImmediate()};
 }
 
+// ==========================================
+// BỘ BA CÔNG CỤ VẼ: BÚT CHÌ, CỌ VẼ, BÚT MỰC
+// ==========================================
+const drawState = {
+  pencil: { color: "#2d3748", size: 2, opacity: 1.0 },
+  brush:  { color: "#e11d48", size: 14, opacity: 0.75 },
+  pen:    { color: "#2563eb", size: 3, opacity: 1.0 }
+};
+let penActivePoints = [];
+let isFreehandDrawing = false;
+let currentFreehandStroke = null;
+let penHoverPoint = null;
+
+function ensureDrawingData(){
+  if(!data.drawing) data.drawing = { visibleInPlay: true, strokes: [], dataUrl: "" };
+  if(!Array.isArray(data.drawing.strokes)) data.drawing.strokes = [];
+  if(data.drawing.visibleInPlay === undefined) data.drawing.visibleInPlay = true;
+}
+
+function redrawDrawingCanvas(){
+  ensureDrawingData();
+  const canvas = $("#drawingCanvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const strokes = data.drawing.strokes || [];
+  strokes.forEach(s => {
+    if(!s.points || !s.points.length) return;
+    ctx.save();
+    ctx.strokeStyle = s.color || "#000000";
+    ctx.lineWidth = s.size || 2;
+    ctx.globalAlpha = s.opacity !== undefined ? s.opacity : 1.0;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    if(s.points.length === 1){
+      ctx.beginPath();
+      ctx.arc(s.points[0].x, s.points[0].y, Math.max(1, (s.size || 2) / 2), 0, Math.PI * 2);
+      ctx.fillStyle = s.color || "#000000";
+      ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(s.points[0].x, s.points[0].y);
+      for(let i = 1; i < s.points.length; i++){
+        ctx.lineTo(s.points[i].x, s.points[i].y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+  });
+
+  if(activeTool === "pen" && penActivePoints.length > 0){
+    ctx.save();
+    const pCfg = drawState.pen;
+    ctx.strokeStyle = pCfg.color;
+    ctx.lineWidth = pCfg.size;
+    ctx.globalAlpha = pCfg.opacity;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(penActivePoints[0].x, penActivePoints[0].y);
+    for(let i = 1; i < penActivePoints.length; i++){
+      ctx.lineTo(penActivePoints[i].x, penActivePoints[i].y);
+    }
+    ctx.stroke();
+
+    if(penHoverPoint){
+      ctx.beginPath();
+      ctx.setLineDash([8, 6]);
+      const lastPt = penActivePoints[penActivePoints.length - 1];
+      ctx.moveTo(lastPt.x, lastPt.y);
+      ctx.lineTo(penHoverPoint.x, penHoverPoint.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    penActivePoints.forEach((pt, idx) => {
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = idx === 0 ? "#10b981" : "#ffffff";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = pCfg.color;
+      ctx.stroke();
+    });
+
+    ctx.restore();
+  }
+
+  canvas.classList.toggle("hidePlay", data.drawing.visibleInPlay === false);
+}
+
+function finishPenPath(){
+  if(penActivePoints.length >= 2){
+    ensureDrawingData();
+    data.drawing.strokes.push({
+      type: "pen",
+      color: drawState.pen.color,
+      size: drawState.pen.size,
+      opacity: drawState.pen.opacity,
+      points: [...penActivePoints]
+    });
+    save();
+    toast("Đã chốt đường vẽ bút mực");
+  }
+  penActivePoints = [];
+  penHoverPoint = null;
+  redrawDrawingCanvas();
+}
+
+function cancelPenPath(){
+  if(penActivePoints.length > 0){
+    penActivePoints = [];
+    penHoverPoint = null;
+    redrawDrawingCanvas();
+    toast("Đã hủy đường vẽ dở");
+  }
+}
+
+function undoDrawingStroke(){
+  ensureDrawingData();
+  if(data.drawing.strokes.length > 0){
+    data.drawing.strokes.pop();
+    save();
+    redrawDrawingCanvas();
+    toast("Đã hoàn tác nét vẽ");
+  } else {
+    toast("Không có nét vẽ để hoàn tác");
+  }
+}
+
+function clearDrawingStrokes(){
+  ensureDrawingData();
+  if(data.drawing.strokes.length === 0 && penActivePoints.length === 0){
+    toast("Bảng vẽ hiện đang trống");
+    return;
+  }
+  if(confirm("Bạn có chắc chắn muốn xóa toàn bộ nét vẽ tự do trên màn chơi?")){
+    data.drawing.strokes = [];
+    penActivePoints = [];
+    penHoverPoint = null;
+    save();
+    redrawDrawingCanvas();
+    toast("Đã xóa sạch toàn bộ nét vẽ");
+  }
+}
+
+function drawingIns(b){
+  ensureDrawingData();
+  const tool = activeTool;
+  const toolLabels = {
+    pencil: "BÚT CHÌ · NÉT MẢNH TỰ DO",
+    brush: "CỌ VẼ · NÉT DÀY MƯỢT MÀ",
+    pen: "BÚT MỰC · ĐIỂM NEO VECTOR"
+  };
+  const title = toolLabels[tool] || "CÔNG CỤ VẼ";
+  const cfg = drawState[tool] || drawState.pencil;
+
+  let helpText = "";
+  if(tool === "pencil"){
+    helpText = "Kéo chuột để vẽ nét tự do thanh mảnh và nhạy bén.";
+  } else if(tool === "brush"){
+    helpText = "Kéo chuột để vẽ nét cọ mềm mượt, bo tròn hai đầu nét vẽ.";
+  } else if(tool === "pen"){
+    helpText = "Bấm chuột để đặt từng điểm neo. Bấm đúp hoặc bấm Enter để hoàn thành đường vẽ. Bấm Esc để hủy.";
+  }
+
+  b.innerHTML = `<div class="group col">
+    <div class="head"><b>${title}</b></div>
+    <div class="small" style="margin-bottom:8px">${helpText}</div>
+
+    <div class="row" style="margin-bottom:6px">
+      <label style="flex:1">Màu nét vẽ<input id="drawColor" type="color" value="${cfg.color}"></label>
+    </div>
+
+    <label>Độ dày nét: <b id="drawSizeVal">${cfg.size} px</b>
+      <input id="drawSize" type="range" min="1" max="40" value="${cfg.size}">
+    </label>
+
+    <label>Độ mờ đục: <b id="drawOpacityVal">${Math.round(cfg.opacity * 100)}%</b>
+      <input id="drawOpacity" type="range" min="10" max="100" value="${Math.round(cfg.opacity * 100)}">
+    </label>
+
+    <label class="row" style="margin:6px 0">
+      <input id="drawShowPlay" type="checkbox" style="width:auto" ${data.drawing.visibleInPlay !== false ? "checked" : ""}> Hiện nét vẽ khi Chơi thử
+    </label>
+
+    ${tool === "pen" ? `
+    <div class="row" style="margin-top:6px">
+      <button class="btn" id="penFinishBtn" type="button">Chốt nét (Enter)</button>
+      <button class="btn" id="penCancelBtn" type="button">Hủy nét (Esc)</button>
+    </div>` : ""}
+
+    <div class="row" style="margin-top:8px">
+      <button class="btn" id="drawUndoBtn" type="button">Hoàn tác nét gần nhất</button>
+      <button class="btn danger" id="drawClearBtn" type="button">Xóa bảng vẽ</button>
+    </div>
+
+    <button class="btn" id="drawBackSelectBtn" type="button" style="margin-top:10px">Hoàn tất vẽ (Về công cụ chọn)</button>
+  </div>`;
+
+  const cInput = $("#drawColor");
+  if(cInput){
+    cInput.oninput = e => {
+      cfg.color = e.target.value;
+      if(tool === "pen" && penActivePoints.length > 0) redrawDrawingCanvas();
+    };
+  }
+
+  const sInput = $("#drawSize");
+  if(sInput){
+    sInput.oninput = e => {
+      cfg.size = +e.target.value;
+      $("#drawSizeVal").textContent = cfg.size + " px";
+      if(tool === "pen" && penActivePoints.length > 0) redrawDrawingCanvas();
+    };
+  }
+
+  const oInput = $("#drawOpacity");
+  if(oInput){
+    oInput.oninput = e => {
+      cfg.opacity = (+e.target.value) / 100;
+      $("#drawOpacityVal").textContent = Math.round(cfg.opacity * 100) + "%";
+      if(tool === "pen" && penActivePoints.length > 0) redrawDrawingCanvas();
+    };
+  }
+
+  const spCheck = $("#drawShowPlay");
+  if(spCheck){
+    spCheck.onchange = e => {
+      data.drawing.visibleInPlay = e.target.checked;
+      save();
+      redrawDrawingCanvas();
+    };
+  }
+
+  if($("#penFinishBtn")) $("#penFinishBtn").onclick = finishPenPath;
+  if($("#penCancelBtn")) $("#penCancelBtn").onclick = cancelPenPath;
+  if($("#drawUndoBtn")) $("#drawUndoBtn").onclick = undoDrawingStroke;
+  if($("#drawClearBtn")) $("#drawClearBtn").onclick = clearDrawingStrokes;
+  if($("#drawBackSelectBtn")) $("#drawBackSelectBtn").onclick = () => setTool("select");
+}
+
 function setTool(tool){
-  activeTool=tool;
-  $$(".toolBtn").forEach(b=>b.classList.toggle("active",b.dataset.tool===tool));
-  $("#stage").style.cursor=tool==="select"?"default":(tool==="text"?"text":"crosshair");
+  if(activeTool === "pen" && tool !== "pen" && penActivePoints.length > 0){
+    finishPenPath();
+  }
+  activeTool = tool;
+  $$(".toolBtn").forEach(b => b.classList.toggle("active", b.dataset.tool === tool));
+  const isDraw = ["pencil", "brush", "pen"].includes(tool);
+  const dCanvas = $("#drawingCanvas");
+  if(dCanvas) dCanvas.classList.toggle("activeDrawing", isDraw);
+
+  $("#stage").style.cursor = tool === "select" ? "default" : (tool === "text" ? "text" : "crosshair");
+
+  if(isDraw){
+    multiSel.clear();
+    selected = { type: "drawing", tool };
+    refreshImmediate();
+  } else if(selected.type === "drawing"){
+    selected = { type: "level", id: "level" };
+    refreshImmediate();
+  }
 }
 $$(".toolBtn").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 
@@ -2740,7 +3003,13 @@ document.addEventListener("keydown",e=>{
   if((e.key==="Backspace"||e.key==="Delete")&&!isTypingTarget(e.target)){
     if(deleteSelectedObjects())e.preventDefault();
   }
+  if(e.key==="Enter"&&!isTypingTarget(e.target)&&activeTool==="pen"&&penActivePoints.length>=2){
+    e.preventDefault();finishPenPath();return;
+  }
   if(e.key==="Escape"&&mode==="edit"){
+    if(activeTool==="pen"&&penActivePoints.length>0){
+      cancelPenPath();return;
+    }
     setTool("select");multiSel.clear();selected={type:"level",id:"level"};refreshImmediate();
   }
 });
@@ -3469,6 +3738,10 @@ async function exportScenePng(){
       ctx.restore();
     }
   }
+  if(data.drawing?.strokes?.length || data.drawing?.dataUrl){
+    const dCanvas = $("#drawingCanvas");
+    if(dCanvas) ctx.drawImage(dCanvas, 0, 0);
+  }
   sortedCharacters().forEach(c=>{
     ctx.save();ctx.beginPath();ctx.fillStyle="#fff";ctx.strokeStyle=c.type==="M"?"#ff6f96":"#7563c7";ctx.lineWidth=6;ctx.arc(c.x,c.y,30,0,Math.PI*2);ctx.fill();ctx.stroke();
     ctx.fillStyle="#342f3a";ctx.font="900 24px Arial";ctx.textAlign="center";ctx.fillText(c.id,c.x,c.y+8);ctx.font="700 20px Arial";ctx.fillText(c.name||"",c.x,c.y+56);
@@ -3763,9 +4036,121 @@ if(chkOverlay){
   });
 }
 
+// ==========================================
+// Drawing Layer Event Handling
+// ==========================================
+function initDrawingLayer(){
+  const canvas = $("#drawingCanvas");
+  if(!canvas) return;
+
+  canvas.addEventListener("pointerdown", e => {
+    if(mode !== "edit") return;
+    if(!["pencil", "brush", "pen"].includes(activeTool)) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const l = logical(e);
+    const pt = { x: Math.round(l.x), y: Math.round(l.y) };
+    if(activeTool === "pencil" || activeTool === "brush"){
+      isFreehandDrawing = true;
+      const cfg = drawState[activeTool];
+      currentFreehandStroke = {
+        type: activeTool,
+        color: cfg.color,
+        size: cfg.size,
+        opacity: cfg.opacity,
+        points: [pt]
+      };
+      const ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.strokeStyle = cfg.color;
+      ctx.lineWidth = cfg.size;
+      ctx.globalAlpha = cfg.opacity;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, Math.max(1, cfg.size / 2), 0, Math.PI * 2);
+      ctx.fillStyle = cfg.color;
+      ctx.fill();
+      ctx.restore();
+    } else if(activeTool === "pen"){
+      penActivePoints.push(pt);
+      penHoverPoint = null;
+      redrawDrawingCanvas();
+    }
+  });
+
+  window.addEventListener("pointermove", e => {
+    if(mode !== "edit") return;
+    if(isFreehandDrawing && currentFreehandStroke){
+      e.preventDefault();
+      const l = logical(e);
+      const pt = { x: Math.round(l.x), y: Math.round(l.y) };
+      const prev = currentFreehandStroke.points[currentFreehandStroke.points.length - 1];
+      currentFreehandStroke.points.push(pt);
+
+      const ctx = canvas.getContext("2d");
+      ctx.save();
+      ctx.strokeStyle = currentFreehandStroke.color;
+      ctx.lineWidth = currentFreehandStroke.size;
+      ctx.globalAlpha = currentFreehandStroke.opacity;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(pt.x, pt.y);
+      ctx.stroke();
+      ctx.restore();
+    } else if(activeTool === "pen" && penActivePoints.length > 0){
+      const st = $("#stage");
+      const r = st.getBoundingClientRect();
+      if(e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom){
+        const l = logical(e);
+        penHoverPoint = { x: Math.round(l.x), y: Math.round(l.y) };
+        redrawDrawingCanvas();
+      }
+    }
+  });
+
+  window.addEventListener("pointerup", () => {
+    if(isFreehandDrawing && currentFreehandStroke){
+      isFreehandDrawing = false;
+      if(currentFreehandStroke.points.length > 0){
+        ensureDrawingData();
+        data.drawing.strokes.push(currentFreehandStroke);
+        save();
+      }
+      currentFreehandStroke = null;
+      redrawDrawingCanvas();
+    }
+  });
+
+  canvas.addEventListener("dblclick", e => {
+    if(activeTool === "pen"){
+      e.preventDefault();
+      e.stopPropagation();
+      finishPenPath();
+    }
+  });
+}
+
 initThemeSystem();
 initZoomAndPan();
 initChangelogModal();
+initDrawingLayer();
 play=loadPlayProgress();
 render();
+
+// Reactive Getters & Tool APIs for Verification & Testing
+window.data = data;
+window.selected = selected;
+window.mode = mode;
+window.drawState = drawState;
+window.getPenActivePoints = () => penActivePoints;
+window.redrawDrawingCanvas = redrawDrawingCanvas;
+window.finishPenPath = finishPenPath;
+window.cancelPenPath = cancelPenPath;
+window.undoDrawingStroke = undoDrawingStroke;
+window.clearDrawingStrokes = clearDrawingStrokes;
+window.setTool = setTool;
 })();
