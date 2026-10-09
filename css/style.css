@@ -487,81 +487,101 @@ textarea {
   position: relative;
   overflow: hidden;
 }
-.leveltop {
-  position: absolute;
-  top: 12px;
-  left: 14px;
-  z-index: 90;
+/* Figma Canvas Top Sub-Toolbar (Around Canvas, Zero Overlap) */
+.canvasTopBar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  height: 42px;
+  min-height: 42px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  z-index: 100;
+  flex-shrink: 0;
+  box-sizing: border-box;
   gap: 10px;
-  background: var(--dock-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 5px 12px;
-  box-shadow: var(--shadow-sm);
-  margin-bottom: 0;
 }
-.leveltop b { font-size: 14px; color: var(--ink); font-weight: 850; }
+.canvasTopLeft {
+  display: flex;
+  align-items: center;
+  min-width: 130px;
+}
+.canvasTopCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+.canvasTopRight {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 130px;
+}
+
+.leveltop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+.leveltop .small { font-size: 9px; color: var(--muted); font-weight: 800; letter-spacing: 0.5px; }
+.leveltop b { font-size: 13px; color: var(--ink); font-weight: 850; }
 .moves {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 2px 7px;
+  border-radius: 6px;
+  padding: 2px 6px;
   text-align: center;
 }
-.moves small { display: block; font-size: 9px; color: var(--muted); }
-.moves b { font-size: 14px; color: var(--pink); }
+.moves small { display: block; font-size: 8px; color: var(--muted); }
+.moves b { font-size: 11px; color: var(--pink); }
 
 .hook {
-  position: absolute;
-  top: 12px;
-  right: 14px;
-  z-index: 90;
+  display: none;
+}
+body.play .hook {
+  display: flex;
+  align-items: center;
   background: var(--dock-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--line);
   border-left: 3px solid var(--primary);
-  border-radius: 10px;
-  padding: 6px 12px;
-  margin: 0;
+  border-radius: 8px;
+  padding: 4px 12px;
   font-size: 12px;
+  max-width: 520px;
   box-shadow: var(--shadow-sm);
-  max-width: 320px;
-  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .dramaHookText { font-weight: 800; color: var(--ink); }
 
-.sceneRow {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  position: relative;
-  display: flex;
-  overflow: hidden;
-}
 .sceneTools {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: static;
+  transform: none;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 3px;
   background: var(--dock-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 3px 6px;
+  border-radius: 8px;
+  padding: 2px 6px;
   box-sizing: border-box;
   width: auto;
-  box-shadow: var(--shadow);
-  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+body.play .sceneTools {
+  display: none !important;
 }
 .toolSep { width: 1px; height: 18px; background: var(--line); margin: 0 4px; }
 .toolBtn {
@@ -604,25 +624,33 @@ textarea {
 /* Canvas Stage Frame & Zoom/Pan */
 .stageWrap {
   flex: 1;
+  min-height: 0;
   position: relative;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: auto;
-  padding: 40px 20px 80px;
+  overflow: hidden;
+  padding: 16px;
+  box-sizing: border-box;
+  background: var(--stage-wrap-bg);
+  background-image: var(--stage-grid);
+  background-size: 20px 20px;
 }
 .stage {
   position: relative;
-  width: min(100%, 475px);
+  width: auto;
+  height: 100%;
+  max-height: calc(100% - 12px);
+  max-width: calc(100% - 12px);
+  aspect-ratio: 1080 / 1610;
   margin: auto;
-  aspect-ratio: 1080/1610;
   background: var(--stage-paper);
   border: 2px solid var(--stage-border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
   transition: transform .06s ease-out;
   transform-origin: center center;
 }
@@ -716,21 +744,17 @@ body.play .drawingCanvas.hidePlay {
 }
 
 .canvasZoomDock {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
-  left: auto;
+  position: static;
   transform: none;
-  z-index: 92;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: var(--dock-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 3px 8px;
+  border-radius: 8px;
+  padding: 2px 6px;
   box-shadow: var(--shadow-sm);
 }
 .zoomBtn {
@@ -1249,29 +1273,44 @@ body.play .right, body.play .editOnly {
 body.play .imgLayer.sel {
   outline: none !important;
 }
-.tray {
-  position: absolute;
-  bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+/* Bottom Shelf Dock (Game Tray - Positioned Below Canvas) */
+.canvasBottomBar {
+  flex-shrink: 0;
+  width: 100%;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
   z-index: 95;
-  background: var(--dock-bg);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 6px 14px;
-  box-shadow: var(--shadow);
-  max-width: min(92%, 760px);
-  width: max-content;
+  box-sizing: border-box;
+}
+.tray {
+  position: static;
+  transform: none;
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 6px 16px 8px;
+  margin: 0;
+  box-sizing: border-box;
   transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
-  margin-top: 0;
+}
+.tray.collapsed {
+  padding: 4px 16px;
 }
 .tray.collapsed .trayrow {
   display: none !important;
 }
-.tray.collapsed {
-  padding: 4px 12px;
+.trayTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.trayHint {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
 }
 .trayToggleBtn {
   border: 1px solid var(--line);
@@ -1301,26 +1340,13 @@ body.play .imgLayer.sel {
 .clues {
   display: none;
 }
-body.play .hook {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  z-index: 90;
-  max-width: 480px;
-  text-align: center;
-  border-left: 1px solid var(--line);
-  border-top: 3px solid var(--primary);
-  box-shadow: var(--shadow);
-}
 body.play .clues {
   display: block;
   position: absolute;
-  top: 12px;
+  top: 14px;
   right: 14px;
-  max-width: 320px;
-  max-height: calc(100vh - 120px);
+  max-width: 300px;
+  max-height: calc(100% - 28px);
   overflow-y: auto;
   z-index: 92;
   background: var(--dock-bg);
@@ -2234,18 +2260,19 @@ body.play .trayrow .token { justify-self: center; }
   color: var(--ink);
 }
 
-/* Toast Notifications */
+/* Toast Notifications (Figma-Style Top Center, Zero Overlap) */
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 20px;
-  transform: translate(-50%, 10px);
+  top: 54px;
+  bottom: auto;
+  transform: translate(-50%, -10px);
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
-  padding: 9px 16px;
-  border-radius: 10px;
-  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
   font-weight: 850;
   box-shadow: var(--shadow);
   opacity: 0;

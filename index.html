@@ -103,29 +103,30 @@
 
 <main class="center">
   <div class="editor">
-    <div class="leveltop">
-      <div>
-        <div class="small">LEVEL DESIGN</div>
-        <b id="liveName">LEVEL</b>
-      </div>
-      <div class="playGroup" id="playGroup" style="display:none">
-        <details class="topMenu" id="replayMenu">
-          <summary class="btn iconBtn good" id="replayBtn" title="Chơi lại">↻ Replay ▾</summary>
-          <div class="topMenuPanel" style="min-width:230px">
-            <button class="btn" id="replayOriginalBtn">↻ Chơi lại · Tên gốc</button>
-            <button class="btn" id="replayLastShuffledBtn">↻ Chơi lại · Tên đã đảo</button>
-            <button class="btn" id="shuffleReplayBtn">Chơi lại + Đảo tên mới</button>
+    <!-- Top Sub-Toolbar (Figma Tools & Status - Positioned Around Canvas) -->
+    <div class="canvasTopBar" id="canvasTopBar">
+      <div class="canvasTopLeft">
+        <div class="leveltop" id="leveltop">
+          <div>
+            <div class="small">LEVEL DESIGN</div>
+            <b id="liveName">LEVEL</b>
           </div>
-        </details>
-        <span class="pill playPill" id="playNameStatus">Tên: Edit</span>
+          <div class="playGroup" id="playGroup" style="display:none">
+            <details class="topMenu" id="replayMenu">
+              <summary class="btn iconBtn good" id="replayBtn" title="Chơi lại">↻ Replay ▾</summary>
+              <div class="topMenuPanel" style="min-width:230px">
+                <button class="btn" id="replayOriginalBtn">↻ Chơi lại · Tên gốc</button>
+                <button class="btn" id="replayLastShuffledBtn">↻ Chơi lại · Tên đã đảo</button>
+                <button class="btn" id="shuffleReplayBtn">Chơi lại + Đảo tên mới</button>
+              </div>
+            </details>
+            <span class="pill playPill" id="playNameStatus">Tên: Edit</span>
+          </div>
+          <div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div>
+        </div>
       </div>
-      <div class="moves"><small>MẠNG</small><b id="liveMoves">2♥</b></div>
-    </div>
-    <div class="hook"><div id="liveHook" class="dramaHookText"></div></div>
 
-    <div class="sceneRow">
-      <div class="stageWrap" id="stageWrap">
-        <!-- Floating Horizontal Tool Dock (Figma-Style) -->
+      <div class="canvasTopCenter">
         <div class="sceneTools editOnly" id="sceneTools" aria-label="Công cụ vẽ">
           <button class="toolBtn active" data-tool="select" id="toolSelect" title="Chọn đối tượng / chọn cụm">↖</button>
           <div class="toolSep"></div>
@@ -143,35 +144,45 @@
           <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
           <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
         </div>
+        <div class="hook" id="hookContainer"><div id="liveHook" class="dramaHookText"></div></div>
+      </div>
 
+      <div class="canvasTopRight">
         <div class="canvasZoomDock">
           <button class="zoomBtn" id="zoomOutBtn" type="button" title="Thu nhỏ (Ctrl -)">−</button>
           <span class="zoomLabel" id="zoomValue">100%</span>
           <button class="zoomBtn" id="zoomInBtn" type="button" title="Phóng to (Ctrl +)">+</button>
           <button class="zoomBtn" id="zoomResetBtn" type="button" title="Đặt lại 100%">1:1</button>
         </div>
-        <div id="stage" class="stage">
-          <canvas id="drawingCanvas" class="drawingCanvas" width="1080" height="1610"></canvas>
-          <div class="editmark">1080 × 1610 · ARTBOARD</div>
-        </div>
-
-        <!-- Floating Bottom Game Tray Dock -->
-        <div class="tray" id="trayDock">
-          <div class="ctop">
-            <span>🎭 TRAY NHÂN VẬT</span>
-            <span id="trayHint">Kéo character vào scene</span>
-            <button class="trayToggleBtn" id="trayToggleBtn" type="button" title="Thu gọn / Mở rộng khay">▾ Thu gọn</button>
-          </div>
-          <div id="trayRow" class="trayrow"></div>
-        </div>
       </div>
     </div>
 
-    <div class="clues">
-      <div class="ctop"><span>CLUE TREE</span><span id="progress"></span></div>
-      <div id="liveClues"></div>
+    <!-- Infinite Canvas Viewport (Artboard ONLY - Zero UI Overlap) -->
+    <div class="stageWrap" id="stageWrap">
+      <div id="stage" class="stage">
+        <canvas id="drawingCanvas" class="drawingCanvas" width="1080" height="1610"></canvas>
+        <div class="editmark">1080 × 1610 · ARTBOARD</div>
+      </div>
+
+      <div class="clues">
+        <div class="ctop"><span>CLUE TREE</span><span id="progress"></span></div>
+        <div id="liveClues"></div>
+      </div>
     </div>
 
+    <!-- Bottom Shelf Dock (Game Tray - Positioned Around Canvas at Bottom) -->
+    <div class="canvasBottomBar">
+      <div class="tray" id="trayDock">
+        <div class="ctop">
+          <div class="trayTitleGroup">
+            <span>🎭 TRAY NHÂN VẬT</span>
+            <span id="trayHint">Kéo character vào scene</span>
+          </div>
+          <button class="trayToggleBtn" id="trayToggleBtn" type="button" title="Thu gọn / Mở rộng khay">▾ Thu gọn</button>
+        </div>
+        <div id="trayRow" class="trayrow"></div>
+      </div>
+    </div>
   </div>
 </main>
 
