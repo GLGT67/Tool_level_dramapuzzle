@@ -19,10 +19,12 @@
   </div>
 
   <div class="navGroup centerNav">
+    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleLeftBtn" title="Ẩn / Hiện thanh bên trái (Layers & Game Flow)">◨</button>
     <div class="modeSwitcher" id="modeSwitcher">
       <button class="modeBtn on" id="editBtn" title="Chế độ biên tập kịch bản">EDIT</button>
       <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">PLAY</button>
     </div>
+    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleRightBtn" title="Ẩn / Hiện thanh thuộc tính (Inspector)">◧</button>
 
     <div class="navSep"></div>
 
@@ -72,11 +74,18 @@
 </header>
 
 <div class="work">
-<aside class="panel left">
+<!-- Floating Expand Tabs (Show when panels are collapsed) -->
+<button class="floatingExpandBtn expandLeft" id="expandLeftBtn" type="button" title="Mở thanh Layers & Game Flow">▶ Layers</button>
+<button class="floatingExpandBtn expandRight" id="expandRightBtn" type="button" title="Mở thanh Inspector">Inspector ◀</button>
+
+<aside class="panel left" id="leftPanel">
   <div class="editOnly">
-    <div class="panelTabs">
-      <button class="panelTab active" id="tabLayersBtn" type="button">LAYERS</button>
-      <button class="panelTab" id="tabFlowBtn" type="button">GAME FLOW</button>
+    <div class="panelHeaderRow">
+      <div class="panelTabs">
+        <button class="panelTab active" id="tabLayersBtn" type="button">LAYERS</button>
+        <button class="panelTab" id="tabFlowBtn" type="button">GAME FLOW</button>
+      </div>
+      <button class="panelCollapseBtn" id="collapseLeftBtn" type="button" title="Thu gọn thanh bên trái (Ctrl+[)">◀</button>
     </div>
 
     <div class="tabSection" id="secLayers">
@@ -100,6 +109,9 @@
     </div>
   </div>
 </aside>
+
+<!-- Left Resizer Handle -->
+<div class="resizer resizer-left" id="resizerLeft" title="Kéo để chỉnh độ rộng / Double-click để thu gọn"></div>
 
 <main class="center">
   <div class="editor">
@@ -140,9 +152,9 @@
           <button class="toolBtn" data-tool="qslot" id="toolQslot" title="Ô trống dấu hỏi (Question Slot)">?</button>
           <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
           <div class="toolSep"></div>
-          <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
-          <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
-          <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
+          <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+          <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
+          <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
         </div>
         <div class="hook" id="hookContainer"><div id="liveHook" class="dramaHookText"></div></div>
       </div>
@@ -172,6 +184,7 @@
 
     <!-- Bottom Shelf Dock (Game Tray - Positioned Around Canvas at Bottom) -->
     <div class="canvasBottomBar">
+      <div class="resizer resizer-bottom" id="resizerBottom" title="Kéo để chỉnh độ cao khay / Double-click để thu gọn"></div>
       <div class="tray" id="trayDock">
         <div class="ctop">
           <div class="trayTitleGroup">
@@ -186,7 +199,17 @@
   </div>
 </main>
 
-<aside class="panel right"><h3>INSPECTOR</h3><div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div><div id="inspector" class="ins-empty">Chọn Level / Ảnh / Nhân vật / Manh mối / Nét vẽ để xem thuộc tính.</div></aside>
+<!-- Right Resizer Handle -->
+<div class="resizer resizer-right" id="resizerRight" title="Kéo để chỉnh độ rộng / Double-click để thu gọn"></div>
+
+<aside class="panel right" id="rightPanel">
+  <div class="panelHeaderRow">
+    <h3>INSPECTOR</h3>
+    <button class="panelCollapseBtn" id="collapseRightBtn" type="button" title="Thu gọn Inspector (Ctrl+])">▶</button>
+  </div>
+  <div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div>
+  <div id="inspector" class="ins-empty">Chọn Level / Ảnh / Nhân vật / Manh mối / Nét vẽ để xem thuộc tính.</div>
+</aside>
 </div>
 </div>
 
@@ -361,8 +384,9 @@
 <script src="data/sample_levels.js?v=1.38"></script>
 <script src="js/app.js?v=1.38"></script>
 <script>
-// Figma-Native UI Helpers (Tabs & Tray Dock)
+// Figma-Native UI Helpers (Tabs, Tray, Resizers & Collapsible Panels)
 (()=>{
+  // 1. Left Tabs (Layers vs Game Flow)
   const tabLayersBtn = document.getElementById("tabLayersBtn");
   const tabFlowBtn = document.getElementById("tabFlowBtn");
   const secLayers = document.getElementById("secLayers");
@@ -382,12 +406,158 @@
     });
   }
 
+  // 2. Tray Toggle (Expand / Collapse)
   const trayToggleBtn = document.getElementById("trayToggleBtn");
   const trayDock = document.getElementById("trayDock");
   if(trayToggleBtn && trayDock){
     trayToggleBtn.addEventListener("click", () => {
       const isCollapsed = trayDock.classList.toggle("collapsed");
       trayToggleBtn.textContent = isCollapsed ? "▲ Mở khay" : "▾ Thu gọn";
+    });
+  }
+
+  // 3. Panel Collapse & Expand Controller
+  const work = document.querySelector(".work");
+  const leftPanel = document.getElementById("leftPanel");
+  const rightPanel = document.getElementById("rightPanel");
+  const collapseLeftBtn = document.getElementById("collapseLeftBtn");
+  const collapseRightBtn = document.getElementById("collapseRightBtn");
+  const expandLeftBtn = document.getElementById("expandLeftBtn");
+  const expandRightBtn = document.getElementById("expandRightBtn");
+  const topToggleLeftBtn = document.getElementById("topToggleLeftBtn");
+  const topToggleRightBtn = document.getElementById("topToggleRightBtn");
+
+  function toggleLeft(force){
+    const isCollapsed = force !== undefined ? force : !work.classList.contains("left-collapsed");
+    work.classList.toggle("left-collapsed", isCollapsed);
+    if(collapseLeftBtn) collapseLeftBtn.textContent = isCollapsed ? "▶" : "◀";
+  }
+  function toggleRight(force){
+    const isCollapsed = force !== undefined ? force : !work.classList.contains("right-collapsed");
+    work.classList.toggle("right-collapsed", isCollapsed);
+    if(collapseRightBtn) collapseRightBtn.textContent = isCollapsed ? "◀" : "▶";
+  }
+
+  if(collapseLeftBtn) collapseLeftBtn.onclick = () => toggleLeft(true);
+  if(expandLeftBtn) expandLeftBtn.onclick = () => toggleLeft(false);
+  if(topToggleLeftBtn) topToggleLeftBtn.onclick = () => toggleLeft();
+
+  if(collapseRightBtn) collapseRightBtn.onclick = () => toggleRight(true);
+  if(expandRightBtn) expandRightBtn.onclick = () => toggleRight(false);
+  if(topToggleRightBtn) topToggleRightBtn.onclick = () => toggleRight();
+
+  // Keyboard shortcut Ctrl+[ and Ctrl+] for sidebar toggles (Figma style)
+  window.addEventListener("keydown", e => {
+    if((e.ctrlKey || e.metaKey) && e.key === "["){
+      e.preventDefault();
+      toggleLeft();
+    }
+    if((e.ctrlKey || e.metaKey) && e.key === "]"){
+      e.preventDefault();
+      toggleRight();
+    }
+    if((e.ctrlKey || e.metaKey) && e.key === "\\"){
+      e.preventDefault();
+      const bothCollapsed = work.classList.contains("left-collapsed") && work.classList.contains("right-collapsed");
+      toggleLeft(!bothCollapsed);
+      toggleRight(!bothCollapsed);
+    }
+  });
+
+  // 4. Resizer Drag Handlers
+  const resizerLeft = document.getElementById("resizerLeft");
+  const resizerRight = document.getElementById("resizerRight");
+  const resizerBottom = document.getElementById("resizerBottom");
+  const trayRow = document.getElementById("trayRow");
+
+  // Drag Left Resizer
+  if(resizerLeft && leftPanel){
+    let isDragging = false, startX = 0, startW = 0;
+    resizerLeft.addEventListener("pointerdown", e => {
+      isDragging = true;
+      startX = e.clientX;
+      startW = leftPanel.getBoundingClientRect().width;
+      resizerLeft.classList.add("dragging");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      resizerLeft.setPointerCapture(e.pointerId);
+    });
+    resizerLeft.addEventListener("pointermove", e => {
+      if(!isDragging) return;
+      const newW = Math.max(160, Math.min(520, startW + (e.clientX - startX)));
+      leftPanel.style.width = newW + "px";
+      leftPanel.style.minWidth = newW + "px";
+    });
+    const stopLeft = () => {
+      if(!isDragging) return;
+      isDragging = false;
+      resizerLeft.classList.remove("dragging");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    resizerLeft.addEventListener("pointerup", stopLeft);
+    resizerLeft.addEventListener("pointercancel", stopLeft);
+    resizerLeft.addEventListener("dblclick", () => toggleLeft());
+  }
+
+  // Drag Right Resizer
+  if(resizerRight && rightPanel){
+    let isDragging = false, startX = 0, startW = 0;
+    resizerRight.addEventListener("pointerdown", e => {
+      isDragging = true;
+      startX = e.clientX;
+      startW = rightPanel.getBoundingClientRect().width;
+      resizerRight.classList.add("dragging");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      resizerRight.setPointerCapture(e.pointerId);
+    });
+    resizerRight.addEventListener("pointermove", e => {
+      if(!isDragging) return;
+      const newW = Math.max(200, Math.min(540, startW - (e.clientX - startX)));
+      rightPanel.style.width = newW + "px";
+      rightPanel.style.minWidth = newW + "px";
+    });
+    const stopRight = () => {
+      if(!isDragging) return;
+      isDragging = false;
+      resizerRight.classList.remove("dragging");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    resizerRight.addEventListener("pointerup", stopRight);
+    resizerRight.addEventListener("pointercancel", stopRight);
+    resizerRight.addEventListener("dblclick", () => toggleRight());
+  }
+
+  // Drag Bottom Resizer
+  if(resizerBottom && trayRow){
+    let isDragging = false, startY = 0, startH = 0;
+    resizerBottom.addEventListener("pointerdown", e => {
+      isDragging = true;
+      startY = e.clientY;
+      startH = trayRow.getBoundingClientRect().height;
+      resizerBottom.classList.add("dragging");
+      document.body.style.cursor = "row-resize";
+      document.body.style.userSelect = "none";
+      resizerBottom.setPointerCapture(e.pointerId);
+    });
+    resizerBottom.addEventListener("pointermove", e => {
+      if(!isDragging) return;
+      const newH = Math.max(50, Math.min(300, startH - (e.clientY - startY)));
+      trayRow.style.maxHeight = newH + "px";
+    });
+    const stopBottom = () => {
+      if(!isDragging) return;
+      isDragging = false;
+      resizerBottom.classList.remove("dragging");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+    resizerBottom.addEventListener("pointerup", stopBottom);
+    resizerBottom.addEventListener("pointercancel", stopBottom);
+    resizerBottom.addEventListener("dblclick", () => {
+      if(trayToggleBtn) trayToggleBtn.click();
     });
   }
 })();
