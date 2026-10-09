@@ -136,7 +136,7 @@ button { cursor: pointer; }
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
-  z-index: 100;
+  z-index: 1000;
   white-space: nowrap;
 }
 
@@ -457,7 +457,7 @@ button { cursor: pointer; }
 .floatingExpandBtn {
   position: absolute;
   top: 52px;
-  z-index: 120;
+  z-index: 70;
   background: var(--dock-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -642,7 +642,7 @@ textarea {
   min-height: 42px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
-  z-index: 100;
+  z-index: 60;
   flex-shrink: 0;
   box-sizing: border-box;
   gap: 10px;

@@ -2929,10 +2929,14 @@ $$(".toolBtn").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 
 function createAnnotation(type,x,y,w,h,extra={}){
   const qslot=type==="qslot";
+  const defW = type==="text"?120:(qslot?70:(type==="line"?60:40));
+  const defH = type==="text"?40:(qslot?70:(type==="line"?10:40));
+  const finalW = (w !== undefined && w !== null) ? Math.max(type==="line"?20:10, w) : defW;
+  const finalH = (h !== undefined && h !== null) ? Math.max(type==="line"?6:10, h) : defH;
   const a={
     id:uid("AN_"),type,x,y,
-    w:Math.max(type==="text"?120:(qslot?70:(type==="line"?60:40)),w),
-    h:Math.max(type==="text"?40:(qslot?70:(type==="line"?10:40)),h),
+    w:finalW,
+    h:finalH,
     fill:type==="line"?"transparent":"#f4f1f6",stroke:"#655d69",text:type==="text"?"Note":"",
     textColor:"#514953",fontSize:28,strokeWidth:4,radius:qslot?24:0,strokeStyle:"solid",
     arrowXDir:extra.arrowXDir||1,arrowYDir:extra.arrowYDir||1,
@@ -3458,24 +3462,37 @@ function startDrawTool(e){
   const up=ev=>{
     window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);ghost.remove();
     const geo=computeGeometry(ev);
-    const minW = type==="arrow" ? 40 : 20;
-    const minH = type==="arrow" ? 30 : 20;
-    const finalW = Math.max(minW, Math.round(geo.w));
-    const finalH = Math.max(minH, Math.round(geo.h));
+    const isClick = geo.w < 15 && geo.h < 15;
 
-    let extra={};
-    if(type==="arrow"){
-      let xdir=1, ydir=1;
-      if(geo.absY<20 && geo.absX>=25){
-        xdir=geo.dx>=0?1:-1; ydir=0;
-      }else if(geo.absX<20 && geo.absY>=25){
-        xdir=0; ydir=geo.dy>=0?1:-1;
-      }else{
-        xdir=geo.dx>=0?1:-1; ydir=geo.dy>=0?1:-1;
+    let targetX, targetY, targetW, targetH, extra = {};
+    if(isClick){
+      const defW = type==="text"?240:(type==="arrow"||type==="line"?160:140);
+      const defH = type==="text"?70:(type==="arrow"||type==="line"?40:140);
+      targetW = defW;
+      targetH = defH;
+      targetX = Math.max(0, Math.min(1080 - defW, Math.round(start.x - defW / 2)));
+      targetY = Math.max(0, Math.min(1610 - defH, Math.round(start.y - defH / 2)));
+      if(type==="arrow"){ extra = {arrowXDir: 1, arrowYDir: 0}; }
+    } else {
+      const minW = type==="arrow" ? 40 : 20;
+      const minH = type==="arrow" ? 30 : 20;
+      targetW = Math.max(minW, Math.round(geo.w));
+      targetH = Math.max(minH, Math.round(geo.h));
+      targetX = Math.round(geo.x);
+      targetY = Math.round(geo.y);
+      if(type==="arrow"){
+        let xdir=1, ydir=1;
+        if(geo.absY<20 && geo.absX>=25){
+          xdir=geo.dx>=0?1:-1; ydir=0;
+        }else if(geo.absX<20 && geo.absY>=25){
+          xdir=0; ydir=geo.dy>=0?1:-1;
+        }else{
+          xdir=geo.dx>=0?1:-1; ydir=geo.dy>=0?1:-1;
+        }
+        extra={arrowXDir:xdir, arrowYDir:ydir};
       }
-      extra={arrowXDir:xdir, arrowYDir:ydir};
     }
-    createAnnotation(type,Math.round(geo.x),Math.round(geo.y),finalW,finalH,extra);
+    createAnnotation(type, targetX, targetY, targetW, targetH, extra);
   };
   window.addEventListener("pointermove",mv);window.addEventListener("pointerup",up);
 }
@@ -3483,36 +3500,51 @@ function startDrawTool(e){
 function startMarquee(e){
   if(mode!=="edit"||e.button!==0)return;
   if(e.target.closest(".char,.imgLayer,.resize,.noteObj,.noteResize"))return;
+  if(typeof isSpaceDown !== "undefined" && isSpaceDown) return;
+  if(typeof isPanning !== "undefined" && isPanning) return;
   if(activeTool!=="select")return startDrawTool(e);
   const st=$("#stage"),rect=st.getBoundingClientRect();
   const sx=e.clientX-rect.left,sy=e.clientY-rect.top;
   let moved=false;
-  const m=document.createElement("div");m.className="marquee";m.style.left=sx+"px";m.style.top=sy+"px";m.style.width="0px";m.style.height="0px";st.appendChild(m);
+  const m=document.createElement("div");
+  m.className="marquee";
+  m.style.left=(sx / rect.width * 100)+"%";
+  m.style.top=(sy / rect.height * 100)+"%";
+  m.style.width="0%";
+  m.style.height="0%";
+  st.appendChild(m);
 
   const mv=ev=>{
     moved=true;
-    const x=Math.max(0,Math.min(rect.width,ev.clientX-rect.left)),y=Math.max(0,Math.min(rect.height,ev.clientY-rect.top));
-    const l=Math.min(sx,x),t=Math.min(sy,y),w=Math.abs(x-sx),h=Math.abs(y-sy);
-    m.style.left=l+"px";m.style.top=t+"px";m.style.width=w+"px";m.style.height=h+"px";
+    const x=ev.clientX-rect.left, y=ev.clientY-rect.top;
+    const l=Math.min(sx,x), t=Math.min(sy,y), w=Math.abs(x-sx), h=Math.abs(y-sy);
+    m.style.left=(l / rect.width * 100)+"%";
+    m.style.top=(t / rect.height * 100)+"%";
+    m.style.width=(w / rect.width * 100)+"%";
+    m.style.height=(h / rect.height * 100)+"%";
   };
   const up=ev=>{
     window.removeEventListener("pointermove",mv);window.removeEventListener("pointerup",up);
-    const x=Math.max(0,Math.min(rect.width,ev.clientX-rect.left)),y=Math.max(0,Math.min(rect.height,ev.clientY-rect.top));
-    const l=Math.min(sx,x),t=Math.min(sy,y),r=Math.max(sx,x),b=Math.max(sy,y);
+    const x=ev.clientX-rect.left, y=ev.clientY-rect.top;
+    const l=Math.min(sx,x), t=Math.min(sy,y), r=Math.max(sx,x), b=Math.max(sy,y);
     m.remove();
     if(!e.shiftKey)multiSel.clear();
-    if(moved&&Math.abs(x-sx)>4&&Math.abs(y-sy)>4){
+    if(moved && Math.abs(x-sx)>4 && Math.abs(y-sy)>4){
+      const logL = l / rect.width * 1080;
+      const logR = r / rect.width * 1080;
+      const logT = t / rect.height * 1610;
+      const logB = b / rect.height * 1610;
+
       data.characters.forEach(c=>{
-        const cx=c.x/1080*rect.width,cy=c.y/1610*rect.height;
-        if(cx>=l&&cx<=r&&cy>=t&&cy<=b)multiSel.add("char:"+c.id);
+        if(c.x >= logL && c.x <= logR && c.y >= logT && c.y <= logB) multiSel.add("char:"+c.id);
       });
       data.images.forEach(i=>{
-        const cx=(i.x+i.w/2)/1080*rect.width,cy=(i.y+i.h/2)/1610*rect.height;
-        if(cx>=l&&cx<=r&&cy>=t&&cy<=b)multiSel.add("image:"+i.id);
+        const cx = i.x + i.w / 2, cy = i.y + i.h / 2;
+        if(cx >= logL && cx <= logR && cy >= logT && cy <= logB) multiSel.add("image:"+i.id);
       });
       data.annotations.forEach(a=>{
-        const cx=(a.x+a.w/2)/1080*rect.width,cy=(a.y+a.h/2)/1610*rect.height;
-        if(cx>=l&&cx<=r&&cy>=t&&cy<=b)multiSel.add("annotation:"+a.id);
+        const cx = a.x + a.w / 2, cy = a.y + a.h / 2;
+        if(cx >= logL && cx <= logR && cy >= logT && cy <= logB) multiSel.add("annotation:"+a.id);
       });
       toast(`Đã chọn ${multiSel.size} object`);
     }
@@ -4661,6 +4693,8 @@ function initZoomAndPan(){
         panStart = {x: e.clientX - canvasPan.x * canvasZoom, y: e.clientY - canvasPan.y * canvasZoom};
         document.body.classList.add("panning");
         e.preventDefault();
+      } else if(e.button === 0 && e.target === sw){
+        startMarquee(e);
       }
     });
     window.addEventListener("pointermove", e => {
