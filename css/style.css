@@ -226,6 +226,8 @@ button { cursor: pointer; }
   border: 1px solid var(--line);
   border-radius: 9px;
   padding: 3px 8px;
+  position: relative;
+  z-index: 50010;
 }
 .playPill {
   font-size: 11px;
@@ -324,9 +326,14 @@ button { cursor: pointer; }
   display: grid;
   gap: 4px;
 }
+#replayMenu {
+  position: relative;
+  z-index: 50020;
+}
 #replayMenu .topMenuPanel {
   left: 0;
   right: auto;
+  z-index: 50030;
 }
 .topMenuPanel .btn, .topMenuPanel label.btn {
   width: 100%;
@@ -617,6 +624,7 @@ textarea {
   overflow: hidden;
   padding: 0;
   position: relative;
+  z-index: 50;
   background: var(--stage-wrap-bg);
   background-image: var(--stage-grid);
   background-size: 20px 20px;
@@ -646,7 +654,7 @@ textarea {
   min-height: 42px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
-  z-index: 60;
+  z-index: 25000;
   flex-shrink: 0;
   box-sizing: border-box;
   gap: 10px;
@@ -1475,6 +1483,21 @@ body.play .char:focus-within .apps {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+}
+body.play .center {
+  z-index: 200;
+}
+body.play .canvasTopBar {
+  z-index: 50000;
+}
+body.play .playGroup {
+  z-index: 50010;
+}
+body.play #replayMenu {
+  z-index: 50020;
+}
+body.play #replayMenu .topMenuPanel {
+  z-index: 50030;
 }
 
 body.play .panel.left {
