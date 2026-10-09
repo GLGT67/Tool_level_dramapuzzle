@@ -324,6 +324,10 @@ button { cursor: pointer; }
   display: grid;
   gap: 4px;
 }
+#replayMenu .topMenuPanel {
+  left: 0;
+  right: auto;
+}
 .topMenuPanel .btn, .topMenuPanel label.btn {
   width: 100%;
   text-align: left;
@@ -1081,7 +1085,7 @@ body.play .drawingCanvas.hidePlay {
 .name {
   position: absolute;
   left: 50%;
-  top: 47px;
+  top: 45px;
   transform: translateX(-50%);
   font-size: 11px;
   font-weight: 850;
@@ -1089,31 +1093,37 @@ body.play .drawingCanvas.hidePlay {
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 5px;
-  padding: 1px 5px;
+  padding: 1px 6px;
   white-space: nowrap;
-  z-index: 1;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 .apps {
   position: absolute;
   left: 50%;
-  top: 64px;
+  top: 66px;
   transform: translateX(-50%);
   width: max-content;
-  max-width: 124px;
+  max-width: 120px;
   text-align: center;
   pointer-events: none;
+  z-index: 1;
 }
 .appTag {
   display: block;
-  font-size: 9.5px;
-  line-height: 1.2;
+  font-size: 9px;
+  line-height: 1.25;
   background: var(--dock-bg);
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 2px 5px;
-  white-space: pre-line;
+  padding: 2px 6px;
+  white-space: normal;
   overflow-wrap: break-word;
+  max-height: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 .react {
   position: absolute;
@@ -1452,6 +1462,21 @@ body.play .imgLayer.sel {
   outline: none !important;
 }
 
+body.play .char .apps {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  transform: translateX(-50%) translateY(4px);
+  pointer-events: none;
+  z-index: 6000;
+}
+body.play .char:hover .apps,
+body.play .char:focus-within .apps {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
 body.play .panel.left {
   width: 280px !important;
   min-width: 280px !important;
@@ -1481,11 +1506,12 @@ body.play .panel.right {
 .playTrayRow {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  row-gap: 20px;
+  grid-auto-rows: minmax(118px, auto);
+  column-gap: 12px;
+  row-gap: 16px;
   overflow-y: auto;
   flex: 1;
-  padding: 4px 2px 16px;
+  padding: 8px 6px 24px;
   align-content: start;
 }
 
@@ -1494,17 +1520,46 @@ body.play .panel.right {
   width: 44px;
   height: 44px;
   font-size: 20px;
+  position: relative;
 }
 
 .playTrayRow .token .name {
-  top: 50px;
+  position: absolute;
+  left: 50%;
+  top: 48px;
+  transform: translateX(-50%);
   font-size: 11px;
+  font-weight: 850;
+  background: var(--dock-bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  white-space: nowrap;
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
 }
 
 .playTrayRow .token .trayAppearance {
-  top: 66px;
-  font-size: 9px;
-  max-width: 105px;
+  position: absolute;
+  left: 50%;
+  top: 70px;
+  transform: translateX(-50%);
+  font-size: 9.5px;
+  line-height: 1.25;
+  background: var(--dock-bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2px 6px;
+  width: max-content;
+  max-width: 115px;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-weight: 700;
+  z-index: 1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* Play Clues Panel bên cột phải */

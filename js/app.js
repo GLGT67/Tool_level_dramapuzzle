@@ -137,8 +137,11 @@ function displayName(c){
 }
 function appearanceText(c){
   const a=c?.appearance;
-  if(Array.isArray(a))return a.filter(x=>String(x??"").trim()).join("\n");
-  return String(a??"");
+  if(Array.isArray(a)){
+    const cleaned=a.map(x=>String(x??"").trim()).filter(Boolean);
+    return cleaned.join(" ").replace(/\s*,\s*/g, ", ").trim();
+  }
+  return String(a??"").trim();
 }
 function resolveTokens(str,map=currentNameMap()){
   return String(str??"").replace(/\{([^{}]+)\}/g,(m,id)=>map[id]||m);
