@@ -1255,6 +1255,8 @@ function renderLive(){
   redrawDrawingCanvas();
   $("#progress").textContent=mode==="play"?(play?.failed?"💔 HẾT MẠNG · CHƠI LẠI":`${Object.keys(play?.placed||{}).length}/${data.characters.filter(c=>c.type==="M").length} đúng`):"CHẾ ĐỘ BIÊN TẬP";
   document.body.classList.toggle("play",mode==="play");
+  const playLeft = $("#playLeftSection"); if(playLeft) playLeft.style.display = mode==="play" ? "flex" : "none";
+  const playRight = $("#playRightSection"); if(playRight) playRight.style.display = mode==="play" ? "flex" : "none";
   $("#editBtn").classList.toggle("on",mode==="edit");
   $("#playBtn").classList.toggle("on",mode==="play");
   $("#playBtn").textContent="CHƠI THỬ";
@@ -1390,15 +1392,47 @@ function renderClues(){
   initClueReorderListeners();
   const roots=data.clues.filter(c=>!c.parent);
   const rootReveal=!data.level.revealParentClueId?playDramaReveal(0):"";
-  $("#liveClues").innerHTML=mode==="edit"?roots.map(c=>editClue(c,0)).join(""):roots.map(c=>playClue(c,0)).join("")+rootReveal;
-  if(mode==="edit")$$("[data-live]").forEach(e=>e.onclick=()=>{selected={type:"clue",id:e.dataset.live};refreshImmediate()});
+  const cluesHtml = mode==="edit"?roots.map(c=>editClue(c,0)).join(""):roots.map(c=>playClue(c,0)).join("")+rootReveal;
+  
+  if(mode==="play"){
+    const playBox = $("#playLiveClues");
+    if(playBox) playBox.innerHTML = cluesHtml;
+    const progPill = $("#playProgressPill");
+    if(progPill){
+      const total = data.characters.filter(c=>c.type==="M").length;
+      const placedCount = Object.keys(play?.placed||{}).length;
+      if(play?.failed){
+        progPill.textContent = "💔 HẾT MẠNG";
+        progPill.className = "pill bad";
+      } else if(placedCount === total && total > 0){
+        progPill.textContent = "🎉 HOÀN THÀNH";
+        progPill.className = "pill good";
+      } else {
+        progPill.textContent = `${placedCount}/${total} đúng`;
+        progPill.className = "pill";
+      }
+    }
+  } else {
+    const liveBox = $("#liveClues");
+    if(liveBox) liveBox.innerHTML = cluesHtml;
+    $$("[data-live]").forEach(e=>e.onclick=()=>{selected={type:"clue",id:e.dataset.live};refreshImmediate()});
+  }
 }
 
 function renderTray(){
-  const box=$("#trayRow");box.innerHTML="";
-  const list=mode==="play"
+  const isPlay = mode==="play";
+  const box = isPlay ? ($("#playTrayRow") || $("#trayRow")) : $("#trayRow");
+  if(box) box.innerHTML = "";
+  if(isPlay && $("#trayRow") && $("#trayRow") !== box) $("#trayRow").innerHTML = "";
+
+  const list=isPlay
     ? sortedCharacters(c=>c.type==="M"&&!play.placed[c.id])
     : sortedCharacters();
+
+  const playTrayCount = $("#playTrayCount");
+  if(playTrayCount && isPlay){
+    playTrayCount.textContent = `${list.length} nhân vật`;
+  }
 
   list.forEach(c=>{
     const t=document.createElement("div");
@@ -1414,7 +1448,7 @@ function renderTray(){
     t.innerHTML=`${rv?`<div class="react">${esc(reactionPlayPreview(rv,c.id))}</div>`:""}${initialGaze?`<div class="react editPreview" title="Initial gaze">${esc(initialGaze)}</div>`:""}${face(rv?.emotion||c.baseExpression||"😐")}${editCode}<span class="name">${esc(displayName(c))}</span>${appearanceTag}`;
     if(mode==="edit")t.onpointerdown=e=>dragEditTray(e,c,t);else t.onpointerdown=e=>dragPlay(e,c,t);
     t.onclick=()=>{if(mode==="edit"){multiSel.clear();multiSel.add("char:"+c.id);selected={type:"char",id:c.id};refreshImmediate()}};
-    box.appendChild(t);
+    if(box) box.appendChild(t);
   });
 }
 
@@ -3738,6 +3772,8 @@ function replayShuffleNames(){
   toast("Chơi lại từ đầu · đã đảo tên mới");
 }
 
+let savedCollapsedState = null;
+
 function startPlay(){
   mode="play";
   playSession++;
@@ -3746,6 +3782,15 @@ function startPlay(){
   canvasPan = {x: 0, y: 0};
   if(typeof applyZoomPan === 'function'){
     applyZoomPan();
+  }
+
+  const work = $("#work");
+  if(work){
+    savedCollapsedState = {
+      left: work.classList.contains("left-collapsed"),
+      right: work.classList.contains("right-collapsed")
+    };
+    work.classList.remove("left-collapsed", "right-collapsed");
   }
 
   if(!play){
@@ -3759,6 +3804,11 @@ function stopPlay(){
   playSession++;
   savePlayProgress();
   mode="edit";
+  const work = $("#work");
+  if(work && savedCollapsedState){
+    if(savedCollapsedState.left) work.classList.add("left-collapsed");
+    if(savedCollapsedState.right) work.classList.add("right-collapsed");
+  }
   refreshImmediate();
 }
 $("#playBtn").onclick=startPlay;

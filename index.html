@@ -27,9 +27,9 @@
       <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">PLAY</button>
     </div>
 
-    <div class="navSep"></div>
+    <div class="navSep editOnlyNav"></div>
 
-    <div class="btnGroup">
+    <div class="btnGroup editOnlyNav">
       <button class="btn smBtn" id="logicFlowBtn" title="Kiểm tra sơ đồ suy luận logic (Solve Graph)">LOGIC FLOW</button>
       <button class="btn smBtn" id="difficultyTestBtn" title="Phân tích độ khó kịch bản">TEST ĐỘ KHÓ</button>
       <button class="btn smBtn" id="checkLevelBtn" title="Linter kiểm tra lỗi logic & asset">CHECK LEVEL</button>
@@ -37,12 +37,12 @@
   </div>
 
   <div class="navGroup rightNav">
-    <div class="btnGroup">
+    <div class="btnGroup editOnlyNav">
       <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU PROJECT</button>
       <label class="btn smBtn" title="Mở Level từ file JSON">MỞ PROJECT<input id="importFile" type="file" accept=".json,application/json,text/plain" style="display:none"></label>
     </div>
 
-    <details class="topMenu" id="productionMenu">
+    <details class="topMenu editOnlyNav" id="productionMenu">
       <summary class="btn smBtn">PRODUCTION ▾</summary>
       <div class="topMenuPanel">
         <button class="btn" id="endingBtn">ENDING</button>
@@ -52,7 +52,7 @@
       </div>
     </details>
 
-    <details class="topMenu" id="sampleMenu">
+    <details class="topMenu editOnlyNav" id="sampleMenu">
       <summary class="btn smBtn">SAMPLE ▾</summary>
       <div class="topMenuPanel">
         <button class="btn" id="sampleWeddingBtn">Wedding · L001</button>
@@ -60,7 +60,7 @@
       </div>
     </details>
 
-    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleRightBtn" title="Ẩn / Hiện thanh thuộc tính (Ctrl + ])">
+    <button class="btn iconBtn smBtn panelQuickToggle editOnlyNav" id="topToggleRightBtn" title="Ẩn / Hiện thanh thuộc tính (Ctrl + ])">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M15 3v18"/></svg>
     </button>
 
@@ -68,7 +68,7 @@
       <span id="themeIcon">🌙</span>
     </button>
 
-    <details class="topMenu" id="moreMenu">
+    <details class="topMenu editOnlyNav" id="moreMenu">
       <summary class="btn iconBtn smBtn" title="Tùy chọn khác">⋯</summary>
       <div class="topMenuPanel">
         <button class="btn" id="saveAsBtn">LƯU THÀNH FILE MỚI</button>
@@ -116,6 +116,18 @@
       <div class="head"><b>Reaction Events</b></div>
       <div id="reactionList"></div>
     </div>
+  </div>
+
+  <div class="playOnly" id="playLeftSection" style="display:none">
+    <div class="panelHeaderRow">
+      <div class="panelTitleGroup">
+        <span class="panelIcon">🎭</span>
+        <b class="panelTitle">TRAY NHÂN VẬT</b>
+      </div>
+      <span class="pill playCountPill" id="playTrayCount"></span>
+    </div>
+    <div class="playTrayHint">Kéo nhân vật vào sân khấu để giải đố</div>
+    <div id="playTrayRow" class="playTrayRow"></div>
   </div>
 </aside>
 
@@ -212,12 +224,25 @@
 <div class="resizer resizer-right" id="resizerRight" title="Kéo để chỉnh độ rộng / Double-click để thu gọn"></div>
 
 <aside class="panel right" id="rightPanel">
-  <div class="panelHeaderRow">
-    <h3>INSPECTOR</h3>
-    <button class="panelCollapseBtn" id="collapseRightBtn" type="button" title="Thu gọn Inspector (Ctrl+])">▶</button>
+  <div class="editOnly" id="editInspectorSection">
+    <div class="panelHeaderRow">
+      <h3>INSPECTOR</h3>
+      <button class="panelCollapseBtn" id="collapseRightBtn" type="button" title="Thu gọn Inspector (Ctrl+])">▶</button>
+    </div>
+    <div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div>
+    <div id="inspector" class="ins-empty">Chọn Level / Ảnh / Nhân vật / Manh mối / Nét vẽ để xem thuộc tính.</div>
   </div>
-  <div class="phaseLegend">🟢 Làm ngay · 🟡 Khi cần · 🔵 Làm sau</div>
-  <div id="inspector" class="ins-empty">Chọn Level / Ảnh / Nhân vật / Manh mối / Nét vẽ để xem thuộc tính.</div>
+
+  <div class="playOnly" id="playRightSection" style="display:none">
+    <div class="panelHeaderRow">
+      <div class="panelTitleGroup">
+        <span class="panelIcon">🔍</span>
+        <b class="panelTitle">CLUE TREE</b>
+      </div>
+      <span class="pill" id="playProgressPill">0/2 đúng</span>
+    </div>
+    <div class="playCluesContainer" id="playLiveClues"></div>
+  </div>
 </aside>
 </div>
 </div>
