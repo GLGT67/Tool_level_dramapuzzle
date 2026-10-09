@@ -12,6 +12,7 @@
 <header class="top">
   <div class="navGroup leftNav">
     <div class="brand">
+      <span class="brandIcon" style="display:inline-block;color:var(--primary);font-size:15px;margin-right:3px">❖</span>
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
     <button class="version versionBtn" id="changelogBtn" title="Xem lịch sử cập nhật và lộ trình">v1.38</button>
@@ -73,22 +74,30 @@
 <div class="work">
 <aside class="panel left">
   <div class="editOnly">
-    <h3>Level</h3>
-    <div class="card sel" id="levelCard"><b>CÀI ĐẶT LEVEL</b><div class="meta">Level ID · Target Difficulty · Drama Hook · 2 Lives cố định · Main Reveal</div></div>
+    <div class="panelTabs">
+      <button class="panelTab active" id="tabLayersBtn" type="button">LAYERS</button>
+      <button class="panelTab" id="tabFlowBtn" type="button">GAME FLOW</button>
+    </div>
 
-    <div class="head"><b>Reference Layer</b><label class="btn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
-    <div class="small">Dán Ctrl/Cmd+V. Kéo ảnh để di chuyển, kéo chấm xanh để thu phóng. <b>Giữ Shift để giữ nguyên tỉ lệ ảnh.</b> Chuột phải: Nhân bản / đổi lớp / khóa / xóa.</div>
-    <div class="small" style="margin-top:5px"><b>Chọn cụm:</b> kéo chuột trái trên vùng trống → kéo đối tượng đã chọn để di chuyển cả cụm. <b>Backspace/Delete</b> để xóa. <b>Ctrl/Cmd+Z</b> để Hoàn tác.</div>
-    <div id="imgList"></div>
+    <div class="tabSection" id="secLayers">
+      <div class="head"><b>Reference Layer</b><label class="btn smBtn">+ Ảnh<input id="imgInput" type="file" accept="image/*" multiple style="display:none"></label></div>
+      <div class="small">Dán Ctrl/Cmd+V. Kéo để di chuyển, Shift giữ tỉ lệ. Chuột phải: Nhân bản / khóa / xóa.</div>
+      <div id="imgList"></div>
 
-    <div class="head"><b>Characters</b><div class="row"><button class="btn" id="addM">+ Nam</button><button class="btn" id="addF">+ Nữ</button></div></div>
-    <div id="charList"></div>
+      <div class="head"><b>Characters</b><div class="row"><button class="btn smBtn" id="addM">+ Nam</button><button class="btn smBtn" id="addF">+ Nữ</button></div></div>
+      <div id="charList"></div>
+    </div>
 
-    <div class="head"><b>Clue Tree</b><button class="btn" id="addClue">🟢 + Gốc</button></div>
-    <div id="clueList"></div>
+    <div class="tabSection" id="secFlow" style="display:none">
+      <h3>Level Settings</h3>
+      <div class="card sel" id="levelCard"><b>CÀI ĐẶT LEVEL</b><div class="meta">Level ID · Target Difficulty · Drama Hook · 2 Lives cố định · Main Reveal</div></div>
 
-    <div class="head"><b>Reaction Events</b></div>
-    <div id="reactionList"></div>
+      <div class="head"><b>Clue Tree</b><button class="btn smBtn" id="addClue">🟢 + Gốc</button></div>
+      <div id="clueList"></div>
+
+      <div class="head"><b>Reaction Events</b></div>
+      <div id="reactionList"></div>
+    </div>
   </div>
 </aside>
 
@@ -115,24 +124,26 @@
     <div class="hook"><div id="liveHook" class="dramaHookText"></div></div>
 
     <div class="sceneRow">
-      <div class="sceneTools editOnly" id="sceneTools" aria-label="Công cụ vẽ">
-        <button class="toolBtn active" data-tool="select" id="toolSelect" title="Chọn đối tượng / chọn cụm">↖</button>
-        <div class="toolSep"></div>
-        <button class="toolBtn" data-tool="rect" title="Hình chữ nhật / vuông">□</button>
-        <button class="toolBtn" data-tool="circle" title="Hình tròn / bầu dục">○</button>
-        <button class="toolBtn" data-tool="triangle" title="Hình tam giác">△</button>
-        <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh">★</button>
-        <button class="toolBtn" data-tool="polygon" title="Hình lục giác 6 cạnh">⬡</button>
-        <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
-        <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
-        <button class="toolBtn" data-tool="qslot" id="toolQslot" title="Ô trống dấu hỏi (Question Slot)">?</button>
-        <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
-        <div class="toolSep"></div>
-        <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
-        <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
-        <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
-      </div>
       <div class="stageWrap" id="stageWrap">
+        <!-- Floating Horizontal Tool Dock (Figma-Style) -->
+        <div class="sceneTools editOnly" id="sceneTools" aria-label="Công cụ vẽ">
+          <button class="toolBtn active" data-tool="select" id="toolSelect" title="Chọn đối tượng / chọn cụm">↖</button>
+          <div class="toolSep"></div>
+          <button class="toolBtn" data-tool="rect" title="Hình chữ nhật / vuông">□</button>
+          <button class="toolBtn" data-tool="circle" title="Hình tròn / bầu dục">○</button>
+          <button class="toolBtn" data-tool="triangle" title="Hình tam giác">△</button>
+          <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh">★</button>
+          <button class="toolBtn" data-tool="polygon" title="Hình lục giác 6 cạnh">⬡</button>
+          <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
+          <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
+          <button class="toolBtn" data-tool="qslot" id="toolQslot" title="Ô trống dấu hỏi (Question Slot)">?</button>
+          <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
+          <div class="toolSep"></div>
+          <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+          <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
+          <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
+        </div>
+
         <div class="canvasZoomDock">
           <button class="zoomBtn" id="zoomOutBtn" type="button" title="Thu nhỏ (Ctrl -)">−</button>
           <span class="zoomLabel" id="zoomValue">100%</span>
@@ -143,12 +154,17 @@
           <canvas id="drawingCanvas" class="drawingCanvas" width="1080" height="1610"></canvas>
           <div class="editmark">1080 × 1610 · ARTBOARD</div>
         </div>
-      </div>
-    </div>
 
-    <div class="tray">
-      <div class="ctop"><span>TRAY NHÂN VẬT</span><span id="trayHint">Kéo character vào scene · M/F đều có trên Tray + Scene trong Edit</span></div>
-      <div id="trayRow" class="trayrow"></div>
+        <!-- Floating Bottom Game Tray Dock -->
+        <div class="tray" id="trayDock">
+          <div class="ctop">
+            <span>🎭 TRAY NHÂN VẬT</span>
+            <span id="trayHint">Kéo character vào scene</span>
+            <button class="trayToggleBtn" id="trayToggleBtn" type="button" title="Thu gọn / Mở rộng khay">▾ Thu gọn</button>
+          </div>
+          <div id="trayRow" class="trayrow"></div>
+        </div>
+      </div>
     </div>
 
     <div class="clues">
@@ -333,6 +349,37 @@
 
 <script src="data/sample_levels.js?v=1.38"></script>
 <script src="js/app.js?v=1.38"></script>
+<script>
+// Figma-Native UI Helpers (Tabs & Tray Dock)
+(()=>{
+  const tabLayersBtn = document.getElementById("tabLayersBtn");
+  const tabFlowBtn = document.getElementById("tabFlowBtn");
+  const secLayers = document.getElementById("secLayers");
+  const secFlow = document.getElementById("secFlow");
+  if(tabLayersBtn && tabFlowBtn && secLayers && secFlow){
+    tabLayersBtn.addEventListener("click", () => {
+      tabLayersBtn.classList.add("active");
+      tabFlowBtn.classList.remove("active");
+      secLayers.style.display = "block";
+      secFlow.style.display = "none";
+    });
+    tabFlowBtn.addEventListener("click", () => {
+      tabFlowBtn.classList.add("active");
+      tabLayersBtn.classList.remove("active");
+      secFlow.style.display = "block";
+      secLayers.style.display = "none";
+    });
+  }
 
+  const trayToggleBtn = document.getElementById("trayToggleBtn");
+  const trayDock = document.getElementById("trayDock");
+  if(trayToggleBtn && trayDock){
+    trayToggleBtn.addEventListener("click", () => {
+      const isCollapsed = trayDock.classList.toggle("collapsed");
+      trayToggleBtn.textContent = isCollapsed ? "▲ Mở khay" : "▾ Thu gọn";
+    });
+  }
+})();
+</script>
 </body>
 </html>

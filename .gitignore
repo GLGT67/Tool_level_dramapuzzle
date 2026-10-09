@@ -13,3 +13,4 @@ debug_*.png
 __pycache__/
 .pytest_cache/
 *.tmp
+server_port.txt
