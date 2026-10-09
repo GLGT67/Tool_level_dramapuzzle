@@ -335,10 +335,13 @@ button { cursor: pointer; }
 /* Workspace Layout (Figma Studio Flex Layout with Resizable Panels) */
 .work {
   height: 100%;
-  display: flex;
+  display: flex !important;
   flex-direction: row;
   overflow: hidden;
   position: relative;
+  background: var(--stage-wrap-bg);
+  background-image: var(--stage-grid);
+  background-size: 20px 20px;
 }
 .panel {
   background: var(--panel);
@@ -373,6 +376,12 @@ button { cursor: pointer; }
   padding: 0 !important;
   border-left: 0 !important;
   overflow: hidden !important;
+}
+.work.left-collapsed #resizerLeft {
+  display: none !important;
+}
+.work.right-collapsed #resizerRight {
+  display: none !important;
 }
 
 /* Resizable Dividers */
@@ -436,28 +445,33 @@ button { cursor: pointer; }
   border-color: var(--line-focus);
 }
 .panelQuickToggle {
-  font-size: 13px;
-  padding: 2px 7px;
-  border-radius: 6px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.panelQuickToggle svg {
+  display: block;
 }
 .floatingExpandBtn {
   position: absolute;
-  top: 12px;
+  top: 52px;
   z-index: 120;
   background: var(--dock-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--line);
   color: var(--ink);
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 8px;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 850;
   cursor: pointer;
   box-shadow: var(--shadow);
   display: none;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   transition: all .15s ease;
 }
 .floatingExpandBtn:hover {
@@ -465,8 +479,8 @@ button { cursor: pointer; }
   border-color: var(--primary);
   color: #fff;
 }
-.floatingExpandBtn.expandLeft { left: 10px; }
-.floatingExpandBtn.expandRight { right: 10px; }
+.floatingExpandBtn.expandLeft { left: 12px; }
+.floatingExpandBtn.expandRight { right: 12px; }
 .work.left-collapsed .floatingExpandBtn.expandLeft { display: flex; }
 .work.right-collapsed .floatingExpandBtn.expandRight { display: flex; }
 
@@ -591,6 +605,11 @@ textarea {
 
 /* Center Stage Viewport (Infinite Figma Canvas) */
 .center {
+  flex: 1 1 0%;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   padding: 0;
   position: relative;
@@ -601,33 +620,39 @@ textarea {
   flex-direction: column;
 }
 .editor {
-  width: 100%;
+  width: 100% !important;
+  max-width: none !important;
   height: 100%;
   display: flex;
   flex-direction: column;
   margin: 0;
   position: relative;
   overflow: hidden;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
 }
 /* Figma Canvas Top Sub-Toolbar (Around Canvas, Zero Overlap) */
 .canvasTopBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3px 10px;
-  height: 40px;
-  min-height: 40px;
+  padding: 0 14px;
+  height: 42px;
+  min-height: 42px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
   z-index: 100;
   flex-shrink: 0;
   box-sizing: border-box;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
 }
 .canvasTopLeft {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  gap: 6px;
 }
 .canvasTopCenter {
   display: flex;
@@ -641,29 +666,48 @@ textarea {
   align-items: center;
   justify-content: flex-end;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .leveltop {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: transparent;
   border: 0;
   padding: 0;
   margin: 0;
   box-shadow: none;
+  white-space: nowrap;
 }
-.leveltop .small { font-size: 8.5px; color: var(--muted); font-weight: 800; letter-spacing: 0.5px; }
-.leveltop b { font-size: 12px; color: var(--ink); font-weight: 850; }
+.levelBadge {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.15;
+}
+.levelBadge .small {
+  font-size: 8.5px;
+  color: var(--muted);
+  font-weight: 850;
+  letter-spacing: 0.5px;
+}
+.levelBadge b {
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 850;
+}
 .moves {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 5px;
-  padding: 1px 5px;
-  text-align: center;
+  border-radius: 6px;
+  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.moves small { display: block; font-size: 7.5px; color: var(--muted); }
-.moves b { font-size: 10.5px; color: var(--pink); }
+.moves small { display: inline-block; font-size: 8px; color: var(--muted); font-weight: 800; }
+.moves b { font-size: 11px; color: var(--pink); font-weight: 900; }
 
 .hook {
   display: none;
@@ -770,17 +814,18 @@ body.play .sceneTools {
   position: relative;
   width: auto;
   height: 100%;
-  max-height: calc(100% - 12px);
-  max-width: calc(100% - 12px);
+  max-height: calc(100% - 16px);
+  max-width: calc(100% - 16px);
   aspect-ratio: 1080 / 1610;
   margin: auto;
   background: var(--stage-paper);
   border: 2px solid var(--stage-border);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
   transition: transform .06s ease-out;
   transform-origin: center center;
+  flex-shrink: 0;
 }
 body.panning .stage { cursor: grabbing !important; }
 body.spaceDown .stage { cursor: grab !important; }
@@ -2413,7 +2458,7 @@ body.play .trayrow .token { justify-self: center; }
   transform: translate(-50%, 0);
 }
 
-/* Responsive Breakpoints */
+/* Responsive Breakpoints (Infinite Canvas & Flexible Workspaces Preserved) */
 @media(max-width: 1440px) {
   .top { gap: 6px; padding: 0 8px; }
   .navGroup { gap: 4px; }
@@ -2422,10 +2467,6 @@ body.play .trayrow .token { justify-self: center; }
   .btn.smBtn { padding: 4.5px 7px; font-size: 11.5px; }
   .modeBtn { padding: 4.5px 10px; font-size: 11.5px; }
   .version { font-size: 10px; padding: 3px 6px; }
-
-  .work { grid-template-columns: 330px minmax(380px, 1fr) 420px; }
-  .editor { width: min(100%, 530px); }
-  .stage { width: min(100%, 450px); }
 }
 @media(max-width: 1280px) {
   .top { gap: 4px; padding: 0 6px; }
@@ -2436,7 +2477,5 @@ body.play .trayrow .token { justify-self: center; }
   .modeBtn { padding: 4px 8px; font-size: 11px; }
 }
 @media(max-width: 1200px) {
-  .work { grid-template-columns: 300px minmax(350px, 1fr) 380px; }
-  .editor { width: min(100%, 490px); }
-  .stage { width: min(100%, 415px); }
+  .canvasTopBar { padding: 0 8px; gap: 6px; }
 }

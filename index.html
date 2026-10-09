@@ -16,15 +16,16 @@
       <span class="brandText">SẮP XẾP DRAMA</span>
     </div>
     <button class="version versionBtn" id="changelogBtn" title="Xem lịch sử cập nhật và lộ trình">v1.38</button>
+    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleLeftBtn" title="Ẩn / Hiện thanh bên trái (Ctrl + [)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18"/></svg>
+    </button>
   </div>
 
   <div class="navGroup centerNav">
-    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleLeftBtn" title="Ẩn / Hiện thanh bên trái (Layers & Game Flow)">◨</button>
     <div class="modeSwitcher" id="modeSwitcher">
       <button class="modeBtn on" id="editBtn" title="Chế độ biên tập kịch bản">EDIT</button>
       <button class="modeBtn" id="playBtn" title="Chế độ chơi thử nghiệm">PLAY</button>
     </div>
-    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleRightBtn" title="Ẩn / Hiện thanh thuộc tính (Inspector)">◧</button>
 
     <div class="navSep"></div>
 
@@ -59,6 +60,10 @@
       </div>
     </details>
 
+    <button class="btn iconBtn smBtn panelQuickToggle" id="topToggleRightBtn" title="Ẩn / Hiện thanh thuộc tính (Ctrl + ])">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M15 3v18"/></svg>
+    </button>
+
     <button class="btn iconBtn themeToggle" id="themeToggleBtn" title="Chuyển chế độ Tối / Sáng (Dark / Light Mode)">
       <span id="themeIcon">🌙</span>
     </button>
@@ -73,10 +78,14 @@
   </div>
 </header>
 
-<div class="work">
+<div class="work" id="work">
 <!-- Floating Expand Tabs (Show when panels are collapsed) -->
-<button class="floatingExpandBtn expandLeft" id="expandLeftBtn" type="button" title="Mở thanh Layers & Game Flow">▶ Layers</button>
-<button class="floatingExpandBtn expandRight" id="expandRightBtn" type="button" title="Mở thanh Inspector">Inspector ◀</button>
+<button class="floatingExpandBtn expandLeft" id="expandLeftBtn" type="button" title="Mở thanh Layers & Game Flow (Ctrl + [)">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> Layers
+</button>
+<button class="floatingExpandBtn expandRight" id="expandRightBtn" type="button" title="Mở thanh Inspector (Ctrl + ])">
+  Inspector <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+</button>
 
 <aside class="panel left" id="leftPanel">
   <div class="editOnly">
@@ -119,7 +128,7 @@
     <div class="canvasTopBar" id="canvasTopBar">
       <div class="canvasTopLeft">
         <div class="leveltop" id="leveltop">
-          <div>
+          <div class="levelBadge">
             <div class="small">LEVEL DESIGN</div>
             <b id="liveName">LEVEL</b>
           </div>
