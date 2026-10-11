@@ -98,6 +98,56 @@ Avoid a messy generic AI look.
 No text, no speech bubbles, no UI.
 Keep the background simple and only support the main drama moment.`}
 
+// Nhóm tuổi dành cho production Art; giá trị mã ổn định, nhãn hiển thị dễ hiểu.
+const AGE_GROUPS=[
+  ["", "Chưa xác định / không áp dụng"],
+  ["BABY", "Em bé (0–2 tuổi)"],
+  ["TODDLER", "Trẻ nhỏ (3–5 tuổi)"],
+  ["CHILD", "Trẻ em (6–12 tuổi)"],
+  ["TEEN", "Thiếu niên / thiếu nữ (13–17 tuổi)"],
+  ["YOUNG_ADULT", "Thanh niên (18–29 tuổi)"],
+  ["ADULT", "Trưởng thành (30–44 tuổi)"],
+  ["MIDDLE_AGED", "Trung niên (45–59 tuổi)"],
+  ["SENIOR", "Cao tuổi (60–79 tuổi)"],
+  ["VERY_OLD", "Rất cao tuổi (80+ tuổi)"],
+];
+function normalizeAgeGroup(value){
+  const s=String(value??"").trim();
+  if(!s)return "";
+  if(AGE_GROUPS.some(([id])=>id===s))return s;
+  const match=s.match(/^(\d{1,3})(?:\s*(?:tuổi|years?|yo|y\/o))?$/i);
+  if(match){
+    const n=Number(match[1]);
+    if(n<=2)return "BABY";
+    if(n<=5)return "TODDLER";
+    if(n<=12)return "CHILD";
+    if(n<=17)return "TEEN";
+    if(n<=29)return "YOUNG_ADULT";
+    if(n<=44)return "ADULT";
+    if(n<=59)return "MIDDLE_AGED";
+    if(n<=79)return "SENIOR";
+    return "VERY_OLD";
+  }
+  if(/trung niên/i.test(s))return "MIDDLE_AGED";
+  if(/thiếu niên|thiếu nữ|teen/i.test(s))return "TEEN";
+  if(/thanh niên/i.test(s))return "YOUNG_ADULT";
+  if(/trưởng thành/i.test(s))return "ADULT";
+  if(/rất cao tuổi|rất già/i.test(s))return "VERY_OLD";
+  if(/cao tuổi|người già|lớn tuổi/i.test(s))return "SENIOR";
+  if(/trẻ con|trẻ em/i.test(s))return "CHILD";
+  return s;
+}
+function ageGroupLabel(value){
+  const k=String(value??"");
+  return (AGE_GROUPS.find(([id])=>id===k)||[k,k])[1];
+}
+function ageGroupOptions(current){
+  const v=String(current??"");
+  const extra=v&&!AGE_GROUPS.some(([id])=>id===v)
+    ? `<option value="${esc(v)}">Dữ liệu cũ: ${esc(v)} — chọn nhóm để cập nhật</option>` : "";
+  return AGE_GROUPS.map(([id,label])=>`<option value="${id}">${esc(label)}</option>`).join("")+extra;
+}
+
 const NAME_POOLS={
   MALE:[
     "Adam","Aiden","Alan","Alex","Asher","Blake","Brian","Caleb","Carl","Cole",
@@ -622,11 +672,38 @@ let undoStack=[], redoStack=[], lastSnapshot=JSON.stringify(data);
 let projectFileHandle=null, sceneClipboard=null, playSession=0;
 const PLAY_PROGRESS_KEY="dramaEditorPlayProgressV127Lives";
 
+// Project safety: cảnh báo độc lập với bản nháp tự lưu của trình duyệt
+let savedProjectSnapshot = (data.characters.length || data.clues.length || data.images.length || data.annotations.length ||
+  data.level.id || data.level.hook || data.level.reveal) ? null : JSON.stringify(data);
+let autoSaveFailed = false, projectOperationBusy = false;
+
+function currentProjectSnapshot(){ return JSON.stringify(data); }
+function hasUnsavedProjectChanges(){
+  return savedProjectSnapshot === null || currentProjectSnapshot() !== savedProjectSnapshot;
+}
+function updateProjectSaveStatus(){
+  const el = $("#projectSaveStatus");
+  if(!el) return;
+  const dirty = hasUnsavedProjectChanges();
+  el.className = "projectSaveStatus" + (autoSaveFailed ? " failed" : (dirty ? "" : " saved"));
+  el.textContent = autoSaveFailed
+    ? "⚠ Tự lưu trình duyệt thất bại — hãy LƯU PROJECT JSON ngay"
+    : (dirty ? "● Chưa lưu vào file Project JSON" : "✓ Không có thay đổi chưa lưu");
+}
+function setSavedBaseline(snapshot = null){
+  savedProjectSnapshot = snapshot ?? currentProjectSnapshot();
+  updateProjectSaveStatus();
+}
+
 function persistRaw(){
   try{
     localStorage.setItem("dramaEditorV1_1",JSON.stringify(data));
+    autoSaveFailed = false;
+    updateProjectSaveStatus();
     return true;
   }catch(e){
+    autoSaveFailed = true;
+    updateProjectSaveStatus();
     return false;
   }
 }
@@ -638,7 +715,9 @@ function save(){
     lastSnapshot=now;
     redoStack=[];
   }
-  return persistRaw();
+  const ok = persistRaw();
+  updateProjectSaveStatus();
+  return ok;
 }
 function restoreSnapshot(raw){
   data=normalize(JSON.parse(raw));
@@ -853,7 +932,12 @@ function gazeDisplay(sourceId,r){
   return h?clockArrow(h):(r.gaze==="AUTO"?"AUTO":"");
 }
 function initialStateRecord(c){
-  return {emotion:c?.baseExpression||"😐",symbol:"",gaze:c?.baseGaze||"NONE",target:c?.baseTarget||""};
+  return {
+    emotion: c?.baseExpression || "😐",
+    symbol: "",
+    gaze: c?.type === "M" ? "NONE" : (c?.baseGaze || "NONE"),
+    target: c?.type === "M" ? "" : (c?.baseTarget || "")
+  };
 }
 function initialGazePreview(c,showTarget=false){
   const r=initialStateRecord(c),g=gazeDisplay(c.id,r);
@@ -890,7 +974,7 @@ function reactionPlayPreview(r,sourceId=""){
   return `${icon}${g?" "+g:""}`.trim();
 }
 
-function render(){renderLists();renderLive();renderInspector();renderLogic()}
+function render(){renderLists();renderLive();renderInspector();renderLogic();updateProjectSaveStatus();}
 function refreshImmediate(){
   const seq=++refreshImmediate.seq;
   render();
@@ -922,6 +1006,7 @@ function renderLists(){
 
   const roots=data.clues.filter(c=>!c.parent);
   $("#clueList").innerHTML=roots.map(c=>clueList(c)).join("");
+  bindClueDragHandles($("#clueList"));
   initClueReorderListeners();
 
   const rx=[];
@@ -947,7 +1032,8 @@ function clueList(c){
   const state=c.parent?c.preOpen:"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
   return `<div class="clueWrap" data-clue-wrap="${c.id}">
-    <div class="card clueCardDraggable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" draggable="true" data-s="clue:${c.id}" data-clue-id="${c.id}">
+    <div class="card clueSortable clueCardDraggable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" draggable="true" data-s="clue:${c.id}" data-clue-id="${c.id}" data-clue-row="${c.id}">
+      <button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <b>${c.id}</b>
         <div class="clueActions">
@@ -1278,7 +1364,10 @@ function renderLive(){
 function editClue(c,d){
   const state=c.parent?c.preOpen:"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
-  return `<div class="cl ${d?"child":""}" data-live="${c.id}"><b>${c.id}</b> · <span data-clue-text="${c.id}">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</span> <span class="pill ${state.toLowerCase()}">${label}</span></div>`+
+  return `<div class="cl clueSortable ${d?"child":""}" data-live="${c.id}" data-clue-row="${c.id}">
+    <button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button>
+    <b>${c.id}</b> · <span data-clue-text="${c.id}">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</span> <span class="pill ${state.toLowerCase()}">${label}</span>
+  </div>`+
     data.clues.filter(x=>x.parent===c.id).map(k=>editClue(k,d+1)).join("");
 }
 function playDramaReveal(depth=0){
@@ -1417,9 +1506,133 @@ function renderClues(){
     }
   } else {
     const liveBox = $("#liveClues");
-    if(liveBox) liveBox.innerHTML = cluesHtml;
+    if(liveBox){
+      liveBox.innerHTML = cluesHtml;
+      bindClueDragHandles(liveBox);
+    }
     $$("[data-live]").forEach(e=>e.onclick=()=>{selected={type:"clue",id:e.dataset.live};refreshImmediate()});
   }
+}
+
+// Reordering changes sibling order only. Moving a root moves its entire
+// subtree; a child can only move among the children of its current parent.
+function reorderClue(sourceId,targetId,before){
+  const source=byClue(sourceId),target=byClue(targetId);
+  if(!source||!target||source===target||source.parent!==target.parent)return false;
+  const grouped=new Map();
+  for(const c of data.clues){
+    const parent=c.parent||"";
+    if(!grouped.has(parent))grouped.set(parent,[]);
+    grouped.get(parent).push(c);
+  }
+  const group=grouped.get(source.parent||"");
+  if(!group)return false;
+  const oldIndex=group.indexOf(source),targetIndex=group.indexOf(target);
+  if(oldIndex<0||targetIndex<0)return false;
+  group.splice(oldIndex,1);
+  const insertIndex=group.indexOf(target)+(before?0:1);
+  group.splice(insertIndex,0,source);
+  if(group.every((c,i)=>c===data.clues.filter(x=>x.parent===source.parent)[i]))return false;
+
+  // Flatten in tree order, keeping each parent and its descendants together.
+  const ordered=[],seen=new Set();
+  function visit(parentId){
+    for(const c of grouped.get(parentId)||[]){
+      if(seen.has(c))continue;
+      seen.add(c);ordered.push(c);visit(c.id);
+    }
+  }
+  visit("");
+  if(ordered.length!==data.clues.length)return false;
+  data.clues=ordered;
+  selected={type:"clue",id:sourceId};
+  renumberClues();
+  save();refreshImmediate();
+  toast("Đã đổi thứ tự clue");
+  return true;
+}
+
+// Pointer-based dragging works on desktop and touch. The source and target
+// may be in different panels; both panels always use the same data.clues.
+function bindClueDragHandles(container){
+  if(!container||mode!=="edit")return;
+  container.querySelectorAll("[data-clue-grip]").forEach(handle=>{
+    handle.onclick=e=>{e.preventDefault();e.stopPropagation()};
+    handle.onpointerdown=e=>{
+      if(e.button!==0||mode!=="edit")return;
+      const sourceId=handle.dataset.clueGrip;
+      const source=byClue(sourceId);
+      if(!source)return;
+      e.preventDefault();e.stopPropagation();
+      let active=false,ghost=null,dropRow=null,dropBefore=true;
+      let x=e.clientX,y=e.clientY;
+      const startX=x,startY=y;
+      const sourceRows=$$('[data-clue-row]').filter(r=>r.dataset.clueRow===sourceId);
+      function clearDrop(){
+        $$(".clueDropBefore,.clueDropAfter").forEach(r=>r.classList.remove("clueDropBefore","clueDropAfter"));
+        dropRow=null;
+      }
+      function updateDrop(){
+        clearDrop();
+        const hit=document.elementFromPoint(x,y);
+        const row=hit?.closest?.("[data-clue-row]");
+        if(!row||row.dataset.clueRow===sourceId)return;
+        const candidate=byClue(row.dataset.clueRow);
+        if(!candidate||candidate.parent!==source.parent)return;
+        const bounds=row.getBoundingClientRect();
+        dropBefore=y<bounds.top+bounds.height/2;
+        dropRow=row;
+        row.classList.add(dropBefore?"clueDropBefore":"clueDropAfter");
+      }
+      let frame=0;
+      function scrollNearEdges(){
+        if(!active)return;
+        for(const area of [$(".left"),$(".center")]){
+          if(!area)continue;
+          const r=area.getBoundingClientRect();
+          if(x<r.left||x>r.right||y<r.top||y>r.bottom)continue;
+          const pad=45;
+          const dy=y<r.top+pad?-12:y>r.bottom-pad?12:0;
+          if(dy)area.scrollTop+=dy;
+        }
+        updateDrop();
+        frame=requestAnimationFrame(scrollNearEdges);
+      }
+      const move=ev=>{
+        x=ev.clientX;y=ev.clientY;
+        if(!active&&Math.hypot(x-startX,y-startY)<6)return;
+        if(!active){
+          active=true;
+          ghost=document.createElement("div");ghost.className="clueDragGhost";
+          ghost.textContent=`${sourceId} · ${(source.text||"(draft)").slice(0,65)}`;
+          document.body.appendChild(ghost);
+          sourceRows.forEach(r=>r.classList.add("clueDragSource"));
+          frame=requestAnimationFrame(scrollNearEdges);
+        }
+        if(ghost){ghost.style.left=(x+14)+"px";ghost.style.top=(y+12)+"px"}
+        updateDrop();
+      };
+      const finish=ev=>{
+        window.removeEventListener("pointermove",move);
+        window.removeEventListener("pointerup",finish);
+        window.removeEventListener("pointercancel",cancel);
+        cancelAnimationFrame(frame);
+        const targetId=dropRow?.dataset.clueRow,wasActive=active,wasBefore=dropBefore;
+        clearDrop();ghost?.remove();sourceRows.forEach(r=>r.classList.remove("clueDragSource"));
+        if(wasActive&&targetId)reorderClue(sourceId,targetId,wasBefore);
+      };
+      const cancel=()=>{
+        window.removeEventListener("pointermove",move);
+        window.removeEventListener("pointerup",finish);
+        window.removeEventListener("pointercancel",cancel);
+        cancelAnimationFrame(frame);
+        clearDrop();ghost?.remove();sourceRows.forEach(r=>r.classList.remove("clueDragSource"));
+      };
+      window.addEventListener("pointermove",move,{passive:false});
+      window.addEventListener("pointerup",finish);
+      window.addEventListener("pointercancel",cancel);
+    };
+  });
 }
 
 function renderTray(){
@@ -1791,7 +2004,7 @@ function charIns(b,c){
     ...(revealByChar?[`<div class="stateCard relCard" data-rel-level="1"><b>MAIN REVEAL</b><div class="meta">Trigger có ${esc(c.id)}</div></div>`]:[])
   ].join("")||'<div class="relEmpty">Character này chưa trực tiếp làm clue/reaction/reveal thay đổi.</div>';
 
-  const initialMeta=`${esc(c.baseExpression||"😐")} — ${esc(emotionName(c.baseExpression))} · ${esc(gazeClockText(c.id,initialStateRecord(c)))}${c.baseTarget?" · target "+esc(c.baseTarget):""}`;
+  const initialMeta=`${esc(c.baseExpression||"😐")} — ${esc(emotionName(c.baseExpression))}${c.type==="F"?` · ${esc(gazeClockText(c.id,initialStateRecord(c)))}${c.baseTarget?" · target "+esc(c.baseTarget):""}`:""}`;
   const visualRows=[
     `<div class="assetLine"><span class="assetId">${esc(c.assetBaseId)}</span><span>BASE · ${initialMeta}</span></div>`,
     ...(c.type==="M"?[`<div class="assetLine"><span class="assetId">${esc(c.assetTrayId)}</span><span>TRAY · ${initialMeta}</span></div>`]:[]),
@@ -1806,21 +2019,26 @@ function charIns(b,c){
     </label>
     <label>🟢 Role / Notes<input id="cr" value="${esc(c.role)}"></label>
     <div class="row">
-<label style="flex:1">Loại nhân vật<select id="ct"><option value="M">Di chuyển (M)</option><option value="F">Cố định (F)</option></select></label>
-<button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn đối xứng">⇄ Direction (Flip H)</button>
-</div>
+      <label style="flex:1">🟢 Loại nhân vật (M/F)
+        <select id="ct">
+          <option value="M">Di chuyển (M) — Bắt đầu ở Khay, kéo vào Sân khấu</option>
+          <option value="F">Cố định (F) — Đứng sẵn trên Sân khấu ngay từ START</option>
+        </select>
+      </label>
+      <button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn đối xứng">⇄ Direction (Flip H)</button>
+    </div>
     <label>🟢 Ngoại hình / Appearance Tags<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
     <label>🟢 Initial Emotion (Bắt đầu${c.type==="M"?" / Khay":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
-    <div class="row"><label style="flex:1">🟢 Initial Gaze<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"Tự động — theo Target":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Gaze Target<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
-    <div class="small"><b>Tự động</b> tự tính hướng từ vị trí nhân vật tới Target.</div>
-    ${c.type==="M"?`<div class="small">Nhân vật di chuyển luôn có trên Khay và Khung vẽ. <b>Vị trí trên Artboard chính là đáp án (Solved Position).</b></div>`:""}
+    ${c.type==="F"?`<div class="row"><label style="flex:1">🟢 Initial Gaze<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"Tự động — theo Target":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Gaze Target<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
+    <div class="small"><b>Tự động</b> tự tính hướng từ vị trí nhân vật tới Target. Fixed (F) hiển thị ngay từ START.</div>`:""}
+    ${c.type==="M"?`<div class="small">Movable (M): Nằm trên Khay khi bắt đầu màn chơi, không có hướng nhìn ban đầu. <b>Vị trí đặt trên Sân khấu là đáp án giải đố.</b></div>`:""}
   </div>
 
   <div class="group"><div class="head" style="margin:0 0 4px"><b>AUTO CONNECTIONS</b><span class="pill gameplay">${esc(c.id)}</span></div><div class="small">Hệ thống tự tổng hợp liên kết, không cần cấu hình thêm.</div><div class="relSection"><small>Clue nhắc Character này</small>${incomingHtml}</div><div class="relSection"><small>Khi đặt ${esc(c.id)} tham gia kích hoạt</small>${outgoingHtml}</div></div>
 
   <details class="group prodDetails"><summary>PRODUCTION · CHARACTER ART</summary><div class="prodDetailsBody col">
-    <div class="row"><label style="flex:1">Gender<select id="cgender"><option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label><label style="flex:1">Độ tuổi<input id="cage" value="${esc(c.age||"")}" placeholder="VD: 8 tuổi / 20-25 / trung niên"></label></div>
+    <div class="row"><label style="flex:1">Gender<select id="cgender"><option value="UNSPECIFIED">Chưa xác định</option><option value="MALE">Nam</option><option value="FEMALE">Nữ</option><option value="OTHER">Khác</option></select></label><label style="flex:1">🟢 Nhóm độ tuổi<select id="cage">${ageGroupOptions(c.age)}</select></label></div>
     <label>Base Asset ID<input id="cbaseasset" value="${esc(c.assetBaseId||"")}"></label>
     ${c.type==="M"?`<label>Tray Asset ID<input id="ctrayasset" value="${esc(c.assetTrayId||"")}"></label>`:""}
     <label>Note riêng cho Artist<textarea id="cartnote">${esc(c.artistNote||"")}</textarea></label>
@@ -1831,16 +2049,21 @@ function charIns(b,c){
   <button class="btn danger" id="cd">Xóa nhân vật</button>`;
 
   $("#ct").value=c.type;$("#cpool").value=c.namePool||"KEEP";$("#cgender").value=c.gender||"UNSPECIFIED";
-  $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast("Nhân vật di chuyển dùng mã Mxx, Cố định dùng mã Fxx");e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng lặp");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
+  $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast(`Movable uses Mxx code, Fixed uses Fxx code`);e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng lặp");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
   $("#cn").oninput=e=>{c.name=e.target.value;save();$$(`[data-char-name="${c.id}"]`).forEach(n=>n.textContent=e.target.value)};$("#cn").onchange=()=>{renderLists();renderClues();renderLive()};
   $("#cpool").onchange=e=>{c.namePool=e.target.value;if(c.gender==="UNSPECIFIED")c.gender=inferGender({...c,gender:""});save();renderInspector()};
   $("#cr").oninput=e=>{c.role=e.target.value;save()};$("#cr").onchange=()=>renderLists();
   if($("#cflipH"))$("#cflipH").onclick=()=>{c.flipH=!c.flipH;save();refreshImmediate();renderInspector()};
-$("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Di chuyển":"Cố định"}${result.triggerReview?` · ${result.triggerReview} Phản ứng cần chọn lại điều kiện`:""}`)};
+$("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Movable":"Fixed"}${result.triggerReview?` · ${result.triggerReview} Reaction needs condition review`:""}`)};
   $("#ca").oninput=e=>{c.appearance=e.target.value.split("\n").map(x=>x.trim()).filter(Boolean);save()};$("#ca").onchange=()=>renderLive();
-  $("#cgender").onchange=e=>{c.gender=e.target.value;save()};$("#cage").oninput=e=>{c.age=e.target.value;save()};
+  $("#cgender").onchange=e=>{c.gender=e.target.value;save()};
+  if($("#cage"))$("#cage").onchange=e=>{c.age=e.target.value;save();renderInspector()};
   $("#cbaseasset").onchange=e=>{c.assetBaseId=e.target.value.trim().toUpperCase();save();renderInspector()};if($("#ctrayasset"))$("#ctrayasset").onchange=e=>{c.assetTrayId=e.target.value.trim().toUpperCase();save();renderInspector()};
-  $("#cbaseexp").onchange=e=>{c.baseExpression=normalizeEmotionEmoji(e.target.value);save();renderInspector();renderLive()};$("#cbasegaze").onchange=e=>{c.baseGaze=normalizeGazeValue(e.target.value);save();renderInspector();renderLive();renderLogic()};$("#cbasetarget").onchange=e=>{c.baseTarget=e.target.value;save();renderInspector();renderLive();renderLogic()};
+  $("#cbaseexp").onchange=e=>{c.baseExpression=normalizeEmotionEmoji(e.target.value);save();renderInspector();renderLive()};
+  if(c.type==="F"){
+    if($("#cbasegaze"))$("#cbasegaze").onchange=e=>{c.baseGaze=normalizeGazeValue(e.target.value);save();renderInspector();renderLive();renderLogic()};
+    if($("#cbasetarget"))$("#cbasetarget").onchange=e=>{c.baseTarget=e.target.value;save();renderInspector();renderLive();renderLogic()};
+  }
   $("#cartnote").oninput=e=>{c.artistNote=e.target.value;save()};
   $$('[data-rel-clue]').forEach(el=>el.onclick=()=>{selected={type:"clue",id:el.dataset.relClue};refreshImmediate()});$$('[data-rel-rx]').forEach(el=>el.onclick=()=>{const [charId,eventId]=el.dataset.relRx.split("|");selected={type:"reaction",charId,eventId};refreshImmediate()});$$('[data-rel-level]').forEach(el=>el.onclick=()=>{selected={type:"level",id:"level"};refreshImmediate()});
   $("#addEvent").onclick=()=>{const ev=blankReactionEvent(c.type==="M"?"SELF_PLACED":"CHAR_PLACED");c.reactionEvents.push(ev);ensureCharacterAssetIds(c);selected={type:"reaction",charId:c.id,eventId:ev.id};save();refreshImmediate()};$$('[data-event]').forEach(el=>el.onclick=()=>{selected={type:"reaction",charId:c.id,eventId:el.dataset.event};refreshImmediate()});
@@ -3087,6 +3310,8 @@ function renumberClues(){
   const parentObj=new Map();
   data.clues.forEach(c=>parentObj.set(c,c.parent?oldMap.get(c.parent)||null:null));
 
+  const revealObj=data.level?.revealParentClueId ? oldMap.get(data.level.revealParentClueId) : null;
+
   const roots=data.clues.filter(c=>!parentObj.get(c));
   const childrenOf=p=>data.clues.filter(c=>parentObj.get(c)===p);
 
@@ -3104,6 +3329,10 @@ function renumberClues(){
     const p=parentObj.get(c);
     c.parent=p?p.id:null;
   });
+
+  if(data.level?.revealParentClueId){
+    data.level.revealParentClueId=revealObj?revealObj.id:"";
+  }
 
   if(selected.type==="clue"){
     const selectedObj=[...oldMap.values()].find(c=>c.id===selected.id) || null;
@@ -4522,42 +4751,58 @@ function projectSaveIdentity(){
 function detachProjectFile(){projectFileHandle=null;lastSavedProjectIdentity=null;}
 let lastSavedProjectIdentity=null;
 async function saveProjectFile(forceNew=false){
-  save();
-  savePlayProgress();
-  const editorData=deep(data);editorData.editorSchemaVersion="1.31";
+  if(projectOperationBusy)return false;
+  const identity=projectSaveIdentity();
+  if(lastSavedProjectIdentity!==identity)detachProjectFile();
+  const snapshotToSave=currentProjectSnapshot();
+  const editorData=JSON.parse(snapshotToSave);editorData.editorSchemaVersion="1.31";
   const json=JSON.stringify(editorData,null,2);
   const idPart=(data.level.id||"drama_level").replace(/[^\w\-]+/g,"_");
   const filename=`${idPart}_v${String(data.level.version||"1.0").replace(/[^\w.\-]+/g,"_")}.editor.json`;
-  const identity=projectSaveIdentity();
-  if(lastSavedProjectIdentity!==identity)detachProjectFile();
 
-  if("showSaveFilePicker" in window){
-    try{
-      const handle=(!forceNew&&projectFileHandle)?projectFileHandle:await window.showSaveFilePicker({
-        suggestedName:filename,
-        types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
-      });
-      const writable=await handle.createWritable();
-      await writable.write(json);
-      await writable.close();
-      projectFileHandle=handle;
-      lastSavedProjectIdentity=identity;
-      toast(forceNew?"Đã lưu thành file mới":"Đã lưu Project");
-      return;
-    }catch(e){
-      if(e?.name==="AbortError")return;
-      console.warn("Save Project failed; downloading JSON instead",e);
+  projectOperationBusy=true;
+  try{
+    if("showSaveFilePicker" in window){
+      try{
+        const handle=(!forceNew&&projectFileHandle)?projectFileHandle:await window.showSaveFilePicker({
+          suggestedName:filename,
+          types:[{description:"Drama Level JSON",accept:{"application/json":[".json"]}}]
+        });
+        const writable=await handle.createWritable();
+        await writable.write(json);
+        await writable.close();
+        projectFileHandle=handle;
+        lastSavedProjectIdentity=identity;
+        setSavedBaseline(snapshotToSave);
+        toast(forceNew?"Đã lưu bản sao JSON mới":"Đã lưu Project JSON");
+        return true;
+      }catch(e){
+        if(e?.name==="AbortError")return false;
+        console.warn("Cannot save directly; downloading new JSON",e);
+        detachProjectFile();
+      }
     }
-  }
 
-  const blob=new Blob([json],{type:"application/json"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=filename;
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  detachProjectFile();
-  toast("Đã tải Project JSON mới");
+    const blob=new Blob([json],{type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    detachProjectFile();
+    setSavedBaseline(snapshotToSave);
+    toast("Đã yêu cầu tải Project JSON — kiểm tra Downloads");
+    return true;
+  }catch(e){
+    console.error("Save Project failed",e);
+    toast("Lưu Project thất bại. Dữ liệu vẫn ở trong Tool");
+    return false;
+  }finally{
+    projectOperationBusy=false;
+    updateProjectSaveStatus();
+  }
 }
 
 $("#saveBtn").onclick=()=>saveProjectFile(false);
@@ -4572,31 +4817,56 @@ $("#exportBtn").onclick=()=>{
 };
 $("#assetRequestBtn").onclick=exportAssetRequest;
 $("#scenePngBtn").onclick=exportScenePng;
-function openProjectJsonText(text, filename){
+
+function confirmBeforeLeaving(actionName){
+  if(!hasUnsavedProjectChanges())return Promise.resolve(true);
+  return new Promise(resolve=>{
+    const overlay=$("#unsavedOverlay"),message=$("#unsavedMessage");
+    const levelId=data.level.id||"Level chưa có mã";
+    if(message)message.textContent=`${levelId} có thay đổi chưa lưu vào file .editor.json. Tự lưu trong trình duyệt KHÔNG thay thế cho LƯU PROJECT. Trước khi ${actionName}, chọn cách xử lý:`;
+    if(overlay)overlay.classList.add("show");
+    const saveBtn=$("#unsavedSaveBtn"),discardBtn=$("#unsavedDiscardBtn"),cancelBtn=$("#unsavedCancelBtn");
+    let settled=false;
+    const finish=result=>{if(settled)return;settled=true;if(overlay)overlay.classList.remove("show");resolve(result)};
+    if(cancelBtn)cancelBtn.onclick=()=>finish(false);
+    if(discardBtn)discardBtn.onclick=()=>finish(true);
+    if(saveBtn)saveBtn.onclick=async()=>{
+      saveBtn.disabled=true;if(discardBtn)discardBtn.disabled=true;if(cancelBtn)cancelBtn.disabled=true;
+      let ok=false;
+      try{ok=await saveProjectFile(false)}catch(e){console.error(e)}
+      saveBtn.disabled=false;if(discardBtn)discardBtn.disabled=false;if(cancelBtn)cancelBtn.disabled=false;
+      if(ok)finish(true);
+      else if(message){message.textContent=`Chưa lưu được ${levelId}. Level vẫn đang ở đây; bạn có thể thử lưu lại, bỏ thay đổi hoặc hủy.`;}
+    };
+  });
+}
+
+function openAsNewSession(raw,{fromFile=false}={}){
+  playSession++;clearPlayProgress();detachProjectFile();
+  data=normalize(raw);selected={type:"level",id:"level"};mode="edit";multiSel.clear();
+  undoStack=[];redoStack=[];lastSnapshot=currentProjectSnapshot();
+  setTool("select");
+  savedProjectSnapshot=currentProjectSnapshot();
+  persistRaw();refreshImmediate();
+}
+
+async function openProjectJsonText(text, filename){
   try{
     if(!text || typeof text !== "string") throw new Error("Tệp rỗng hoặc không có nội dung");
     const cleaned = text.replace(/^\uFEFF/, "").trim();
     if(!cleaned) throw new Error("Tệp không chứa dữ liệu JSON hợp lệ");
 
-    playSession++;
-    clearPlayProgress();
-    projectFileHandle = null;
-
     let raw = JSON.parse(cleaned);
+
+    if(/^drama-level-runtime-2\./.test(raw?.schemaVersion||"")){
+      toast("Đây là Dev JSON, không phải file Project. Hãy mở .editor.json.");
+      return false;
+    }
 
     if(raw?.schemaVersion && String(raw.schemaVersion).startsWith("drama-level-runtime")){
       const adapted = adaptRuntimeToEditor(raw);
       if(adapted){
-        data = adapted;
-        selected = { type: "level", id: "level" };
-        mode = "edit";
-        lastSnapshot = JSON.stringify(data);
-        persistRaw();
-        refreshImmediate();
-        toast(`Đã nạp và chuyển đổi Dev JSON: ${filename || "runtime.json"}`);
-        return true;
-      } else {
-        throw new Error("Không thể chuyển đổi cấu trúc Runtime JSON");
+        raw = adapted;
       }
     }
 
@@ -4614,14 +4884,11 @@ function openProjectJsonText(text, filename){
       };
     }
 
-    data = normalize(raw);
-    selected = { type: "level", id: "level" };
-    mode = "edit";
-    lastSnapshot = JSON.stringify(data);
-    persistRaw();
-    refreshImmediate();
+    if(!await confirmBeforeLeaving("mở Project khác"))return false;
+
+    openAsNewSession(raw, {fromFile: true});
     const endingNote = data.level.ending?.imageSrc ? " · có Ending Image" : "";
-    toast(`Đã mở thành công: ${filename || "dự án JSON"}${endingNote}`);
+    toast(`Đã mở thành công: ${data.level.id || filename || "dự án JSON"}${endingNote}`);
     return true;
   }catch(err){
     console.error("Lỗi khi mở file JSON:", err);
@@ -4631,19 +4898,17 @@ function openProjectJsonText(text, filename){
 }
 window.openProjectJsonText = openProjectJsonText;
 
-$("#importFile").onchange = e => {
-  const f = e.target.files && e.target.files[0];
+$("#importFile").onchange = async e => {
+  const input = e.target, f = input.files && input.files[0];
+  input.value = "";
   if(!f) return;
-  const r = new FileReader();
-  r.onload = () => {
-    openProjectJsonText(r.result, f.name);
-  };
-  r.onerror = () => {
-    console.error("FileReader error:", r.error);
+  try{
+    const text = await f.text();
+    await openProjectJsonText(text, f.name);
+  }catch(err){
+    console.error("FileReader error:", err);
     toast("Lỗi đọc tệp từ thiết bị");
-  };
-  r.readAsText(f);
-  e.target.value = "";
+  }
 };
 
 window.addEventListener("dragover", e => {
@@ -4651,32 +4916,45 @@ window.addEventListener("dragover", e => {
     e.preventDefault();
   }
 });
-window.addEventListener("drop", e => {
+window.addEventListener("drop", async e => {
   if(!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
   const f = e.dataTransfer.files[0];
   if(f && (f.name.toLowerCase().endsWith(".json") || f.type === "application/json")){
     e.preventDefault();
-    const r = new FileReader();
-    r.onload = () => {
-      openProjectJsonText(r.result, f.name);
-    };
-    r.onerror = () => {
-      console.error("FileReader error on drop:", r.error);
+    try{
+      const text = await f.text();
+      await openProjectJsonText(text, f.name);
+    }catch(err){
+      console.error("Drop file read error:", err);
       toast("Lỗi đọc tệp kéo thả");
-    };
-    r.readAsText(f);
+    }
   }
 });
 
-function loadSampleProject(sampleData,message){
-  projectFileHandle=null;playSession++;clearPlayProgress();data=normalize(sampleData);selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast(message);
+async function loadSampleProject(sampleData,message){
+  if(!await confirmBeforeLeaving("chuyển sang Sample"))return;
+  openAsNewSession(sampleData);
+  toast(message);
 }
+
+async function createNewLevel(){
+  if(!await confirmBeforeLeaving("tạo level mới"))return;
+  openAsNewSession(blank());
+  toast("Đã tạo LEVEL MỚI — file JSON cũ không bị ghi đè");
+}
+
 $("#checkLevelBtn").onclick=openPreflightCheck;
 $("#closeCheckLevel").onclick=()=>$("#checkOverlay").classList.remove("show");
 $("#checkOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#checkOverlay"))$("#checkOverlay").classList.remove("show")});
 $("#sampleWeddingBtn").onclick=()=>loadSampleProject(sample(),"Đã load Sample Wedding · L001");
 $("#sampleBirthdayBtn").onclick=()=>loadSampleProject(sampleBirthday(),"Đã load Sample Birthday Photo Booth · L003");
-$("#resetBtn").onclick=()=>{if(!confirm("Reset trắng toàn bộ level hiện tại?"))return;projectFileHandle=null;playSession++;clearPlayProgress();data=normalize(blank());selected={type:"level",id:"level"};mode="edit";multiSel.clear();save();refreshImmediate();toast("Đã reset trắng hoàn toàn")};
+if($("#newLevelBtn"))$("#newLevelBtn").onclick=createNewLevel;
+window.addEventListener("beforeunload",e=>{
+  if(hasUnsavedProjectChanges()){
+    e.preventDefault();
+    e.returnValue="";
+  }
+});
 
 $("#overlay").addEventListener("pointerdown",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("show")});
 $("#endingOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#endingOverlay"))$("#endingOverlay").classList.remove("show")});
@@ -4684,7 +4962,7 @@ window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classLi
 
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});
-["resetBtn","saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
+["saveAsBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#moreMenu")?.removeAttribute("open")})});
 
 let canvasZoom = 1.0;
 let canvasPan = {x: 0, y: 0};

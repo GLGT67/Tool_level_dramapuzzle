@@ -38,6 +38,7 @@
 
   <div class="navGroup rightNav">
     <div class="btnGroup editOnlyNav">
+      <button class="btn smBtn" id="newLevelBtn" title="Tạo Level mới">+ LEVEL MỚI</button>
       <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU PROJECT</button>
       <label class="btn smBtn" title="Mở Level từ file JSON">MỞ PROJECT<input id="importFile" type="file" accept=".json,application/json,text/plain" style="display:none"></label>
     </div>
@@ -102,7 +103,7 @@
       <div class="small">Dán Ctrl/Cmd+V. Kéo để di chuyển, Shift giữ tỉ lệ. Chuột phải: Nhân bản / khóa / xóa.</div>
       <div id="imgList"></div>
 
-      <div class="head"><b>Characters</b><div class="row"><button class="btn smBtn" id="addM">+ Nam</button><button class="btn smBtn" id="addF">+ Nữ</button></div></div>
+      <div class="head"><b>Characters</b><div class="row"><button class="btn smBtn" id="addM">+ Movable (M)</button><button class="btn smBtn" id="addF">+ Fixed (F)</button></div></div>
       <div id="charList"></div>
     </div>
 
@@ -143,6 +144,7 @@
           <div class="levelBadge">
             <div class="small">LEVEL DESIGN</div>
             <b id="liveName">LEVEL</b>
+            <div class="projectSaveStatus" id="projectSaveStatus">Chưa lưu vào JSON</div>
           </div>
           <div class="playGroup" id="playGroup" style="display:none">
             <details class="topMenu" id="replayMenu">
@@ -349,6 +351,18 @@
 </div>
 
 <div id="toast" class="toast"></div>
+
+<div id="unsavedOverlay" class="unsavedOverlay" role="dialog" aria-modal="true" aria-labelledby="unsavedTitle">
+  <div class="unsavedDialog">
+    <b id="unsavedTitle">Có thay đổi chưa lưu vào Project JSON</b>
+    <div id="unsavedMessage" class="small"></div>
+    <div class="unsavedActions">
+      <button type="button" class="btn good" id="unsavedSaveBtn">Lưu rồi tiếp tục</button>
+      <button type="button" class="btn danger" id="unsavedDiscardBtn">Bỏ thay đổi</button>
+      <button type="button" class="btn" id="unsavedCancelBtn">Hủy</button>
+    </div>
+  </div>
+</div>
 
 <div id="changelogOverlay" class="changelogOverlay">
   <div class="changelogShell">
