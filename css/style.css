@@ -644,34 +644,27 @@ textarea {
   min-width: 0;
   min-height: 0;
 }
-/* Figma Canvas Top Sub-Toolbar (Around Canvas, Zero Overlap) */
+/* Figma Canvas Top Info Bar (Level Info, Save Status, Play Group, Zoom Dock) */
 .canvasTopBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
-  height: 42px;
-  min-height: 42px;
+  padding: 0 16px;
+  height: 38px;
+  min-height: 38px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
   z-index: 25000;
   flex-shrink: 0;
   box-sizing: border-box;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 .canvasTopLeft {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: 6px;
-}
-.canvasTopCenter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  min-width: 0;
+  gap: 8px;
 }
 .canvasTopRight {
   display: flex;
@@ -679,6 +672,26 @@ textarea {
   justify-content: flex-end;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+/* Secondary Canvas Toolbar (Dedicated Draw & Shape Tools - Positioned Below Info Bar) */
+.canvasToolBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  height: 42px;
+  min-height: 42px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  z-index: 24900;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  gap: 12px;
+  width: 100%;
+}
+body.play .canvasToolBar {
+  display: none !important;
 }
 
 .leveltop {
@@ -815,7 +828,7 @@ body.play .sceneTools {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: auto;
   padding: 16px;
   box-sizing: border-box;
   background: var(--stage-wrap-bg);
@@ -824,10 +837,7 @@ body.play .sceneTools {
 }
 .stage {
   position: relative;
-  width: auto;
-  height: 100%;
-  max-height: calc(100% - 16px);
-  max-width: calc(100% - 16px);
+  width: min(100%, 475px);
   aspect-ratio: 1080 / 1610;
   margin: auto;
   background: var(--stage-paper);
@@ -1102,6 +1112,9 @@ body.play .drawingCanvas.hidePlay {
   border: 1px solid var(--line);
   border-radius: 5px;
   padding: 1px 6px;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   z-index: 2;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
@@ -1112,23 +1125,23 @@ body.play .drawingCanvas.hidePlay {
   top: 66px;
   transform: translateX(-50%);
   width: max-content;
-  max-width: 120px;
+  max-width: 105px;
   text-align: center;
   pointer-events: none;
   z-index: 1;
 }
 .appTag {
   display: block;
-  font-size: 9px;
+  font-size: 8.5px;
   line-height: 1.25;
   background: var(--dock-bg);
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 2px 6px;
+  padding: 2px 5px;
   white-space: normal;
   overflow-wrap: break-word;
-  max-height: 44px;
+  max-height: 38px;
   overflow: hidden;
   text-overflow: ellipsis;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
@@ -2723,13 +2736,18 @@ body.play .trayrow .token { justify-self: center; }
 }
 .unsavedActions {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 .unsavedActions .btn {
   flex: 1;
-  min-width: 120px;
+  min-width: 0;
+  white-space: nowrap;
+  font-size: 13px;
+  padding: 8px 12px;
+  text-align: center;
 }
 
 /* Responsive Breakpoints (Infinite Canvas & Flexible Workspaces Preserved) */

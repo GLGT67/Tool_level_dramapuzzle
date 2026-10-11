@@ -258,7 +258,7 @@ function blankSceneArtItem(){
   return {id:uid("ART_"),name:"",description:"",exportMode:"BAKED_BG",assetId:"BG01",artistNote:""};
 }
 function blank(){
-  return {level:{id:"",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[],drawing:{visibleInPlay:true,strokes:[],dataUrl:""}};
+  return {level:{id:"L001",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[],drawing:{visibleInPlay:true,strokes:[],dataUrl:""}};
 }
 function blankSceneEvidence(){
   return {id:"",text:"",affects:[]};
@@ -1088,6 +1088,29 @@ function createImageLayer(i){
   return el;
 }
 
+function getPathBounds(a){
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  if(a && a.points && a.points.length){
+    a.points.forEach(p => {
+      minX = Math.min(minX, p.x, p.cp1?.x ?? p.x, p.cp2?.x ?? p.x);
+      minY = Math.min(minY, p.y, p.cp1?.y ?? p.y, p.cp2?.y ?? p.y);
+      maxX = Math.max(maxX, p.x, p.cp1?.x ?? p.x, p.cp2?.x ?? p.x);
+      maxY = Math.max(maxY, p.y, p.cp1?.y ?? p.y, p.cp2?.y ?? p.y);
+    });
+  } else if(a) {
+    minX = a.x || 0; minY = a.y || 0;
+    maxX = (a.x || 0) + (a.w || 100);
+    maxY = (a.y || 0) + (a.h || 100);
+  }
+  if(!isFinite(minX) || !isFinite(maxX)) { minX = 0; maxX = 100; minY = 0; maxY = 100; }
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const w = Math.max(20, maxX - minX);
+  const h = Math.max(20, maxY - minY);
+  return { minX, minY, maxX, maxY, cx, cy, w, h };
+}
+window.getPathBounds = getPathBounds;
+
 function renderLive(){
   $("#liveName").textContent=data.level.id||"LEVEL";
   $("#liveHook").textContent=resolveTokens(data.level.hook||"");
@@ -1114,11 +1137,16 @@ function renderLive(){
       const flipXPath = a.flipH ? -1 : 1;
       const flipYPath = a.flipV ? -1 : 1;
       const rotPath = Number(a.rotation) || 0;
-      const cxPath = (a.x + (a.w || 100) / 2) / 1080 * 100;
-      const cyPath = (a.y + (a.h || 100) / 2) / 1610 * 100;
+      const bounds = getPathBounds(a);
+      a.x = Math.round(bounds.minX);
+      a.y = Math.round(bounds.minY);
+      a.w = Math.round(bounds.w);
+      a.h = Math.round(bounds.h);
+      const cxPath = (bounds.cx / 1080) * 100;
+      const cyPath = (bounds.cy / 1610) * 100;
       el.style.transformOrigin = `${cxPath}% ${cyPath}%`;
       if(rotPath || a.flipH || a.flipV){
-        el.style.transform = `scale(${flipXPath},${flipYPath}) rotate(${rotPath}deg)`;
+        el.style.transform = `rotate(${rotPath}deg) scale(${flipXPath},${flipYPath})`;
       }
 
       const svgD = generateSvgPathD(a);
@@ -1199,7 +1227,7 @@ function renderLive(){
     const rot = Number(a.rotation) || 0;
     el.style.transformOrigin = "center center";
     if(rot || a.flipH || a.flipV){
-      el.style.transform = `scale(${flipX},${flipY}) rotate(${rot}deg)`;
+      el.style.transform = `rotate(${rot}deg) scale(${flipX},${flipY})`;
     }
 
     const fontPx=Math.max(8,a.fontSize/1080*st.clientWidth);
@@ -2420,8 +2448,24 @@ function bindAnnotationTransformControls(a){
   if($("#flipVAnn")) $("#flipVAnn").onclick = () => { a.flipV = !a.flipV; save(); refreshImmediate(); renderInspector(); };
   if($("#anRotReset")) $("#anRotReset").onclick = () => { a.rotation = 0; save(); refreshImmediate(); renderInspector(); };
   if($("#centerCanvasAnn")) $("#centerCanvasAnn").onclick = () => {
-    a.x = Math.round((1080 - (a.w || 100)) / 2);
-    a.y = Math.round((1610 - (a.h || 100)) / 2);
+    if(["pen", "pencil", "brush"].includes(a.type) && a.points && a.points.length){
+      const bounds = getPathBounds(a);
+      const dx = Math.round(540 - bounds.cx);
+      const dy = Math.round(805 - bounds.cy);
+      a.points.forEach(pt => {
+        pt.x = Math.round(pt.x + dx);
+        pt.y = Math.round(pt.y + dy);
+        if(pt.cp1){ pt.cp1.x = Math.round(pt.cp1.x + dx); pt.cp1.y = Math.round(pt.cp1.y + dy); }
+        if(pt.cp2){ pt.cp2.x = Math.round(pt.cp2.x + dx); pt.cp2.y = Math.round(pt.cp2.y + dy); }
+      });
+      a.x = Math.round(bounds.minX + dx);
+      a.y = Math.round(bounds.minY + dy);
+      a.w = Math.round(bounds.w);
+      a.h = Math.round(bounds.h);
+    } else {
+      a.x = Math.round((1080 - (a.w || 100)) / 2);
+      a.y = Math.round((1610 - (a.h || 100)) / 2);
+    }
     save(); refreshImmediate(); renderInspector(); toast("Đã căn giữa Artboard");
   };
   if($("#anRot")){
@@ -4821,11 +4865,15 @@ $("#scenePngBtn").onclick=exportScenePng;
 function confirmBeforeLeaving(actionName){
   if(!hasUnsavedProjectChanges())return Promise.resolve(true);
   return new Promise(resolve=>{
-    const overlay=$("#unsavedOverlay"),message=$("#unsavedMessage");
+    const overlay=$("#unsavedOverlay"),message=$("#unsavedMessage"),title=$("#unsavedTitle");
     const levelId=data.level.id||"Level chưa có mã";
-    if(message)message.textContent=`${levelId} có thay đổi chưa lưu vào file .editor.json. Tự lưu trong trình duyệt KHÔNG thay thế cho LƯU PROJECT. Trước khi ${actionName}, chọn cách xử lý:`;
-    if(overlay)overlay.classList.add("show");
+    if(title) title.textContent = "Có thay đổi chưa lưu vào Project JSON";
+    if(message) message.textContent = `${levelId} có nội dung chưa lưu vào file .editor.json. Tự lưu trong trình duyệt KHÔNG thay thế cho LƯU PROJECT. Trước khi ${actionName}, chọn cách xử lý:`;
+    if(overlay) overlay.classList.add("show");
     const saveBtn=$("#unsavedSaveBtn"),discardBtn=$("#unsavedDiscardBtn"),cancelBtn=$("#unsavedCancelBtn");
+    if(saveBtn) saveBtn.textContent = "Lưu rồi tiếp tục";
+    if(discardBtn) discardBtn.textContent = "Bỏ thay đổi";
+    if(cancelBtn) cancelBtn.textContent = "Hủy";
     let settled=false;
     const finish=result=>{if(settled)return;settled=true;if(overlay)overlay.classList.remove("show");resolve(result)};
     if(cancelBtn)cancelBtn.onclick=()=>finish(false);
@@ -4836,7 +4884,7 @@ function confirmBeforeLeaving(actionName){
       try{ok=await saveProjectFile(false)}catch(e){console.error(e)}
       saveBtn.disabled=false;if(discardBtn)discardBtn.disabled=false;if(cancelBtn)cancelBtn.disabled=false;
       if(ok)finish(true);
-      else if(message){message.textContent=`Chưa lưu được ${levelId}. Level vẫn đang ở đây; bạn có thể thử lưu lại, bỏ thay đổi hoặc hủy.`;}
+      else if(message){message.textContent=`Chưa lưu được ${levelId}. Dữ liệu level vẫn được giữ nguyên; bạn có thể thử lưu lại hoặc tiếp tục.`;}
     };
   });
 }
@@ -4940,8 +4988,19 @@ async function loadSampleProject(sampleData,message){
 async function createNewLevel(){
   if(!await confirmBeforeLeaving("tạo level mới"))return;
   openAsNewSession(blank());
-  toast("Đã tạo LEVEL MỚI — file JSON cũ không bị ghi đè");
+  canvasZoom = 1.0;
+  canvasPan = {x: 0, y: 0};
+  applyZoomPan();
+  toast("✨ Đã tạo LEVEL MỚI (L001) — sẵn sàng thiết kế");
+  setTimeout(()=>{
+    const lid = $("#lid");
+    if(lid){
+      lid.focus();
+      lid.select();
+    }
+  }, 100);
 }
+window.createNewLevel = createNewLevel;
 
 $("#checkLevelBtn").onclick=openPreflightCheck;
 $("#closeCheckLevel").onclick=()=>$("#checkOverlay").classList.remove("show");
@@ -4958,7 +5017,8 @@ window.addEventListener("beforeunload",e=>{
 
 $("#overlay").addEventListener("pointerdown",e=>{if(e.target===$("#overlay"))$("#overlay").classList.remove("show")});
 $("#endingOverlay").addEventListener("pointerdown",e=>{if(e.target===$("#endingOverlay"))$("#endingOverlay").classList.remove("show")});
-window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classList.remove("show");$("#endingOverlay").classList.remove("show");$("#checkOverlay").classList.remove("show")}});
+$("#unsavedOverlay")?.addEventListener("pointerdown",e=>{if(e.target===$("#unsavedOverlay"))$("#unsavedOverlay").classList.remove("show")});
+window.addEventListener("keydown",e=>{if(e.key==="Escape"){$("#overlay").classList.remove("show");$("#endingOverlay").classList.remove("show");$("#checkOverlay").classList.remove("show");$("#unsavedOverlay")?.classList.remove("show")}});
 
 ["endingBtn","scenePngBtn","assetRequestBtn","exportBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#productionMenu")?.removeAttribute("open")})});
 ["sampleWeddingBtn","sampleBirthdayBtn"].forEach(id=>{const el=$("#"+id);if(el)el.addEventListener("click",()=>{$("#sampleMenu")?.removeAttribute("open")})});

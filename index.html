@@ -38,7 +38,7 @@
 
   <div class="navGroup rightNav">
     <div class="btnGroup editOnlyNav">
-      <button class="btn smBtn" id="newLevelBtn" title="Tạo Level mới">+ LEVEL MỚI</button>
+      <button class="btn smBtn" id="newLevelBtn" onclick="if(window.createNewLevel)window.createNewLevel();" title="Tạo Level mới">+ LEVEL MỚI</button>
       <button class="btn smBtn" id="saveBtn" title="Lưu Level ra file JSON">LƯU PROJECT</button>
       <label class="btn smBtn" title="Mở Level từ file JSON">MỞ PROJECT<input id="importFile" type="file" accept=".json,application/json,text/plain" style="display:none"></label>
     </div>
@@ -73,7 +73,6 @@
       <summary class="btn iconBtn smBtn" title="Tùy chọn khác">⋯</summary>
       <div class="topMenuPanel">
         <button class="btn" id="saveAsBtn">LƯU THÀNH FILE MỚI</button>
-        <button class="btn danger" id="resetBtn">Reset trắng</button>
       </div>
     </details>
   </div>
@@ -137,14 +136,14 @@
 
 <main class="center">
   <div class="editor">
-    <!-- Top Sub-Toolbar (Figma Tools & Status - Positioned Around Canvas) -->
+    <!-- Top Info Bar (Level Info, Save Status, Play Group, Zoom Dock) -->
     <div class="canvasTopBar" id="canvasTopBar">
       <div class="canvasTopLeft">
         <div class="leveltop" id="leveltop">
           <div class="levelBadge">
             <div class="small">LEVEL DESIGN</div>
             <b id="liveName">LEVEL</b>
-            <div class="projectSaveStatus" id="projectSaveStatus">Chưa lưu vào JSON</div>
+            <div class="projectSaveStatus saved" id="projectSaveStatus">✓ Không có thay đổi chưa lưu</div>
           </div>
           <div class="playGroup" id="playGroup" style="display:none">
             <details class="topMenu" id="replayMenu">
@@ -161,27 +160,6 @@
         </div>
       </div>
 
-      <div class="canvasTopCenter">
-        <div class="sceneTools editOnly" id="sceneTools" aria-label="Công cụ vẽ">
-          <button class="toolBtn active" data-tool="select" id="toolSelect" title="Chọn đối tượng / chọn cụm">↖</button>
-          <div class="toolSep"></div>
-          <button class="toolBtn" data-tool="rect" title="Hình chữ nhật / vuông">□</button>
-          <button class="toolBtn" data-tool="circle" title="Hình tròn / bầu dục">○</button>
-          <button class="toolBtn" data-tool="triangle" title="Hình tam giác">△</button>
-          <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh">★</button>
-          <button class="toolBtn" data-tool="polygon" title="Hình lục giác 6 cạnh">⬡</button>
-          <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
-          <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
-          <button class="toolBtn" data-tool="qslot" id="toolQslot" title="Ô trống dấu hỏi (Question Slot)">?</button>
-          <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
-          <div class="toolSep"></div>
-          <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
-          <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
-          <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
-        </div>
-        <div class="hook" id="hookContainer"><div id="liveHook" class="dramaHookText"></div></div>
-      </div>
-
       <div class="canvasTopRight">
         <div class="canvasZoomDock">
           <button class="zoomBtn" id="zoomOutBtn" type="button" title="Thu nhỏ (Ctrl -)">−</button>
@@ -190,6 +168,28 @@
           <button class="zoomBtn" id="zoomResetBtn" type="button" title="Đặt lại 100%">1:1</button>
         </div>
       </div>
+    </div>
+
+    <!-- Secondary Canvas Toolbar (Shape Tools, Draw Tools, Hook Preview - Positioned Below Info Bar) -->
+    <div class="canvasToolBar editOnly" id="canvasToolBar">
+      <div class="sceneTools" id="sceneTools" aria-label="Công cụ vẽ">
+        <button class="toolBtn active" data-tool="select" id="toolSelect" title="Chọn đối tượng / chọn cụm">↖</button>
+        <div class="toolSep"></div>
+        <button class="toolBtn" data-tool="rect" title="Hình chữ nhật / vuông">□</button>
+        <button class="toolBtn" data-tool="circle" title="Hình tròn / bầu dục">○</button>
+        <button class="toolBtn" data-tool="triangle" title="Hình tam giác">△</button>
+        <button class="toolBtn" data-tool="star" title="Ngôi sao 5 cánh">★</button>
+        <button class="toolBtn" data-tool="polygon" title="Hình lục giác 6 cạnh">⬡</button>
+        <button class="toolBtn" data-tool="line" title="Đoạn thẳng vector">―</button>
+        <button class="toolBtn" data-tool="arrow" title="Mũi tên chỉ dẫn">➜</button>
+        <button class="toolBtn" data-tool="qslot" id="toolQslot" title="Ô trống dấu hỏi (Question Slot)">?</button>
+        <button class="toolBtn" data-tool="text" title="Ghi chú chữ">T</button>
+        <div class="toolSep"></div>
+        <button class="toolBtn" data-tool="pencil" id="toolPencil" title="Bút chì: Nét vẽ tự do thanh mảnh" aria-label="Bút chì"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+        <button class="toolBtn" data-tool="brush" id="toolBrush" title="Cọ vẽ: Nét cọ mềm và dày" aria-label="Cọ vẽ"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.375 2.625a3.875 3.875 0 0 0-5.48 0L3.5 12V18h6l9.375-9.375a3.875 3.875 0 0 0 0-5.48z"/><path d="M14 7l3 3"/><path d="M2 22c1.5-2 3-2 3-2"/></svg></button>
+        <button class="toolBtn" data-tool="pen" id="toolPen" title="Bút mực: Nối các điểm neo vector" aria-label="Bút mực"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M19 12l-7-7-9 2 2 9 7 7 7-11z"/><circle cx="8" cy="8" r="1.5"/></svg></button>
+      </div>
+      <div class="hook" id="hookContainer"><div id="liveHook" class="dramaHookText"></div></div>
     </div>
 
     <!-- Infinite Canvas Viewport (Artboard ONLY - Zero UI Overlap) -->
@@ -429,8 +429,8 @@
   </div>
 </div>
 
-<script src="data/sample_levels.js?v=1.38"></script>
-<script src="js/app.js?v=1.38"></script>
+<script src="data/sample_levels.js?v=1.39"></script>
+<script src="js/app.js?v=1.39"></script>
 <script>
 // Figma-Native UI Helpers (Tabs, Tray, Resizers & Collapsible Panels)
 (()=>{
