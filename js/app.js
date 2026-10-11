@@ -5069,7 +5069,15 @@ function initZoomAndPan(){
   
   const sw=$("#stageWrap") || $("#stage");
   if(sw){
-    // Cho phép cuộn touchpad/chuột tự nhiên trong khung Artboard; không can thiệp wheel zoom tự động tránh lỗi phóng to ngoài ý muốn trên laptop
+    sw.addEventListener("wheel", e => {
+      // Zoom bằng chuột / trackpad: Ctrl + scroll, Cmd + scroll, Alt + scroll hoặc Space + scroll
+      if(e.ctrlKey || e.metaKey || e.altKey || isSpaceDown){
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.08 : -0.08;
+        canvasZoom = Math.min(3.0, Math.max(0.3, +(canvasZoom + delta).toFixed(2)));
+        applyZoomPan();
+      }
+    }, { passive: false });
 
     sw.addEventListener("pointermove", e => {
       lastMouseStagePos = logical(e);
