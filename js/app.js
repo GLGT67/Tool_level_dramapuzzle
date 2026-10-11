@@ -5034,7 +5034,11 @@ function applyZoomPan(){
   const st=$("#stage");
   if(!st) return;
   st.style.transformOrigin = "center center";
-  st.style.transform = `scale(${canvasZoom}) translate(${canvasPan.x}px, ${canvasPan.y}px)`;
+  if(canvasZoom === 1.0 && canvasPan.x === 0 && canvasPan.y === 0){
+    st.style.transform = "none";
+  } else {
+    st.style.transform = `scale(${canvasZoom}) translate(${canvasPan.x}px, ${canvasPan.y}px)`;
+  }
   const zl=$("#zoomValue");
   if(zl) zl.textContent = Math.round(canvasZoom * 100) + "%";
 }
@@ -5065,14 +5069,7 @@ function initZoomAndPan(){
   
   const sw=$("#stageWrap") || $("#stage");
   if(sw){
-    sw.addEventListener("wheel", e => {
-      if(e.ctrlKey || e.metaKey || isSpaceDown){
-        e.preventDefault();
-        const delta = e.deltaY < 0 ? 0.08 : -0.08;
-        canvasZoom = Math.min(2.5, Math.max(0.3, +(canvasZoom + delta).toFixed(2)));
-        applyZoomPan();
-      }
-    }, { passive: false });
+    // Cho phép cuộn touchpad/chuột tự nhiên trong khung Artboard; không can thiệp wheel zoom tự động tránh lỗi phóng to ngoài ý muốn trên laptop
 
     sw.addEventListener("pointermove", e => {
       lastMouseStagePos = logical(e);

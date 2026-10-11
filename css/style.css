@@ -2752,6 +2752,7 @@ body.play .trayrow .token { justify-self: center; }
 
 /* Responsive Breakpoints (Infinite Canvas & Flexible Workspaces Preserved) */
 @media(max-width: 1440px) {
+  .stage { width: min(100%, 460px); }
   .top { gap: 6px; padding: 0 8px; }
   .navGroup { gap: 4px; }
   .btnGroup { gap: 3px; }
@@ -2761,6 +2762,7 @@ body.play .trayrow .token { justify-self: center; }
   .version { font-size: 10px; padding: 3px 6px; }
 }
 @media(max-width: 1280px) {
+  .stage { width: min(100%, 425px); }
   .top { gap: 4px; padding: 0 6px; }
   .navGroup { gap: 3px; }
   .btnGroup { gap: 2px; }
