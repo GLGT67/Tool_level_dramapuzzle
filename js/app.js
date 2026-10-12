@@ -248,6 +248,7 @@ function blankLevelArt(){
   return {
     backgroundAssetId:"BG01",
     backgroundDescription:"",
+    storyContext:"",
     tone:"",
     artistNote:"",
     referenceNote:"",
@@ -257,8 +258,14 @@ function blankLevelArt(){
 function blankSceneArtItem(){
   return {id:uid("ART_"),name:"",description:"",exportMode:"BAKED_BG",assetId:"BG01",artistNote:""};
 }
+function effectiveRevealWhen(){
+  const m=data.level.revealMode;
+  if(m==="NONE")return [];
+  if(m==="ALL")return sortedCharacters().filter(c=>c.type==="M").map(c=>c.id);
+  return data.level.revealWhen||[];
+}
 function blank(){
-  return {level:{id:"L001",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[],drawing:{visibleInPlay:true,strokes:[],dataUrl:""}};
+  return {level:{id:"L001",version:"1.0",hook:"",difficultyTarget:"",difficultySelf:"",difficultyAmbiguity:"",difficultyCombine:"",difficultyTested:false,reveal:"",revealMode:"UNSET",revealWhen:[],revealParentClueId:"",truth:"",art:blankLevelArt(),ending:blankEnding()},images:[],characters:[],clues:[],annotations:[],drawing:{visibleInPlay:true,strokes:[],dataUrl:""}};
 }
 function blankSceneEvidence(){
   return {id:"",text:"",affects:[]};
@@ -382,6 +389,9 @@ function normalize(d){
   Object.defineProperty(d,"sceneEvidence",{value:[],writable:true,configurable:true,enumerable:false});
   d.annotations=(d.annotations||[]).filter(Boolean);
   d.level.revealWhen=d.level.revealWhen||[];
+  if(!["UNSET","SELECTED","ALL","NONE"].includes(d.level.revealMode)){
+    d.level.revealMode=(String(d.level.reveal||"").trim() || d.level.revealWhen.length)?"SELECTED":"UNSET";
+  }
   d.level.revealParentClueId=String(d.level.revealParentClueId||"").trim().toUpperCase();
   d.level.difficultyTarget=["EASY","MEDIUM","HARD"].includes(d.level.difficultyTarget)?d.level.difficultyTarget:"";
   d.level.difficultySelf=["EASY","MEDIUM","HARD"].includes(d.level.difficultySelf)?d.level.difficultySelf:"";
@@ -401,6 +411,7 @@ function normalize(d){
   d.level.ending.rewardCoins=ENDING_REWARD_COINS;
   d.level.ending.normalRewardCoins=ENDING_NORMAL_COINS;
   d.level.art={...blankLevelArt(),...(d.level.art||{})};
+  d.level.art.storyContext=String(d.level.art.storyContext||"");
   d.level.art.backgroundAssetId=d.level.art.backgroundAssetId||"BG01";
   d.level.art.sceneItems=((d.level.art&&d.level.art.sceneItems)||[]).filter(Boolean);
   d.level.art.sceneItems.forEach(item=>{
@@ -419,6 +430,8 @@ function normalize(d){
     c.answerSet=true;
     c.appearance=c.appearance||[];
     delete c.sceneTag;
+    c.genderConfirmed=c.genderConfirmed===true;
+    c.appearanceMode=["UNSET","SPECIFIC","STANDARD"].includes(c.appearanceMode)?c.appearanceMode:"UNSET";
     c.namePool=c.namePool||"KEEP";
     c.gender=inferGender(c);
     c.age=c.age||"";
@@ -1948,11 +1961,20 @@ function levelIns(b){
     <div class="small">Chọn độ khó dự định ngay từ đầu. Bước TEST ĐỘ KHÓ dùng để kiểm chứng sau khi chơi thử.</div>
     <label>🟢 Drama Hook<textarea id="lh" placeholder="Một câu gây tò mò / yêu cầu người chơi khám phá điều gì...">${esc(data.level.hook)}</textarea></label>
     <div class="tokenPreview"><b>Hook preview:</b> <span id="lhp">${esc(resolveTokens(data.level.hook,editNameMap()))}</span></div>
-    <div class="small"><b>2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả sai vị trí nhân vật; thả trượt ra ngoài không mất mạng.</div>
-    <label>🟡 Main Reveal<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
+    <div class="small"><b>❤️❤️ 2 mạng cố định toàn game.</b> Chỉ mất 1 mạng khi thả Character vào một slot hợp lệ nhưng sai người; thả hụt ngoài slot không mất mạng. Đây là rule chung, GD không chỉnh theo từng level.</div>
+    <label class="requiredField"><span class="requiredMark">●</span> Main Reveal · Cách sử dụng
+      <select id="lrevealMode">
+        <option value="UNSET">-- Chưa xác nhận --</option>
+        <option value="SELECTED">Có · Reveal khi đủ những M được chọn</option>
+        <option value="ALL">Có · Reveal khi xếp đúng tất cả M</option>
+        <option value="NONE">Không dùng · Chỉ cho level Dễ</option>
+      </select>
+    </label>
+    <div class="small">Nên dùng Main Reveal để tạo cao trào. Level <b>Vừa / Khó bắt buộc có</b>; level <b>Dễ có thể không dùng</b> nếu Scene và Reaction đã kể đủ chuyện.</div>
+    <label class="${data.level.revealMode==="NONE"?"":"requiredField"}">${data.level.revealMode==="NONE"?"":'<span class="requiredMark">●</span> '}Main Reveal · Nội dung<textarea id="lr">${esc(data.level.reveal)}</textarea></label>
     <div class="tokenPreview"><b>Reveal preview:</b> <span id="lrp">${esc(resolveTokens(data.level.reveal,editNameMap()))}</span></div>
-    <label>🟡 Main Reveal khi đặt đúng</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
-    <div class="small">Chỉ áp dụng với nhân vật <b>Di chuyển (Mxx)</b>.</div>
+    <label class="${data.level.revealMode==="SELECTED"?"requiredField":""}">${data.level.revealMode==="SELECTED"?'<span class="requiredMark">●</span> ':""}Main Reveal khi · chọn M nếu chế độ "Có · chọn M"</label><div id="lrw" class="checks">${placementTriggerChecks(data.level.revealWhen)}</div>
+    <div class="small" id="revealTriggerHint">Chỉ chọn <b>Movable (Mxx)</b>. Chế độ "Tất cả M" sẽ tự theo danh sách Movable, kể cả khi GD thêm/bớt nhân vật.</div>
     <label>🟡 Main Reveal nằm dưới Clue
       <select id="lrparent"><option value="">— Không có nhánh cha —</option>${(data.clues||[]).map(cl=>`<option value="${esc(cl.id)}" ${data.level.revealParentClueId===cl.id?"selected":""}>${esc(cl.id)}${cl.text?" · "+esc(cl.text.slice(0,48)):""}</option>`).join("")}</select>
     </label>
@@ -1964,6 +1986,10 @@ function levelIns(b){
   <details class="group prodDetails"><summary>PRODUCTION · BACKGROUND / ART INFO</summary><div class="prodDetailsBody col">
     <div class="row"><label style="width:120px">Version<input id="lver" value="${esc(data.level.version||"1.0")}" placeholder="1.0"></label><div class="spacer"></div><button class="btn" id="addSceneArt">+ Thêm mục</button></div>
     <label>🔵 Asset background chính<input id="bgAssetId" value="${esc(art.backgroundAssetId)}" readonly></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Tóm tắt câu chuyện, bối cảnh & không khí cho Art (xuất vào cả 2 tab Asset Request)
+      <textarea id="bgStoryContext" rows="5" placeholder="VD: Tại tiệc cưới, {M01} phát hiện {M02} đang giấu một chuyện. Không khí vui tươi nhưng hơi căng thẳng, hài hước; các nhân vật bên ngoài chưa biết bí mật.">${esc(art.storyContext||"")}</textarea>
+    </label>
+    <div class="small">Viết 2–5 câu tóm tắt quan hệ, động cơ và không khí chung để Artist nắm trước khi vẽ từng asset. Dùng mã {M01}, {F01}… thay cho tên riêng.</div>
     <label>🔵 Mô tả background<textarea id="bgDesc">${esc(art.backgroundDescription)}</textarea></label>
     <label>🔵 Tone màu<input id="bgTone" value="${esc(art.tone)}" placeholder="VD: ấm, pastel, cưới ngoài trời..."></label>
     <label>Chỉ dẫn Reference Layer<textarea id="bgRef">${esc(art.referenceNote)}</textarea></label>
@@ -1988,9 +2014,22 @@ function levelIns(b){
   $("#lver").oninput=e=>{data.level.version=e.target.value.trim();save()};
   $("#ldiffTarget").onchange=e=>{data.level.difficultyTarget=e.target.value;data.level.difficultyTested=false;save()};
   $("#lh").oninput=e=>{data.level.hook=e.target.value;save();$("#lhp").textContent=resolveTokens(e.target.value,editNameMap());$("#liveHook").textContent=resolveTokens(e.target.value)};
+  $("#lrevealMode").value=data.level.revealMode||"UNSET";
+  function updateRevealModeView(){
+    const mode=data.level.revealMode||"UNSET";
+    $("#lrw").style.opacity=mode==="SELECTED"?"1":".42";
+    $("#lrw").style.pointerEvents=mode==="SELECTED"?"auto":"none";
+    $("#revealTriggerHint").textContent=mode==="ALL"
+      ?"Reveal khi toàn bộ M được đặt đúng · tự cập nhật khi thêm hoặc xóa M."
+      :(mode==="NONE"?"Không dùng Main Reveal cho level này."
+      :"Chỉ chọn Movable (Mxx) kích hoạt Main Reveal.");
+  }
+  updateRevealModeView();
+  $("#lrevealMode").onchange=e=>{data.level.revealMode=e.target.value;save();updateRevealModeView();renderLogic()};
   $("#lr").oninput=e=>{data.level.reveal=e.target.value;save();$("#lrp").textContent=resolveTokens(e.target.value,editNameMap())};
   $("#lt").oninput=e=>{data.level.truth=e.target.value;save()};
   bindChecks($("#lrw"),a=>{data.level.revealWhen=a;save();renderLogic()});
+  $("#bgStoryContext").oninput=e=>{art.storyContext=e.target.value;save()};
   $("#lrparent").onchange=e=>{data.level.revealParentClueId=e.target.value;save()};
 
   $("#bgDesc").oninput=e=>{art.backgroundDescription=e.target.value;save()};
@@ -2055,7 +2094,15 @@ function charIns(b,c){
       </label>
       <button class="btn ${c.flipH?'on':''}" id="cflipH" type="button" style="margin-top:18px" title="Lật hướng nhìn đối xứng">⇄ Direction (Flip H)</button>
     </div>
-    <label>🟢 Ngoại hình / Appearance Tags<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
+    <label class="requiredField"><span class="requiredMark">●</span> Quy chuẩn ngoại hình cho Art
+      <select id="cAppearanceMode">
+        <option value="UNSET">-- Chưa chọn quy chuẩn ngoại hình --</option>
+        <option value="SPECIFIC">Có đặc điểm riêng (nhân vật chính / có hint)</option>
+        <option value="STANDARD">Phổ thông (người qua đường / không cần tả)</option>
+      </select>
+    </label>
+    <div class="small">Nhân vật <b>Phổ thông</b> sẽ tự điền ghi chú chuẩn cho Artist, không cần liệt kê đặc điểm ngoại hình.</div>
+    <label class="${c.appearanceMode==="SPECIFIC"?"requiredField":""}">${c.appearanceMode==="SPECIFIC"?'<span class="requiredMark">●</span> ':""}🟢 Ngoại hình / Appearance Tags<textarea id="ca">${esc(appearanceText(c))}</textarea></label>
     <div class="small">Enter = xuống dòng trong <b>cùng một tag</b>, không tạo tag mới.</div>
     <label>🟢 Initial Emotion (Bắt đầu${c.type==="M"?" / Khay":""})<select id="cbaseexp">${emojiOptions(c.baseExpression,false)}</select></label>
     ${c.type==="F"?`<div class="row"><label style="flex:1">🟢 Initial Gaze<select id="cbasegaze">${GAZES.map(g=>`<option value="${g}" ${g===c.baseGaze?"selected":""}>${g==="AUTO"?"Tự động — theo Target":g==="NONE"?"Không nhìn":g+" giờ"}</option>`).join("")}</select></label><label style="flex:1">Gaze Target<select id="cbasetarget">${opts(c.baseTarget,true)}</select></label></div>
@@ -2076,15 +2123,17 @@ function charIns(b,c){
   <div class="group"><div class="head" style="margin:0 0 6px"><b>Reaction Events</b><button class="btn" id="addEvent">+ Thêm phản ứng</button></div><div class="timeline">${(c.reactionEvents||[]).map((ev,i)=>`<div class="stateCard" data-event="${ev.id}"><b>EVENT ${i+1} · ${ev.steps.length} bước</b><div class="meta">KHI: ${esc(triggerLabel(c,ev))}</div><div class="rxSeq">${esc(sequencePreview(ev,c.id))}</div></div>`).join("")||'<div class="small">Chưa có phản ứng.</div>'}</div></div>
   <button class="btn danger" id="cd">Xóa nhân vật</button>`;
 
-  $("#ct").value=c.type;$("#cpool").value=c.namePool||"KEEP";$("#cgender").value=c.gender||"UNSPECIFIED";
+  $("#ct").value=c.type;$("#cpool").value=c.namePool||"KEEP";$("#cgender").value=c.genderConfirmed?inferGender(c):"";
+  $("#cAppearanceMode").value=c.appearanceMode||"UNSET";
+  $("#cAppearanceMode").onchange=e=>{c.appearanceMode=e.target.value;save();renderInspector()};
   $("#ci").onchange=e=>{const old=c.id,n=e.target.value.trim().toUpperCase(),expectedPrefix=c.type;if(!new RegExp("^"+expectedPrefix+"\\d+$").test(n)){toast(`Movable uses Mxx code, Fixed uses Fxx code`);e.target.value=old;return}if(data.characters.some(x=>x!==c&&x.id===n)){toast("Mã trùng lặp");e.target.value=old;return}c.id=n;remapCharacterAssetPrefix(c,old,n);remapCharacterIdEverywhereInDataset(data,old,n,c.type,c.type);selected.id=n;save();refreshImmediate()};
   $("#cn").oninput=e=>{c.name=e.target.value;save();$$(`[data-char-name="${c.id}"]`).forEach(n=>n.textContent=e.target.value)};$("#cn").onchange=()=>{renderLists();renderClues();renderLive()};
-  $("#cpool").onchange=e=>{c.namePool=e.target.value;if(c.gender==="UNSPECIFIED")c.gender=inferGender({...c,gender:""});save();renderInspector()};
+  $("#cpool").onchange=e=>{c.namePool=e.target.value;c.gender=inferGender(c);c.genderConfirmed=true;save();renderInspector()};
   $("#cr").oninput=e=>{c.role=e.target.value;save()};$("#cr").onchange=()=>renderLists();
   if($("#cflipH"))$("#cflipH").onclick=()=>{c.flipH=!c.flipH;save();refreshImmediate();renderInspector()};
 $("#ct").onchange=e=>{const result=syncCharacterTypeId(c,e.target.value);selected.id=result.newId;save();refreshImmediate();toast(`${result.oldId} → ${result.newId} · ${c.type==="M"?"Movable":"Fixed"}${result.triggerReview?` · ${result.triggerReview} Reaction needs condition review`:""}`)};
   $("#ca").oninput=e=>{c.appearance=e.target.value.split("\n").map(x=>x.trim()).filter(Boolean);save()};$("#ca").onchange=()=>renderLive();
-  $("#cgender").onchange=e=>{c.gender=e.target.value;save()};
+  $("#cgender").onchange=e=>{c.gender=e.target.value;c.namePool=e.target.value;c.genderConfirmed=true;save();renderLists();renderLive();renderInspector();};
   if($("#cage"))$("#cage").onchange=e=>{c.age=e.target.value;save();renderInspector()};
   $("#cbaseasset").onchange=e=>{c.assetBaseId=e.target.value.trim().toUpperCase();save();renderInspector()};if($("#ctrayasset"))$("#ctrayasset").onchange=e=>{c.assetTrayId=e.target.value.trim().toUpperCase();save();renderInspector()};
   $("#cbaseexp").onchange=e=>{c.baseExpression=normalizeEmotionEmoji(e.target.value);save();renderInspector();renderLive()};
@@ -3325,7 +3374,7 @@ function addChar(t){
     id,name:"",role:"",type:t,answerSet:true,
     x:170+(n%5)*180,
     y:240+Math.floor(n/5)*155,
-    namePool:"KEEP",appearance:[],gender:"UNSPECIFIED",age:"",artistNote:"",baseExpression:"😐",baseGaze:"NONE",baseTarget:"",assetBaseId:`${id}_BASE`,assetTrayId:t==="M"?`${id}_TRAY`:"",reactionEvents:[]
+    namePool:"KEEP",appearance:[],gender:"UNSPECIFIED",genderConfirmed:false,age:"",appearanceMode:"UNSET",artistNote:"",baseExpression:"😐",baseGaze:"NONE",baseTarget:"",assetBaseId:`${id}_BASE`,assetTrayId:t==="M"?`${id}_TRAY`:"",reactionEvents:[]
   };
   data.characters.push(c);
   ensureCharacterAssetIds(c);
@@ -3509,20 +3558,39 @@ $("#imgInput").onchange=e=>{
   e.target.value="";
 };
 
+const SCENE_CLIP_PREFIX="SXD_SCENE_COPY:";
+let sceneClipboardMarker="";
+
+// Đồng bộ vật copy trong Scene vào clipboard thật, bằng dấu nhận dạng của lần copy.
+document.addEventListener("copy",e=>{
+  if(mode!=="edit"||isTypingTarget(e.target)||!selectedSceneKeys().length)return;
+  if(!copySceneSelection())return;
+  sceneClipboardMarker=SCENE_CLIP_PREFIX+uid("");
+  if(e.clipboardData){
+    e.clipboardData.setData("text/plain",sceneClipboardMarker);
+    e.preventDefault();
+  }
+});
+
 document.addEventListener("paste",e=>{
   if(e.target?.closest?.("#endingOverlay") || $("#endingOverlay")?.classList.contains("show"))return;
-  if(sceneClipboard?.length&&!isTypingTarget(document.activeElement))return;
+  if(isTypingTarget(e.target)||isTypingTarget(document.activeElement))return;
   const items=[...(e.clipboardData?.items||[])];
   const imgs=items.filter(i=>i.type&&i.type.startsWith("image/"));
-  if(!imgs.length)return;
 
-  e.preventDefault();
-  forceEditModeNow();
+  if(imgs.length){
+    e.preventDefault();
+    forceEditModeNow();
+    imgs.forEach(i=>{const f=i.getAsFile();if(f)addImage(f)});
+    return;
+  }
 
-  imgs.forEach(i=>{
-    const f=i.getAsFile();
-    if(f)addImage(f);
-  });
+  const text=e.clipboardData?.getData("text/plain")||"";
+  if(sceneClipboard?.length&&sceneClipboardMarker&&text===sceneClipboardMarker){
+    e.preventDefault();
+    forceEditModeNow();
+    pasteSceneClipboard();
+  }
 });
 
 function selectedSceneKeys(){
@@ -3639,7 +3707,15 @@ document.addEventListener("click",()=>$("#ctx").style.display="none");
 $("#ctx").onclick=e=>{
   const action=e.target.dataset.a;if(!action)return;
 
-  if(action==="copy"){copySceneSelection();$("#ctx").style.display="none";return}
+  if(action==="copy"){
+    let copied=false;
+    try{copied=document.execCommand("copy")}catch(_){}
+    if(!copied&&copySceneSelection()){
+      sceneClipboardMarker=SCENE_CLIP_PREFIX+uid("");
+      navigator.clipboard?.writeText(sceneClipboardMarker).catch(()=>toast("Dùng menu 'Dán vật trong Scene' nếu clipboard bị chặn"));
+    }
+    $("#ctx").style.display="none";return;
+  }
   if(action==="paste"){pasteSceneClipboard();$("#ctx").style.display="none";return}
   if(action==="duplicate"){
     if(copySceneSelection())pasteSceneClipboard();
@@ -3933,13 +4009,7 @@ document.addEventListener("keydown",e=>{
   if(mod&&e.key.toLowerCase()==="y"&&!isTypingTarget(e.target)){
     e.preventDefault();redo();return;
   }
-  if(mod&&e.key.toLowerCase()==="c"&&!isTypingTarget(e.target)){
-    if(copySceneSelection())e.preventDefault();
-    return;
-  }
-  if(mod&&e.key.toLowerCase()==="v"&&!isTypingTarget(e.target)&&sceneClipboard?.length){
-    e.preventDefault();pasteSceneClipboard();return;
-  }
+  // Ctrl/Cmd+C & Ctrl/Cmd+V: để browser phát sự kiện copy/paste tự nhiên kèm marker nhận dạng.
   if((e.key==="Backspace"||e.key==="Delete")&&!isTypingTarget(e.target)){
     if(deleteSelectedObjects())e.preventDefault();
   }
@@ -4321,15 +4391,18 @@ function resolvedAssetRows(){
   (art.sceneItems||[]).filter(x=>x.exportMode!=="BAKED_BG").forEach(x=>rows.push({assetId:x.assetId,file:`Background/${x.assetId}.png`,group:x.exportMode==="FOREGROUND"?"FOREGROUND":"OBJECT",character:"",gender:"",age:"",state:x.name||"",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:x.description,artistNote:x.artistNote,tone:art.tone,exportMode:x.exportMode,reference:art.referenceNote||refs}));
   sortedCharacters().forEach(c=>{
     ensureCharacterAssetIds(c);
-    const appearance=(c.appearance||[]).join(" | ");
+    const standard=c.appearanceMode==="STANDARD";
+    const standardArtNote="NHÂN VẬT PHỔ THÔNG: Không cần đặc điểm ngoại hình riêng. Vẽ ngoại hình đời thường, hòa hợp bối cảnh, đúng độ tuổi / giới tính.";
+    const appearance=standard?"Ngoại hình phổ thông · không có đặc điểm nhận diện riêng":(c.appearance||[]).join(" | ");
+    const characterArtNote=[standard?standardArtNote:"",c.artistNote||""].filter(Boolean).join(" | ");
     const initial=initialStateRecord(c);
     const initialGaze=resolvedGazeClock(c.id,initial)?`${resolvedGazeClock(c.id,initial)} giờ`:"";
-    if(c.type==="M")rows.push({assetId:c.assetTrayId,file:`Characters/${c.id}/${c.assetTrayId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"TRAY",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
+    if(c.type==="M")rows.push({assetId:c.assetTrayId,file:`Characters/${c.id}/${c.assetTrayId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"TRAY",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:characterArtNote,tone:"",exportMode:"FULL SPRITE",reference:""});
 
     const baseId=runtimeBaseAssetId(c);
-    rows.push({assetId:baseId,file:`Characters/${c.id}/${baseId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""});
+    rows.push({assetId:baseId,file:`Characters/${c.id}/${baseId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"BASE",expressionEmoji:c.baseExpression,expressionName:emotionName(c.baseExpression),symbol:"",target:c.baseTarget||"",gaze:initialGaze,description:appearance,artistNote:characterArtNote,tone:"",exportMode:"FULL SPRITE",reference:""});
 
-    (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:c.artistNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
+    (c.reactionEvents||[]).forEach(ev=>(ev.steps||[]).forEach(st=>rows.push({assetId:st.assetId,file:`Characters/${c.id}/${st.assetId}.png`,group:"CHARACTER",character:c.id,gender:c.gender,age:c.age,state:"REACTION",expressionEmoji:st.emotion||"",expressionName:emotionName(st.emotion),symbol:st.symbol||"",target:st.target||"",gaze:resolvedGazeClock(c.id,st)?`${resolvedGazeClock(c.id,st)} giờ`:"",description:appearance,artistNote:characterArtNote,tone:"",exportMode:"FULL SPRITE",reference:""})));
   });
   const ending=data.level.ending||blankEnding();
   rows.push({assetId:ending.imageAssetId||"ENDING01",file:`Ending/${ending.imageAssetId||"ENDING01"}.png`,group:"ENDING",character:"",gender:"",age:"",state:"ENDING",expressionEmoji:"",expressionName:"",symbol:"",target:"",gaze:"",description:ending.imageBrief||"",artistNote:"",tone:"",exportMode:"GD AI · ENDING 4:3",reference:"GD tạo ảnh AI, lưu qua tab ENDING rồi xuất ảnh riêng"});
@@ -4405,9 +4478,9 @@ function buildRuntimeData(){
     characters:chars,
     clues,
     dramaReveal:{
-      text:data.level.reveal||"",
-      parentClueId:data.level.revealParentClueId||null,
-      revealWhenPlaced:deep(data.level.revealWhen||[])
+      text:data.level.revealMode==="NONE"?"":(data.level.reveal||""),
+      parentClueId:data.level.revealMode==="NONE"?null:(data.level.revealParentClueId||null),
+      revealWhenPlaced:deep(effectiveRevealWhen())
     },
     ending:{
       imageAssetId:data.level.ending?.imageAssetId||"ENDING01",
@@ -4415,6 +4488,25 @@ function buildRuntimeData(){
       cta:data.level.ending?.verdictCta||""
     }
   };
+}
+function validateArtStoryContext(){
+  const errors=[],story=String(data.level.art?.storyContext||"").trim();
+  const characterIds=new Set(sortedCharacters().map(c=>c.id));
+  if(!story){
+    errors.push({code:"ART_STORY_CONTEXT",text:"Thiếu tóm tắt câu chuyện, bối cảnh và không khí cho Art."});
+    return errors;
+  }
+  clueTokenIds(story).forEach(id=>{
+    if(!characterIds.has(id))errors.push({code:"ART_STORY_TOKEN",text:`Tóm tắt Art có mã {${id}} không tồn tại.`});
+  });
+  const plainIds=[...new Set((story.match(/\b[MF]\d{2,}\b/g)||[]))];
+  plainIds.forEach(id=>{
+    if(!characterIds.has(id))errors.push({code:"ART_STORY_ID",text:`Tóm tắt Art nhắc ${id} nhưng mã không có trong level.`});
+  });
+  if(tokenizeKnownNames(story)!==story){
+    errors.push({code:"ART_STORY_NAME",text:"Tóm tắt Art đang viết tên nhân vật trực tiếp. Hãy dùng mã M01, {M01}, F01… thay vì tên riêng."});
+  }
+  return errors;
 }
 function runPreflightCheck(includeProduction=false){
   save();
@@ -4427,12 +4519,19 @@ function runPreflightCheck(includeProduction=false){
   if(dupClues.length)addErr("CLUE_DUP",`Trùng Clue ID: ${dupClues.join(", ")}.`);
 
   if(!String(data.level.id||"").trim())addErr("LEVEL_ID","Thiếu Level ID (VD: L001).");
-  else if(!/^L\d+$/i.test(String(data.level.id||"")))addErr("LEVEL_ID_FORMAT","Level ID phải theo dạng L001 để Dev JSON có số level rõ ràng.");
-  if(includeProduction&&!String(data.level.version||"").trim())addErr("VERSION","Thiếu Version.");
+  else if(!/^L\d{3,}$/.test(String(data.level.id||""))||Number(String(data.level.id).slice(1))<1)addErr("LEVEL_ID_FORMAT","Level ID phải có ít nhất 3 chữ số và lớn hơn 0 (VD: L001, L012, L100).");
+  if(!String(data.level.version||"").trim())addErr("VERSION","Thiếu Version.");
+  validateArtStoryContext().forEach(x=>addErr(x.code,x.text));
   if(!["EASY","MEDIUM","HARD"].includes(data.level.difficultyTarget))addErr("DIFFICULTY_TARGET","Chưa chọn Độ khó GD dự định.");
   if(!String(data.level.hook||"").trim())addErr("HOOK","Thiếu Drama Hook.");
-  if(String(data.level.reveal||"").trim()&&!(data.level.revealWhen||[]).length)addErr("DRAMA_REVEAL_TRIGGER","Có Main Reveal nhưng chưa chọn điều kiện revealWhenPlaced.");
-  if((data.level.revealWhen||[]).length&&!String(data.level.reveal||"").trim())addErr("DRAMA_REVEAL_TEXT","Đã có trigger Main Reveal nhưng chưa nhập nội dung Reveal.");
+  const revealMode=data.level.revealMode||"UNSET";
+  const revealTriggers=effectiveRevealWhen();
+  if(revealMode==="UNSET")addErr("REVEAL_MODE","Main Reveal chưa xác nhận cách dùng: chọn M, tất cả M, hoặc không dùng (chỉ Easy).");
+  if(revealMode==="NONE"&&data.level.difficultyTarget!=="EASY")addErr("REVEAL_REQUIRED","Level Vừa/Khó bắt buộc có Main Reveal; chỉ Easy được bỏ qua.");
+  if(revealMode==="NONE"&&String(data.level.reveal||"").trim())addWarn("REVEAL_UNUSED","Đã chọn không dùng Main Reveal nhưng ô nội dung vẫn có chữ.");
+  if(revealMode==="SELECTED"&&!(data.level.revealWhen||[]).length)addErr("DRAMA_REVEAL_TRIGGER","Main Reveal chưa chọn Movable kích hoạt.");
+  if(["SELECTED","ALL"].includes(revealMode)&&!String(data.level.reveal||"").trim())addErr("DRAMA_REVEAL_TEXT","Đã chọn dùng Main Reveal nhưng chưa nhập nội dung Reveal.");
+  if(["SELECTED","ALL"].includes(revealMode)&&!revealTriggers.length)addErr("DRAMA_REVEAL_TRIGGER","Main Reveal chưa có Movable hợp lệ để kích hoạt.");
   if(data.level.revealParentClueId&&!clueIds.has(data.level.revealParentClueId))addErr("DRAMA_REVEAL_PARENT",`Main Drama Reveal đang trỏ tới Clue không tồn tại: ${data.level.revealParentClueId}.`);
   if(!sortedCharacters().some(c=>c.type==="M"))addErr("MOVABLE","Level chưa có Movable nào.");
   const nMovable=movableCount();
@@ -4446,9 +4545,15 @@ function runPreflightCheck(includeProduction=false){
   const seenIds=new Set();
   sortedCharacters().forEach(c=>{
     if(seenIds.has(c.id))addErr("CHAR_DUP",`Trùng Character ID: ${c.id}.`);seenIds.add(c.id);
-    if(!/^[MF]\d+$/.test(c.id))addErr("CHAR_ID",`${c.id}: Character ID phải theo dạng M01 / F01.`);
-    else if(c.type==="M"&&!/^M\d+$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Movable bắt buộc phải dùng mã Mxx.`);
-    else if(c.type==="F"&&!/^F\d+$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Fixed bắt buộc phải dùng mã Fxx.`);
+    if(!/^[MF]\d{2,}$/.test(c.id))addErr("CHAR_ID",`${c.id}: Character ID phải theo dạng M01 / F01 (ít nhất 2 chữ số).`);
+    else if(c.type==="M"&&!/^M\d{2,}$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Movable bắt buộc phải dùng mã M01, M02…`);
+    else if(c.type==="F"&&!/^F\d{2,}$/.test(c.id))addErr("CHAR_ID_TYPE",`${c.id}: Fixed bắt buộc phải dùng mã F01, F02…`);
+    if(!String(c.name||"").trim())addErr("CHAR_NAME",`${c.id}: thiếu tên nhân vật.`);
+    if(c.genderConfirmed!==true)addErr("CHAR_GENDER",`${c.id}: chưa xác nhận Giới tính / Kho tên Random.`);
+    if(!String(c.age||"").trim()||!(AGE_GROUPS.some(([key])=>key===c.age)))addErr("CHAR_AGE",`${c.id}: chưa chọn Nhóm độ tuổi chuẩn.`);
+    if(!["SPECIFIC","STANDARD"].includes(c.appearanceMode))addErr("CHAR_APPEARANCE",`${c.id}: chưa xác nhận Có đặc điểm ngoại hình riêng hay Phổ thông.`);
+    if(c.appearanceMode==="SPECIFIC"&&!appearanceText(c).trim())addErr("CHAR_APPEARANCE_TEXT",`${c.id}: đã chọn Có đặc điểm riêng nhưng chưa nhập bất kỳ đặc điểm nào.`);
+    if(c.appearanceMode==="STANDARD"&&appearanceText(c).trim())addWarn("CHAR_STANDARD_APPEARANCE",`${c.id}: chọn ngoại hình phổ thông nhưng vẫn có mô tả riêng. Nếu có hint ngoại hình, hãy đổi sang 'Có đặc điểm riêng'.`);
     if(!Number.isFinite(Number(c.x))||!Number.isFinite(Number(c.y)))addErr("CHAR_POS",`${c.id} chưa có vị trí hợp lệ trên scene.`);
     if(c.baseTarget&&!charIds.has(c.baseTarget))addErr("INITIAL_TARGET",`${c.id}: Initial State target ${c.baseTarget} không tồn tại.`);
     if(c.baseGaze==="AUTO"&&!c.baseTarget)addErr("INITIAL_GAZE_AUTO",`${c.id}: Initial State dùng AUTO nhưng chưa chọn Target nhìn.`);
@@ -4464,6 +4569,8 @@ function runPreflightCheck(includeProduction=false){
       (ev.triggerChars||[]).forEach(id=>{if(!charIds.has(id))addErr("REACTION_TRIGGER",`${c.id} Reaction ${ei+1}: trigger trỏ tới ID không tồn tại: ${id}.`)});
       (ev.steps||[]).forEach((st,si)=>{
         if(st.target&&!charIds.has(st.target))addErr("REACTION_TARGET",`${c.id} Reaction ${ei+1} step ${si+1}: target ${st.target} không tồn tại.`);
+        if(st.gaze==="AUTO"&&!st.target)addErr("REACTION_GAZE_AUTO",`${c.id} Reaction ${ei+1} step ${si+1}: gaze AUTO nhưng thiếu target.`);
+        if(!Number.isFinite(Number(st.duration))||Number(st.duration)<=0)addErr("REACTION_DURATION",`${c.id} Reaction ${ei+1} step ${si+1}: thời lượng step không hợp lệ.`);
         if(includeProduction&&!String(st.assetId||"").trim())addErr("REACTION_ASSET",`${c.id} Reaction ${ei+1} step ${si+1}: thiếu Asset ID.`);
       });
     });
@@ -4478,7 +4585,17 @@ function runPreflightCheck(includeProduction=false){
     clueTokenIds(cl.text||"").forEach(id=>{if(!charIds.has(id))addErr("CLUE_TOKEN",`${cl.id}: token {${id}} không tồn tại.`)});
   });
 
-  (data.level.revealWhen||[]).forEach(id=>{
+  (data.clues||[]).forEach(cl=>{
+    if(!String(cl.text||"").trim())addErr("CLUE_TEXT",`${cl.id}: chưa nhập nội dung Clue.`);
+    if(!(cl.resolveWhen||[]).length)addErr("CLUE_COMPLETE",`${cl.id}: chưa chọn Movable tại 'Clue hoàn thành khi đặt' (resolveWhen).`);
+    const seen=new Set([cl.id]);let current=cl;
+    while(current?.parent){
+      if(seen.has(current.parent)){addErr("CLUE_CYCLE",`${cl.id}: Clue Tree có vòng lặp parent, Clue này không bao giờ mở được.`);break}
+      seen.add(current.parent);current=(data.clues||[]).find(q=>q.id===current.parent);
+    }
+  });
+
+  effectiveRevealWhen().forEach(id=>{
     if(!charIds.has(id))addErr("REVEAL_TRIGGER",`Main Reveal trỏ tới ID không tồn tại: ${id}.`);
     else if(!movableIds.has(id))addErr("REVEAL_FIXED",`Main Reveal dùng ${id} là Fixed; điều kiện placement này sẽ không xảy ra.`);
   });
@@ -4518,12 +4635,12 @@ function runPreflightCheck(includeProduction=false){
 function checkItemHtml(item,kind){return `<div class="checkItem ${kind}"><b>${esc(item.code)}</b> · ${esc(item.text)}</div>`}
 function renderPreflightCheck(result){
   const e=result.errors||[],w=result.warnings||[],production=!!result.production;
-  const status=e.length?"CÒN LỖI":w.length?"ĐẠT · CÓ CẢNH BÁO":"ĐẠT TIÊU CHUẨN";
+  const status=e.length?"CÒN LỖI":w.length?"DATA PASS · CÓ WARNING":"DATA PASS · CHỜ LOGIC REVIEW";
   const statusClass=e.length?"err":w.length?"warn":"ok";
-  $("#checkLevelBody").innerHTML=`<div class="checkSummary"><span class="checkChip ${statusClass}">${production?"KIỂM TRA XUẤT BẢN":"KIỂM TRA THIẾT KẾ"} · ${status}</span><span class="checkChip err">${e.length} lỗi</span><span class="checkChip warn">${w.length} cảnh báo</span></div>
+  $("#checkLevelBody").innerHTML=`<div class="checkSummary"><span class="checkChip ${statusClass}">${production?"PRODUCTION CHECK":"DESIGN CHECK"} · ${status}</span><span class="checkChip err">${e.length} lỗi</span><span class="checkChip warn">${w.length} warning</span></div>
   <div class="checkSection"><h4>Lỗi Tool biết chắc</h4>${e.length?e.map(x=>checkItemHtml(x,"err")).join(""):'<div class="checkEmpty">✓ Không có lỗi blocking.</div>'}</div>
-  <div class="checkSection"><h4>Cảnh báo để GD cân nhắc</h4>${w.length?w.map(x=>checkItemHtml(x,"warn")).join(""):'<div class="checkEmpty">✓ Không có warning.</div>'}</div>
-  <div class="checkFoot">KIỂM TRA chỉ bắt lỗi dữ liệu/liên kết mà Tool biết chắc. <b>ĐẠT không có nghĩa màn chơi đã cuốn hút, đủ evidence hay đúng độ khó.</b>${production?" Kiểm tra xuất bản sẽ rà soát thêm Asset / Đoạn kết / bàn giao kỹ thuật.":""}</div>`;
+  <div class="checkSection"><h4>Warning để GD review</h4>${w.length?w.map(x=>checkItemHtml(x,"warn")).join(""):'<div class="checkEmpty">✓ Không có warning.</div>'}</div>
+  <div class="checkFoot">DATA PASS chỉ xác nhận dữ liệu đã đủ theo quy chuẩn. <b>Vẫn cần Lead kiểm tra Logic, tính công bằng và đường giải trước khi chốt level.</b>${production?" Production Check mới kiểm thêm Asset / Ending / handoff.":""}</div>`;
 }
 function openPreflightCheck(){const r=runPreflightCheck(false);renderPreflightCheck(r);$("#checkOverlay").classList.add("show");return r}
 function validateEndingData(){
@@ -4543,9 +4660,14 @@ function xlsxCell(v,row,col,style=0){
   if(typeof v==="number"&&Number.isFinite(v))return `<c r="${ref}"${style?` s="${style}"`:""}><v>${v}</v></c>`;
   return `<c r="${ref}" t="inlineStr"${style?` s="${style}"`:""}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
 }
-function makeXlsxSheet(rows,widths=[],merges=[]){
+function makeXlsxSheet(rows,widths=[],merges=[],boldRows=[],wrapNotes=false,storyRow=0){
   const cols=widths.length?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";
-  const sheetRows=rows.map((row,ri)=>`<row r="${ri+1}"${ri===0?' ht="24" customHeight="1"':''}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,ri===0?1:0)).join("")}</row>`).join("");
+  const sheetRows=rows.map((row,ri)=>{
+    const standardNote=wrapNotes&&String(row[13]||"").includes("NHÂN VẬT PHỔ THÔNG");
+    const backgroundStory=wrapNotes&&String(row[13]||"").includes("TÓM TẮT CÂU CHUYỆN");
+    const ht=(storyRow&&ri+1===storyRow)?' ht="108" customHeight="1"':ri===0?' ht="24" customHeight="1"':backgroundStory?' ht="134" customHeight="1"':standardNote?' ht="76" customHeight="1"':'';
+    return `<row r="${ri+1}"${ht}>${row.map((v,ci)=>xlsxCell(v,ri+1,ci+1,(ri===0||boldRows.includes(ri+1)||(storyRow&&ri+1===storyRow&&ci===0))?1:((wrapNotes&&(ci===12||ci===13))||(storyRow&&ri+1===storyRow&&ci===1)?2:0))).join("")}</row>`;
+  }).join("");
   const mergeXml=merges.length?`<mergeCells count="${merges.length}">${merges.map(m=>`<mergeCell ref="${m}"/>`).join("")}</mergeCells>`:"";
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"/></sheetViews>${cols}<sheetData>${sheetRows}</sheetData>${mergeXml}</worksheet>`;
 }
@@ -4570,6 +4692,14 @@ function zipStore(files){
 }
 function exportAssetRequest(){
   save();
+  const storyErrors=validateArtStoryContext();
+  if(storyErrors.length){
+    selected={type:"level",id:"level"};renderInspector();
+    renderPreflightCheck({errors:storyErrors,warnings:[],production:true});
+    $("#checkOverlay").classList.add("show");
+    toast("Tóm tắt câu chuyện cho Art chưa hợp lệ — sửa trước khi xuất Asset Request");
+    return;
+  }
   const v=validateAssetData();
   if(v.missing||v.dups.length){toast(`Asset ID lỗi: ${v.missing?"thiếu "+v.missing:""}${v.dups.length?" · trùng "+v.dups.join(", "):""}`);return}
   const headers=["Asset ID","File","Group","Character","Gender","Age","State","Emoji","Tên biểu cảm","Symbol","Target","Gaze Clock","Description / Appearance","Artist Note","Tone màu","Export Mode","Reference"];
@@ -4586,7 +4716,7 @@ function exportAssetRequest(){
     ["Kích thước", "1080 × 1610 / ảnh"],
     ["START", "Chỉ Fixed + background/ảnh/shape được bật Hiện trong Play, gồm cả slot ? nếu có."],
     ["SOLVED", "Tất cả Fixed + Movable đúng chỗ; chỉ thể hiện bố cục, reaction cuối có thể phụ thuộc thứ tự chơi."],
-    [""], [""], [""], [""], [""],
+    ["CÂU CHUYỆN & KHÔNG KHÍ", data.level.art?.storyContext||""], [""], [""], [""], [""],
     ["", "DÁN ẢNH SCENE START VÀO DƯỚI NÀY", "DÁN ẢNH SCENE SOLVED VÀO DƯỚI NÀY"],
     [""],
     ...Array.from({length:33},()=>["", "", ""])
@@ -4596,9 +4726,9 @@ function exportAssetRequest(){
     "_rels/.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`,
     "xl/workbook.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ASSET REQUEST" sheetId="1" r:id="rId1"/><sheet name="SCENE START + SOLVED" sheetId="2" r:id="rId2"/></sheets></workbook>`,
     "xl/_rels/workbook.xml.rels":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`,
-    "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
-    "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,12,34,34,22,18,34]),
-    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9"],[15])
+    "xl/styles.xml":`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment wrapText="1" vertical="top"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+    "xl/worksheets/sheet1.xml":makeXlsxSheet(assetRows,[16,31,15,12,24,11,11,15,10,24,10,12,42,48,22,18,34],[],[],true),
+    "xl/worksheets/sheet2.xml":makeXlsxSheet(sceneRows,[32,90,90],["A1:C1","A2:C2","B8:C8","B9:C9","B10:C13"],[15],false,10)
   };
   const blob=new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${base}_ASSET_REQUEST.xlsx`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
@@ -5413,4 +5543,7 @@ window.createAnnotation = createAnnotation;
 window.duplicateAnnotation = duplicateAnnotation;
 window.byAnn = byAnn;
 window.refreshImmediate = refreshImmediate;
+window.SCENE_CLIP_PREFIX = SCENE_CLIP_PREFIX;
+window.effectiveRevealWhen = effectiveRevealWhen;
+window.validateArtStoryContext = validateArtStoryContext;
 })();

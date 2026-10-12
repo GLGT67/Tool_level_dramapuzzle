@@ -2773,3 +2773,8 @@ body.play .trayrow .token { justify-self: center; }
 @media(max-width: 1200px) {
   .canvasTopBar { padding: 0 8px; gap: 6px; }
 }
+
+/* Các trường GD phải điền / xác nhận: chấm đỏ + chữ đỏ, không dùng chấm xanh. */
+label.requiredField { color: #bf2544 !important; font-weight: 900; }
+.requiredMark { color: #dc2548; font-weight: 1000; font-size: 15px; vertical-align: baseline; margin-right: 3px; }
+.requiredHeader { color: #bf2544; font-weight: 950; }
