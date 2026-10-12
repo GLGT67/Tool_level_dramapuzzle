@@ -170,6 +170,7 @@ button { cursor: pointer; }
 .brandText {
   background: linear-gradient(135deg, var(--ink) 30%, var(--primary) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .version {
