@@ -1383,7 +1383,7 @@ body.play .drawingCanvas.hidePlay {
 }
 .noteObj.locked .noteResize { display: none !important; }
 
-.char.flipped .face { transform: scaleX(-1); }
+.char.flipped .face, .token.flipped .face { transform: scaleX(-1); }
 
 /* Align Toolbar */
 .alignBar {

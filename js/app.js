@@ -1042,10 +1042,10 @@ function renderLists(){
 
 function clueList(c){
   const kids=data.clues.filter(x=>x.parent===c.id);
-  const state=c.parent?c.preOpen:"ACTIVE";
+  const state=c.parent?(c.preOpen||"LOCKED"):"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
   return `<div class="clueWrap" data-clue-wrap="${c.id}">
-    <div class="card clueSortable clueCardDraggable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" draggable="true" data-s="clue:${c.id}" data-clue-id="${c.id}" data-clue-row="${c.id}">
+    <div class="card clueSortable clueCardDraggable ${selected.type==="clue"&&selected.id===c.id?"sel":""}" data-s="clue:${c.id}" data-clue-id="${c.id}" data-clue-row="${c.id}">
       <button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <b>${c.id}</b>
@@ -1357,7 +1357,7 @@ function renderLive(){
 
     const el=document.createElement("div");
     const ckey="char:"+c.id;
-    el.className="char "+(c.type==="F"?"f ":"")+(mode==="edit"&&selected.type==="char"&&selected.id===c.id?"sel ":"")+(multiSel.has(ckey)?"multiSel":"");
+    el.className="char "+(c.flipH?"flipped ":"")+(c.type==="F"?"f ":"")+(mode==="edit"&&selected.type==="char"&&selected.id===c.id?"sel ":"")+(multiSel.has(ckey)?"multiSel":"");
     el.dataset.charId=c.id;
     el.style.cssText=`left:${c.x/1080*100}%;top:${c.y/1610*100}%`;
     const rv=mode==="play"?play.reactions[c.id]:null;
@@ -1383,7 +1383,8 @@ function renderLive(){
   renderClues();
   renderTray();
   redrawDrawingCanvas();
-  $("#progress").textContent=mode==="play"?(play?.failed?"💔 HẾT MẠNG · CHƠI LẠI":`${Object.keys(play?.placed||{}).length}/${data.characters.filter(c=>c.type==="M").length} đúng`):"CHẾ ĐỘ BIÊN TẬP";
+  const mTotal = data.characters.filter(c=>c.type==="M").length;
+  $("#progress").textContent=mode==="play"?(play?.failed?"💔 HẾT MẠNG · CHƠI LẠI":(mTotal===0?"CHƯA CÓ NHÂN VẬT M":`${Object.keys(play?.placed||{}).length}/${mTotal} đúng`)):"CHẾ ĐỘ BIÊN TẬP";
   document.body.classList.toggle("play",mode==="play");
   const playLeft = $("#playLeftSection"); if(playLeft) playLeft.style.display = mode==="play" ? "flex" : "none";
   const playRight = $("#playRightSection"); if(playRight) playRight.style.display = mode==="play" ? "flex" : "none";
@@ -1403,7 +1404,7 @@ function renderLive(){
 }
 
 function editClue(c,d){
-  const state=c.parent?c.preOpen:"ACTIVE";
+  const state=c.parent?(c.preOpen||"LOCKED"):"ACTIVE";
   const label=state==="ACTIVE"?"CÓ SẴN":state==="LOCKED"?"KHÓA":"ẨN";
   return `<div class="cl clueSortable ${d?"child":""}" data-live="${c.id}" data-clue-row="${c.id}">
     <button class="clueGrip" type="button" data-clue-grip="${c.id}" title="Kéo để đổi vị trí clue (chỉ trong cùng cấp)" aria-label="Kéo đổi thứ tự ${c.id}">⠿</button>
@@ -1443,36 +1444,14 @@ function moveClueOrder(id, dir){
   if(targetIdx < 0 || targetIdx >= siblings.length) return;
   
   const targetClue = siblings[targetIdx];
-  const realIdxA = data.clues.indexOf(c);
-  const realIdxB = data.clues.indexOf(targetClue);
-  if(realIdxA !== -1 && realIdxB !== -1){
-    data.clues[realIdxA] = targetClue;
-    data.clues[realIdxB] = c;
-    save();
-    refreshImmediate();
+  const ok = reorderClue(c.id, targetClue.id, dir === "up");
+  if(ok){
     toast(`Đã chuyển manh mối ${c.id} ${dir === "up" ? "lên trên" : "xuống dưới"}`);
   }
 }
 
 function reorderClueDrag(srcId, tgtId, position){
-  if(srcId === tgtId) return;
-  const src = data.clues.find(x => x.id === srcId);
-  const tgt = data.clues.find(x => x.id === tgtId);
-  if(!src || !tgt) return;
-  
-  const oldIdx = data.clues.indexOf(src);
-  if(oldIdx === -1) return;
-  data.clues.splice(oldIdx, 1);
-  
-  let targetIdx = data.clues.indexOf(tgt);
-  if(position === "after") targetIdx++;
-  data.clues.splice(targetIdx, 0, src);
-  
-  src.parent = tgt.parent;
-  
-  save();
-  refreshImmediate();
-  toast(`Đã đổi vị trí manh mối: ${src.id} -> ${tgt.id}`);
+  return reorderClue(srcId, tgtId, position === "before");
 }
 
 function initClueReorderListeners(){
@@ -1486,37 +1465,6 @@ function initClueReorderListeners(){
     btn.onclick = (e) => {
       e.stopPropagation();
       moveClueOrder(btn.dataset.moveDown, "down");
-    };
-  });
-  $$('.clueCardDraggable').forEach(card => {
-    card.ondragstart = (e) => {
-      e.dataTransfer.setData("text/plain", card.dataset.clueId);
-      card.classList.add("dragging");
-    };
-    card.ondragend = () => {
-      card.classList.remove("dragging");
-      $$('.clueCardDraggable').forEach(c => c.classList.remove("dragOverTop", "dragOverBottom"));
-    };
-    card.ondragover = (e) => {
-      e.preventDefault();
-      const rect = card.getBoundingClientRect();
-      const isTop = e.clientY < rect.top + rect.height / 2;
-      card.classList.toggle("dragOverTop", isTop);
-      card.classList.toggle("dragOverBottom", !isTop);
-    };
-    card.ondragleave = () => {
-      card.classList.remove("dragOverTop", "dragOverBottom");
-    };
-    card.ondrop = (e) => {
-      e.preventDefault();
-      const srcId = e.dataTransfer.getData("text/plain");
-      const tgtId = card.dataset.clueId;
-      const rect = card.getBoundingClientRect();
-      const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after";
-      card.classList.remove("dragOverTop", "dragOverBottom");
-      if(srcId && tgtId && srcId !== tgtId){
-        reorderClueDrag(srcId, tgtId, position);
-      }
     };
   });
 }
@@ -1537,6 +1485,9 @@ function renderClues(){
       if(play?.failed){
         progPill.textContent = "💔 HẾT MẠNG";
         progPill.className = "pill bad";
+      } else if(total === 0){
+        progPill.textContent = "Chưa có nhân vật M";
+        progPill.className = "pill";
       } else if(placedCount === total && total > 0){
         progPill.textContent = "🎉 HOÀN THÀNH";
         progPill.className = "pill good";
@@ -1693,7 +1644,7 @@ function renderTray(){
 
   list.forEach(c=>{
     const t=document.createElement("div");
-    t.className="token "+(c.type==="F"?"f ":"")+(mode==="edit"?"placed":"");
+    t.className="token "+(c.flipH?"flipped ":"")+(c.type==="F"?"f ":"")+(mode==="edit"?"placed":"");
     t.title=mode==="edit"?"Character luôn có cả trên Tray và Scene. Kéo token để đổi vị trí scene.":"Kéo vào scene";
     const rv=mode==="play"?play.reactions[c.id]:null;
     const initialGaze=!rv?initialGazePreview(c,mode==="edit"):"";
@@ -4270,7 +4221,8 @@ function evalRun(placedId=null,isStart=false){
 
   fireReactionEvents(placedId,isStart);
 
-  if(!play.reveal&&data.level.revealWhen.length&&data.level.revealWhen.every(id=>play.placed[id])){
+  const rw = effectiveRevealWhen();
+  if(!play.reveal && rw.length && rw.every(id => play.placed[id])){
     play.reveal=true;
     if(data.level.reveal)toast("MAIN REVEAL · "+resolveTokens(data.level.reveal));
   }
@@ -4286,7 +4238,8 @@ function buildFlowHtml(){
   const rootHtml=roots.length?roots.map(c=>`<div class="flowCard"><span class="flowTag start">START</span><b>${esc(c.id)}</b><div class="meta">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}</div>${(c.resolveWhen||[]).length?`<div class="small">Hoàn tất khi: ${esc(flowPlacedLabel(c.resolveWhen))}</div>`:""}</div>`).join(""):'<div class="flowCard"><span class="flowTag warn">⚠</span><b>Chưa có Root Clue</b><div class="meta">Player vẫn có thể dùng visual/Initial State, nhưng cần Play để chắc chắn có opening rõ.</div></div>';
   const childHtml=(data.clues||[]).filter(c=>c.parent).map(c=>`<div class="flowCard"><span class="flowTag">CLUE</span><b>${esc(c.parent)} → ${esc(c.id)}</b><div class="meta">${c.preOpen==="HIDDEN"?"Ẩn":"Khóa"} trước khi mở · Parent hoàn tất thì mở</div><div class="small">${esc(resolveTokens(c.text||"(draft)",editNameMap()))}${(c.resolveWhen||[]).length?`<br>Hoàn tất khi: ${esc(flowPlacedLabel(c.resolveWhen))}`:""}</div></div>`).join("")||'<div class="small">Không có clue con.</div>';
   const rx=[];sortedCharacters().forEach(c=>(c.reactionEvents||[]).forEach((ev,i)=>rx.push(`<div class="flowCard"><span class="flowTag">REACTION</span><b>${esc(triggerLabel(c,ev))} → ${esc(c.id)} R${i+1}</b><div class="meta">${esc(sequencePreview(ev,c.id))}</div></div>`)));
-  const reveal=(String(data.level.reveal||"").trim()||(data.level.revealWhen||[]).length)?`<div class="flowCard"><span class="flowTag">REVEAL</span><b>${esc(flowPlacedLabel(data.level.revealWhen||[]))} → Main Reveal</b><div class="meta">${esc(resolveTokens(data.level.reveal||"(chưa nhập nội dung)",editNameMap()))}</div>${data.level.revealParentClueId?`<div class="small">Nằm dưới ${esc(data.level.revealParentClueId)}</div>`:""}</div>`:'<div class="small">Level này chưa dùng Main Reveal riêng.</div>';
+  const rw=effectiveRevealWhen();
+  const reveal=(String(data.level.reveal||"").trim()||rw.length)?`<div class="flowCard"><span class="flowTag">REVEAL</span><b>${esc(flowPlacedLabel(rw))} → Main Reveal</b><div class="meta">${esc(resolveTokens(data.level.reveal||"(chưa nhập nội dung)",editNameMap()))}</div>${data.level.revealParentClueId?`<div class="small">Nằm dưới ${esc(data.level.revealParentClueId)}</div>`:""}</div>`:'<div class="small">Level này chưa dùng Main Reveal riêng.</div>';
   const movable=sortedCharacters(c=>c.type==="M").map(c=>c.id);
   return `<div class="flowSection"><h4>KHỞI ĐẦU · Thông tin có sẵn</h4><div class="flowGrid">${rootHtml}</div><div class="small" style="margin-top:7px">Initial expression / gaze và visual trên Scene cũng có sẵn từ START; FLOW không bắt GD khai metadata “giúp solve ai”.</div></div><div class="flowSection"><h4>Clue mở theo Parent</h4><div class="flowGrid">${childHtml}</div></div><div class="flowSection"><h4>Reaction Trigger</h4><div class="flowGrid">${rx.join("")||'<div class="small">Không có Reaction Event.</div>'}</div></div><div class="flowSection"><h4>Main Reveal</h4><div class="flowGrid">${reveal}</div></div><div class="flowSection"><h4>Completion</h4><div class="flowCard"><span class="flowTag start">WIN</span><b>Tất cả Movable đúng</b><div class="meta">${esc(movable.join(" + ")||"Chưa có Movable")}</div></div></div><div class="sgGraphHint"><b>FLOW chỉ thể hiện state/trigger mà Tool biết chắc.</b> Nó không kết luận player đã đủ evidence hay level khó/dễ. Dùng Play + Proof / Swap / Remove để kiểm suy luận.</div>`;
 }
@@ -4876,7 +4829,7 @@ async function buildSceneCanvas(state){
       if(o.type==="qslot")drawQslotPng(ctx,o);
       else if(o.type==="rect"){ctx.fillRect(o.x,o.y,o.w,o.h);ctx.strokeRect(o.x,o.y,o.w,o.h)}
       else if(o.type==="circle"){ctx.beginPath();ctx.ellipse(o.x+o.w/2,o.y+o.h/2,o.w/2,o.h/2,0,0,Math.PI*2);ctx.fill();ctx.stroke()}
-      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}
+      else if(o.type==="triangle"){ctx.beginPath();ctx.moveTo(o.x+o.w/2,o.y);ctx.lineTo(o.x+o.w,o.y+o.h);ctx.lineTo(o.x,o.y+o.h);ctx.closePath();ctx.fill();ctx.stroke()}
       else if(o.type==="arrow"){
         const x1=o.x+(o.arrowXDir===1?0:o.w),x2=o.x+(o.arrowXDir===1?o.w:0),y1=o.y+(o.arrowYDir===1?0:o.h),y2=o.y+(o.arrowYDir===1?o.h:0);
         ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();const a=Math.atan2(y2-y1,x2-x1);
@@ -5255,33 +5208,93 @@ function alignSelectedObjects(dir){
   const items = [];
   multiSel.forEach(k => {
     const [type, id] = k.split(":");
-    if(type === "image"){ const it = byImg(id); if(it) items.push(it); }
-    else if(type === "annotation"){ const it = byAnn(id); if(it) items.push(it); }
+    if(type === "image"){
+      const it = byImg(id);
+      if(it && !it.locked) items.push({ x: it.x, y: it.y, w: it.w || 100, h: it.h || 100, obj: it, type: "image" });
+    } else if(type === "annotation"){
+      const it = byAnn(id);
+      if(it && !it.locked){
+        const isPath = ["pen", "pencil", "brush", "path"].includes(it.type) || Array.isArray(it.points);
+        items.push({ x: it.x, y: it.y, w: it.w || 50, h: it.h || 50, obj: it, type: "annotation", isPath });
+      }
+    } else if(type === "char"){
+      const it = byChar(id);
+      if(it){
+        items.push({ x: it.x - 19, y: it.y - 19, w: 38, h: 38, obj: it, type: "char", isChar: true });
+      }
+    }
   });
   if(items.length < 2) return;
   
   if(dir === "left"){
     const minX = Math.min(...items.map(it => it.x));
-    items.forEach(it => it.x = minX);
+    items.forEach(it => {
+      const dx = minX - it.x;
+      it.x = minX;
+      applyAlignShift(it, dx, 0);
+    });
   }else if(dir === "right"){
     const maxR = Math.max(...items.map(it => it.x + it.w));
-    items.forEach(it => it.x = maxR - it.w);
+    items.forEach(it => {
+      const newX = maxR - it.w;
+      const dx = newX - it.x;
+      it.x = newX;
+      applyAlignShift(it, dx, 0);
+    });
   }else if(dir === "centerX"){
     const centers = items.map(it => it.x + it.w/2);
     const avgCenter = centers.reduce((a,b)=>a+b,0) / items.length;
-    items.forEach(it => it.x = Math.round(avgCenter - it.w/2));
+    items.forEach(it => {
+      const newX = Math.round(avgCenter - it.w/2);
+      const dx = newX - it.x;
+      it.x = newX;
+      applyAlignShift(it, dx, 0);
+    });
   }else if(dir === "top"){
     const minY = Math.min(...items.map(it => it.y));
-    items.forEach(it => it.y = minY);
+    items.forEach(it => {
+      const dy = minY - it.y;
+      it.y = minY;
+      applyAlignShift(it, 0, dy);
+    });
   }else if(dir === "bottom"){
     const maxB = Math.max(...items.map(it => it.y + it.h));
-    items.forEach(it => it.y = maxB - it.h);
+    items.forEach(it => {
+      const newY = maxB - it.h;
+      const dy = newY - it.y;
+      it.y = newY;
+      applyAlignShift(it, 0, dy);
+    });
   }else if(dir === "centerY"){
     const centers = items.map(it => it.y + it.h/2);
     const avgCenter = centers.reduce((a,b)=>a+b,0) / items.length;
-    items.forEach(it => it.y = Math.round(avgCenter - it.h/2));
+    items.forEach(it => {
+      const newY = Math.round(avgCenter - it.h/2);
+      const dy = newY - it.y;
+      it.y = newY;
+      applyAlignShift(it, 0, dy);
+    });
   }
   save(); refreshImmediate(); toast("Đã căn lề các đối tượng");
+}
+
+function applyAlignShift(wrapper, dx, dy){
+  const o = wrapper.obj;
+  if(wrapper.isChar){
+    o.x = Math.max(20, Math.min(1060, Math.round(wrapper.x + 19)));
+    o.y = Math.max(20, Math.min(1590, Math.round(wrapper.y + 19)));
+  } else {
+    o.x = Math.round(wrapper.x);
+    o.y = Math.round(wrapper.y);
+    if(wrapper.isPath && Array.isArray(o.points)){
+      o.points.forEach(pt => {
+        pt.x = Math.round(pt.x + dx);
+        pt.y = Math.round(pt.y + dy);
+        if(pt.cp1){ pt.cp1.x = Math.round(pt.cp1.x + dx); pt.cp1.y = Math.round(pt.cp1.y + dy); }
+        if(pt.cp2){ pt.cp2.x = Math.round(pt.cp2.x + dx); pt.cp2.y = Math.round(pt.cp2.y + dy); }
+      });
+    }
+  }
 }
 
 function initThemeSystem(){
@@ -5546,4 +5559,10 @@ window.refreshImmediate = refreshImmediate;
 window.SCENE_CLIP_PREFIX = SCENE_CLIP_PREFIX;
 window.effectiveRevealWhen = effectiveRevealWhen;
 window.validateArtStoryContext = validateArtStoryContext;
+window.alignSelectedObjects = alignSelectedObjects;
+window.evalRun = evalRun;
+window.byChar = byChar;
+window.renderClues = renderClues;
+window.moveClueOrder = moveClueOrder;
+window.renderTray = renderTray;
 })();
